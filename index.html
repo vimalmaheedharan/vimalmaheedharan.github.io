@@ -1,128 +1,175 @@
-<body>
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vimal Maheedharan | Solutions Architect & Systems Strategist</title>
+    <!-- Tailwind CSS CDN for modern utility-first styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0b0f17',
+                        slateDark: '#161b22',
+                        borderGray: '#30363d',
+                        accentBlue: '#58a6ff',
+                        accentGlow: '#1f6feb',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0b0f17; color: #c9d1d9; }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen selection:bg-accentGlow selection:text-white">
 
-<div class="container">
-    
-    <!-- LEFT SIDEBAR: IDENTITY & PHILOSOPHY -->
-    <aside>
-        <div class="profile-card">
-            <div class="avatar-placeholder">VM</div>
-            <h1>Vimal Maheedharan</h1>
-            <div class="title-sub">Solutions Architect & Systems Strategist</div>
-            <p class="summary">
-                I design cloud-native digital infrastructures with a core focus on structural resilience, security engineering, and systemic observability. My philosophy centers on building self-healing, deterministic systems that bridge complex enterprise goals with clean, predictable software execution.
-            </p>
+    <!-- Subtle background gradient glow -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-accentGlow/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto px-6 py-12 lg:py-20">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
             
-            <ul class="contact-info">
-                <li>📧&nbsp; <a href="mailto:vimal.vasant@gmail.com">vimal.vasant@gmail.com</a></li>
-                <li>📱&nbsp; +91 8129402424</li>
-                <li>📍&nbsp; Kochi, Kerala, India</li>
-            </ul>
-        </div>
-    </aside>
+            <!-- LEFT SIDEBAR: PROFILE & HEADLINE -->
+            <aside class="lg:sticky lg:top-12 space-y-6">
+                <div class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentGlow to-accentBlue"></div>
+                    
+                    <!-- Monogram Avatar -->
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accentGlow to-accentBlue flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accentGlow/30 mb-6 group-hover:scale-105 transition-transform duration-300">
+                        VM
+                    </div>
+                    
+                    <h1 class="text-2xl font-bold tracking-tight text-white mb-2">Vimal Maheedharan</h1>
+                    <p class="text-sm font-semibold tracking-wider text-accentBlue uppercase mb-4">Solutions Architect</p>
+                    
+                    <p class="text-sm text-gray-400 leading-relaxed mb-6">
+                        I design cloud-native digital infrastructures with a core focus on structural resilience, security engineering, and systemic observability. My philosophy centers on building self-healing, deterministic systems that bridge complex enterprise goals with clean, predictable software execution.
+                    </p>
+                    
+                    <div class="border-t border-borderGray/60 pt-6 space-y-3 text-xs text-gray-400">
+                        <div class="flex items-center gap-3">
+                            <span class="text-base text-accentBlue">✉️</span>
+                            <a href="mailto:vimal.vasant@gmail.com" class="hover:text-accentBlue transition-colors">vimal.vasant@gmail.com</a>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base text-accentBlue">📱</span>
+                            <span>+91 8129402424</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-base text-accentBlue">📍</span>
+                            <span>Kochi, Kerala, India</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
 
-    <!-- MAIN CONTENT: STRATEGY & ARCHITECTURE SHOWCASE -->
-    <main>
-        
-        <!-- CORE PHILOSOPHY & CAPABILITIES -->
-        <section id="philosophy">
-            <h2>🎯 Architectural Pillars & Core Capabilities</h2>
-            <div class="tech-grid">
-                <div class="tech-category">
-                    <h3>Resilient Systems Design</h3>
-                    <div class="tags">
-                        <span class="tag">Monolith-to-Microservices Modernization</span>
-                        <span class="tag">Self-Healing Infrastructure</span>
-                        <span class="tag">Enterprise Integration Patterns (EIP)</span>
-                        <span class="tag">Domain-Driven Design (DDD)</span>
-                    </div>
-                </div>
-                <div class="tech-category">
-                    <h3>Identity & Security Governance</h3>
-                    <div class="tags">
-                        <span class="tag">Global IAM Ecosystems</span>
-                        <span class="tag">Keycloak & Auth0 SPI Frameworks</span>
-                        <span class="tag">OIDC / OAuth 2.0 Identity Federation</span>
-                        <span class="tag">Zero-Trust Cloud Environments</span>
-                    </div>
-                </div>
-                <div class="tech-category">
-                    <h3>Platform Engineering & Observability</h3>
-                    <div class="tags">
-                        <span class="tag">Proactive Observability Pipelines</span>
-                        <span class="tag">Telemetry Signals & Alerting Systems</span>
-                        <span class="tag">MTTR & On-Call Fatigue Mitigation</span>
-                        <span class="tag">SRE Strategy Implementation</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- HIGH-IMPACT SOLUTIONS SHOWCASE -->
-        <section id="solutions">
-            <h2>⚡ Systems Audits & High-Impact Solutions</h2>
-            <div class="project-list">
+            <!-- RIGHT COLUMN: MAIN CONTENT SHOWCASE -->
+            <main class="lg:col-span-2 space-y-10">
                 
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-title">Federated Identity Systems & Security Integration</div>
+                <!-- PILLARS SECTION -->
+                <section class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
+                        <span class="text-accentBlue">🎯</span> Architectural Pillars & Capabilities
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 transition-colors">
+                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Resilient Systems Design</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Monolith-to-Microservices Modernization</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Self-Healing Infrastructure</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Enterprise Integration Patterns (EIP)</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Domain-Driven Design (DDD)</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 transition-colors">
+                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Identity & Security Governance</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Global IAM Ecosystems</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Keycloak & Auth0 SPI Frameworks</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">OIDC / OAuth 2.0 Identity Federation</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Zero-Trust Cloud Environments</span>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 transition-colors">
+                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Platform Engineering & Observability</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Proactive Observability Pipelines</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">Telemetry Signals & Alerting Systems</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">MTTR & On-Call Fatigue Mitigation</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-350">SRE Strategy Implementation</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="project-stack">Keycloak Custom SPIs, OpenID Connect, OAuth 2.0, CloudIAM, HashiCorp Vault</div>
-                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
-                        Architected complex identity management modernizations to secure high-tier global enterprise platforms. Focused heavily on custom event listener implementations to actively detect threat vectors and brute-force scenarios, translating strict regulatory compliance into robust authentication gates.
+                </section>
+
+                <!-- SOLUTIONS SHOWCASE -->
+                <section class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
+                        <span class="text-accentBlue">⚡</span> Architectural Solutions
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div class="group border-l-2 border-accentGlow pl-4 space-y-2">
+                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors">Federated Identity Systems & Security Integration</h3>
+                            <p class="text-xs font-mono text-gray-500">Keycloak Custom SPIs, OpenID Connect, OAuth 2.0, CloudIAM, HashiCorp Vault</p>
+                            <p class="text-sm text-gray-400 leading-relaxed">
+                                Architected complex identity management modernizations to secure high-tier global enterprise platforms. Focused heavily on custom event listener implementations to actively detect threat vectors and brute-force scenarios, translating strict regulatory compliance into robust authentication gates.
+                            </p>
+                        </div>
+
+                        <div class="group border-l-2 border-accentGlow pl-4 space-y-2">
+                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors">High-Throughput Ecosystem Migrations</h3>
+                            <p class="text-xs font-mono text-gray-500">Distributed Microservices, Event-Driven Topologies, Cloud Run, API Gateways</p>
+                            <p class="text-sm text-gray-400 leading-relaxed">
+                                Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices. Structured reliable messaging cross-connections over cloud environments to orchestrate complex data flows without sacrificing performance.
+                            </p>
+                        </div>
+
+                        <div class="group border-l-2 border-accentGlow pl-4 space-y-2">
+                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors">Performance Auditing & Telemetry Optimization</h3>
+                            <p class="text-xs font-mono text-gray-500">New Relic, Grafana Stack, Automated Load Testing (k6/Locust), Node.js Streams</p>
+                            <p class="text-sm text-gray-400 leading-relaxed">
+                                Conducted zero-production-impact engineering audits and cryptographic library benchmarking to resolve memory leaks and maximize throughput. Established systemic observability frameworks that turn high-volume telemetry noise into actionable operational insights.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INSIGHTS SECTION -->
+                <section class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
+                        <span class="text-accentBlue">📝</span> Architectural Insights & Perspectives
+                    </h2>
+                    <p class="text-sm text-gray-400">
+                        I regularly explore and publish technical perspectives focused on optimizing modern web infrastructure, distributed patterns, and automated platform engineering.
                     </p>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-title">High-Throughput Ecosystem Migrations</div>
+                    
+                    <div class="divide-y divide-borderGray/40">
+                        <div class="py-4 first:pt-0 group cursor-pointer">
+                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue transition-colors">Most Outages Are Preventable: Designing Self-Healing Cloud Ecosystems</h4>
+                            <p class="text-xs text-gray-400 mt-1">A strategic breakdown on reducing on-call fatigue through structured infrastructure safeguards.</p>
+                        </div>
+                        <div class="py-4 group cursor-pointer">
+                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue transition-colors">Microfrontends Without Frameworks: Decoupled UI Delivery at Scale</h4>
+                            <p class="text-xs text-gray-400 mt-1">Evaluating lightweight, production-proven deployment architectures for multi-team delivery pipelines.</p>
+                        </div>
+                        <div class="py-4 last:pb-0 group cursor-pointer">
+                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue transition-colors">Node.js Streams & Its Structural Performance Patterns</h4>
+                            <p class="text-xs text-gray-400 mt-1">A deep-dive analysis into backpressure handling, high-volume IO buffering, and memory profiling.</p>
+                        </div>
                     </div>
-                    <div class="project-stack">Distributed Microservices, Event-Driven Topologies, Cloud Run, API Gateways</div>
-                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
-                        Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices. Structured reliable messaging cross-connections over cloud environments to orchestrate complex data flows without sacrificing performance.
-                    </p>
-                </div>
+                </section>
 
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-title">Performance Auditing & Telemetry Optimization</div>
-                    </div>
-                    <div class="project-stack">New Relic, Grafana Stack, Automated Load Testing (k6/Locust), Node.js Streams</div>
-                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
-                        Conducted zero-production-impact engineering audits and cryptographic library benchmarking to resolve memory leaks and maximize throughput. Established systemic observability frameworks that turn high-volume telemetry noise into actionable operational insights.
-                    </p>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- THOUGHT LEADERSHIP & R&D -->
-        <section id="insights">
-            <h2>📝 Architectural Insights & Technical Directions</h2>
-            <div class="project-list">
-                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
-                    I regularly explore and publish technical perspectives focused on optimizing modern web infrastructure, distributed patterns, and automated platform engineering.
-                </p>
-                <div class="timeline-item">
-                    <div class="job-meta">
-                        <h4>Most Outages Are Preventable: Designing Self-Healing Cloud Ecosystems</h4>
-                        <p>A strategic breakdown on reducing on-call fatigue through structured infrastructure safeguards.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="job-meta">
-                        <h4>Microfrontends Without Frameworks: Decoupled UI Delivery at Scale</h4>
-                        <p>Evaluating lightweight, production-proven deployment architectures for multi-team delivery pipelines.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="job-meta">
-                        <h4>Node.js Streams & Its Structural Performance Patterns</h4>
-                        <p>A deep-dive analysis into backpressure handling, high-volume IO buffering, and memory profiling.</p>
-                    </div>
-                </div>
-            </section>
-
-    </main>
-</div>
+            </main>
+        </div>
+    </div>
 
 </body>
+</html>
