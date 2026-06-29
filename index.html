@@ -1,286 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vimal Maheedharan | Solutions Architect & Engineering Leader</title>
-    <style>
-        :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-primary: #c9d1d9;
-            --text-secondary: #8b949e;
-            --accent-blue: #58a6ff;
-            --accent-glow: #1f6feb;
-            --tag-bg: #21262d;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .container {
-            display: flex;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            gap: 40px;
-        }
-
-        /* Left Column Sidebar */
-        aside {
-            flex: 1;
-            max-width: 360px;
-            position: sticky;
-            top: 40px;
-            height: calc(100vh - 80px);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .profile-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-        }
-
-        .avatar-placeholder {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--accent-glow), var(--accent-blue));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(31, 111, 235, 0.4);
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .title-sub {
-            color: var(--accent-blue);
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-        }
-
-        .summary {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 25px;
-        }
-
-        .contact-info {
-            list-style: none;
-            font-size: 13px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-        }
-
-        .contact-info li {
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            color: var(--text-secondary);
-        }
-
-        .contact-info a {
-            color: var(--text-primary);
-            text-decoration: none;
-        }
-
-        .contact-info a:hover {
-            color: var(--accent-blue);
-        }
-
-        /* Right Column Content */
-        main {
-            flex: 2.5;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
-
-        section {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 35px;
-        }
-
-        section h2 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Expertise Tech Grid */
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .tech-category {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .tech-category h3 {
-            font-size: 14px;
-            color: var(--accent-blue);
-            margin-bottom: 12px;
-        }
-
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .tag {
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        /* Project Cards */
-        .project-list {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .project-card {
-            border-left: 3px solid var(--accent-glow);
-            padding-left: 20px;
-            margin-bottom: 10px;
-        }
-
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .project-title {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .project-role {
-            font-size: 13px;
-            color: var(--accent-blue);
-            font-style: italic;
-        }
-
-        .project-stack {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            font-family: monospace;
-        }
-
-        .project-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            list-style-type: square;
-            padding-left: 15px;
-        }
-
-        .project-desc li {
-            margin-bottom: 6px;
-        }
-
-        /* Timeline Styles */
-        .timeline-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
-            font-size: 14px;
-        }
-
-        .timeline-item:last-child {
-            border-bottom: none;
-        }
-
-        .job-meta h4 {
-            font-weight: 600;
-        }
-
-        .job-meta p {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .job-date {
-            color: var(--accent-blue);
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 968px) {
-            .container {
-                flex-direction: column;
-            }
-            aside {
-                max-width: 100%;
-                position: relative;
-                top: 0;
-                height: auto;
-            }
-        }
-    </style>
-</head>
 <body>
 
 <div class="container">
     
-    <!-- LEFT SIDEBAR -->
+    <!-- LEFT SIDEBAR: IDENTITY & PHILOSOPHY -->
     <aside>
         <div class="profile-card">
             <div class="avatar-placeholder">VM</div>
             <h1>Vimal Maheedharan</h1>
-            <div class="title-sub">Solutions Architect</div>
+            <div class="title-sub">Solutions Architect & Systems Strategist</div>
             <p class="summary">
-                Accomplished Senior Software Architect & Engineering Leader with over 18 years of experience architecting, delivering, and scaling cloud-native, distributed enterprise solutions. Expert in complex systems, monolith-to-microservices modernization, IAM patterns, and platform engineering.
+                I design cloud-native digital infrastructures with a core focus on structural resilience, security engineering, and systemic observability. My philosophy centers on building self-healing, deterministic systems that bridge complex enterprise goals with clean, predictable software execution.
             </p>
             
             <ul class="contact-info">
@@ -291,170 +20,109 @@
         </div>
     </aside>
 
-    <!-- MAIN SECTIONS -->
+    <!-- MAIN CONTENT: STRATEGY & ARCHITECTURE SHOWCASE -->
     <main>
         
-        <!-- CORE EXPERTISE -->
-        <section id="expertise">
-            <h2>⚙️ Core Technical Expertise</h2>
+        <!-- CORE PHILOSOPHY & CAPABILITIES -->
+        <section id="philosophy">
+            <h2>🎯 Architectural Pillars & Core Capabilities</h2>
             <div class="tech-grid">
                 <div class="tech-category">
-                    <h3>Architecture & Design</h3>
+                    <h3>Resilient Systems Design</h3>
                     <div class="tags">
-                        <span class="tag">Cloud-Native Distributed Systems</span>
                         <span class="tag">Monolith-to-Microservices Modernization</span>
-                        <span class="tag">Domain-Driven Design (DDD)</span>
+                        <span class="tag">Self-Healing Infrastructure</span>
                         <span class="tag">Enterprise Integration Patterns (EIP)</span>
-                        <span class="tag">API-First Architecture</span>
+                        <span class="tag">Domain-Driven Design (DDD)</span>
                     </div>
                 </div>
                 <div class="tech-category">
-                    <h3>Backend Platforms</h3>
+                    <h3>Identity & Security Governance</h3>
                     <div class="tags">
-                        <span class="tag">Node.js</span>
-                        <span class="tag">TypeScript</span>
-                        <span class="tag">Java (Spring Boot / MVC / WildFly)</span>
-                        <span class="tag">Python (Flask)</span>
-                        <span class="tag">Ruby on Rails</span>
+                        <span class="tag">Global IAM Ecosystems</span>
+                        <span class="tag">Keycloak & Auth0 SPI Frameworks</span>
+                        <span class="tag">OIDC / OAuth 2.0 Identity Federation</span>
+                        <span class="tag">Zero-Trust Cloud Environments</span>
                     </div>
                 </div>
                 <div class="tech-category">
-                    <h3>Cloud & Devops Platform</h3>
+                    <h3>Platform Engineering & Observability</h3>
                     <div class="tags">
-                        <span class="tag">AWS</span>
-                        <span class="tag">GCP</span>
-                        <span class="tag">Azure</span>
-                        <span class="tag">Kubernetes</span>
-                        <span class="tag">Docker</span>
-                        <span class="tag">Ansible</span>
-                        <span class="tag">Terraform</span>
-                        <span class="tag">GitHub Actions</span>
-                    </div>
-                </div>
-                <div class="tech-category">
-                    <h3>Identity & Security Management</h3>
-                    <div class="tags">
-                        <span class="tag">OIDC / OAuth 2.0</span>
-                        <span class="tag">Keycloak</span>
-                        <span class="tag">Auth0</span>
-                        <span class="tag">CloudIAM</span>
-                        <span class="tag">MFA & HashiCorp Vault</span>
-                        <span class="tag">OWASP Top 10</span>
-                    </div>
-                </div>
-                <div class="tech-category">
-                    <h3>Data, Messaging & Observability</h3>
-                    <div class="tags">
-                        <span class="tag">PostgreSQL / MongoDB Atlas</span>
-                        <span class="tag">Kafka / RabbitMQ</span>
-                        <span class="tag">New Relic / Grafana</span>
-                        <span class="tag">ELK Stack / Sentry</span>
+                        <span class="tag">Proactive Observability Pipelines</span>
+                        <span class="tag">Telemetry Signals & Alerting Systems</span>
+                        <span class="tag">MTTR & On-Call Fatigue Mitigation</span>
+                        <span class="tag">SRE Strategy Implementation</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- MAJOR TRANSFORMATIONS -->
-        <section id="transformations">
-            <h2>🚀 Key Enterprise Transformations</h2>
+        <!-- HIGH-IMPACT SOLUTIONS SHOWCASE -->
+        <section id="solutions">
+            <h2>⚡ Systems Audits & High-Impact Solutions</h2>
             <div class="project-list">
                 
                 <div class="project-card">
                     <div class="project-header">
-                        <div class="project-title">Horizon & Vision — Pan-European Claims Management Platform</div>
-                        <div class="project-role">Solutions Architect</div>
+                        <div class="project-title">Federated Identity Systems & Security Integration</div>
                     </div>
-                    <div class="project-stack">Node.js, Ruby on Rails, Java, Keycloak, CloudIAM, AWS, OVHCloud, MongoDB Atlas, Redis, New Relic</div>
-                    <ul class="project-desc">
-                        <li>Led critical Integrations Architecture initiatives, successfully integrating Keycloak OIDC and securing the onboarding of high-tier automotive manufacturing clients (e.g., Volkswagen UK).</li>
-                        <li>Owned end-to-end delivery and governance for critical production software releases, enforcing strict quality gate checks and comprehensive security audits to maximize platform stability.</li>
-                        <li>Designed and implemented observability strategies utilizing New Relic, establishing proactive alerting structures that substantially reduced mean time to incident resolution (MTTR).</li>
-                    </ul>
+                    <div class="project-stack">Keycloak Custom SPIs, OpenID Connect, OAuth 2.0, CloudIAM, HashiCorp Vault</div>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
+                        Architected complex identity management modernizations to secure high-tier global enterprise platforms. Focused heavily on custom event listener implementations to actively detect threat vectors and brute-force scenarios, translating strict regulatory compliance into robust authentication gates.
+                    </p>
                 </div>
 
                 <div class="project-card">
                     <div class="project-header">
-                        <div class="project-title">Multi-Channel Digital Platform — Global Restaurant Chain (Prêt à Manger)</div>
-                        <div class="project-role">Engineering Director</div>
+                        <div class="project-title">High-Throughput Ecosystem Migrations</div>
                     </div>
-                    <div class="project-stack">GCP (Cloud Run, Pub/Sub, Apigee), Auth0, CommerceTools, Adyen, Java Spring Boot, Kafka, Next.js, Node.js</div>
-                    <ul class="project-desc">
-                        <li>Directed Site Reliability Engineering (SRE), incident handling, and global problem management frameworks to sustain high availability across web and mobile user touchpoints powering global subscriptions and loyalty programs.</li>
-                        <li>Successfully governed the seamless architecture integration of over 25 third-party platforms spanning payments (Adyen), commerce, subscription engines, and POS systems (Oracle Simphony).</li>
-                    </ul>
+                    <div class="project-stack">Distributed Microservices, Event-Driven Topologies, Cloud Run, API Gateways</div>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
+                        Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices. Structured reliable messaging cross-connections over cloud environments to orchestrate complex data flows without sacrificing performance.
+                    </p>
                 </div>
 
                 <div class="project-card">
                     <div class="project-header">
-                        <div class="project-title">Media Supply Chain & Workflow Orchestration — Dalet Flex</div>
-                        <div class="project-role">Senior Software Architect</div>
+                        <div class="project-title">Performance Auditing & Telemetry Optimization</div>
                     </div>
-                    <div class="project-stack">AWS, Kubernetes, Spring Boot, Node.js, Python, MariaDB, RabbitMQ, Kafka, Elasticsearch, Consul</div>
-                    <ul class="project-desc">
-                        <li>Spearheaded the technical migration strategy converting a legacy monolithic JBoss/WildFly application suite into high-throughput, horizontally scalable distributed microservices.</li>
-                        <li>Built out the entire region-specific R&D team from scratch, steering recruitment, onboarding, technical training, and SDLC standardization.</li>
-                    </ul>
+                    <div class="project-stack">New Relic, Grafana Stack, Automated Load Testing (k6/Locust), Node.js Streams</div>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;">
+                        Conducted zero-production-impact engineering audits and cryptographic library benchmarking to resolve memory leaks and maximize throughput. Established systemic observability frameworks that turn high-volume telemetry noise into actionable operational insights.
+                    </p>
                 </div>
 
             </div>
         </section>
 
-        <!-- TIMELINE -->
-        <section id="experience">
-            <h2>📅 Professional Experience Timeline</h2>
-            
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Solutions Architect / Part-time Consultant</h4>
-                    <p>Trivand Technologies, Trivandrum</p>
+        <!-- THOUGHT LEADERSHIP & R&D -->
+        <section id="insights">
+            <h2>📝 Architectural Insights & Technical Directions</h2>
+            <div class="project-list">
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                    I regularly explore and publish technical perspectives focused on optimizing modern web infrastructure, distributed patterns, and automated platform engineering.
+                </p>
+                <div class="timeline-item">
+                    <div class="job-meta">
+                        <h4>Most Outages Are Preventable: Designing Self-Healing Cloud Ecosystems</h4>
+                        <p>A strategic breakdown on reducing on-call fatigue through structured infrastructure safeguards.</p>
+                    </div>
                 </div>
-                <div class="job-date">Jul 2024 – Present</div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Engineering Director</h4>
-                    <p>Photon, Trivandrum</p>
+                <div class="timeline-item">
+                    <div class="job-meta">
+                        <h4>Microfrontends Without Frameworks: Decoupled UI Delivery at Scale</h4>
+                        <p>Evaluating lightweight, production-proven deployment architectures for multi-team delivery pipelines.</p>
+                    </div>
                 </div>
-                <div class="job-date">Jun 2023 – Nov 2023</div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Senior Software Architect</h4>
-                    <p>Dalet India, Chennai (Remote)</p>
+                <div class="timeline-item">
+                    <div class="job-meta">
+                        <h4>Node.js Streams & Its Structural Performance Patterns</h4>
+                        <p>A deep-dive analysis into backpressure handling, high-volume IO buffering, and memory profiling.</p>
+                    </div>
                 </div>
-                <div class="job-date">Apr 2022 – May 2023</div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Technical Architect</h4>
-                    <p>Mozanta Technologies, Kochi</p>
-                </div>
-                <div class="job-date">Apr 2021 – Mar 2022</div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Architect</h4>
-                    <p>QBurst Technologies, Kochi</p>
-                </div>
-                <div class="job-date">Oct 2018 – Jul 2020</div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="job-meta">
-                    <h4>Solutions Architect & DevOps Lead</h4>
-                    <p>Cabot Technology Solutions, Kochi</p>
-                </div>
-                <div class="job-date">Jun 2016 – Sep 2018</div>
-            </div>
-
-        </section>
+            </section>
 
     </main>
 </div>
 
 </body>
-</html>
