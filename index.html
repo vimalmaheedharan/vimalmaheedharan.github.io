@@ -34,10 +34,29 @@
             will-change: opacity, transform;
         }
         
-        /* Triggered active state when element enters viewport */
         .reveal-on-scroll.is-visible {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        /* Peeping Joker Animation Classes */
+        .joker-peeper {
+            position: absolute;
+            right: 40px;
+            bottom: -22px; 
+            width: 55px;
+            height: 55px;
+            z-index: 0;
+            opacity: 0;
+            transform: translateY(30px) rotate(15deg);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* When the section card is hovered or focused, make the joker peep out from behind */
+        .interactive-card-parent:hover .joker-peeper {
+            opacity: 0.85;
+            transform: translateY(0px) rotate(0deg);
         }
     </style>
 </head>
@@ -51,11 +70,9 @@
             
             <!-- LEFT SIDEBAR: PROFILE & HEADLINE -->
             <aside class="lg:sticky lg:top-12 space-y-6">
-                <!-- Added smooth scale and border glow on hover -->
                 <div class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl relative overflow-hidden group hover:border-accentBlue/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accentGlow/5">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentGlow to-accentBlue"></div>
                     
-                    <!-- Monogram Avatar with continuous micro-pulse -->
                     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accentGlow to-accentBlue flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accentGlow/30 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                         VM
                     </div>
@@ -68,7 +85,6 @@
                     </p>
                     
                     <div class="border-t border-borderGray/60 pt-6 space-y-3 text-xs text-gray-400">
-                        <!-- Interactive links with sliding underline effect -->
                         <div class="flex items-center gap-3 group/link">
                             <span class="text-base text-accentBlue group-hover/link:scale-110 transition-transform">✉️</span>
                             <a href="mailto:vimal.vasant@gmail.com" class="text-gray-300 hover:text-accentBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-accentBlue hover:after:w-full after:transition-all after:duration-300">vimal.vasant@gmail.com</a>
@@ -86,16 +102,15 @@
             </aside>
 
             <!-- RIGHT COLUMN: MAIN CONTENT SHOWCASE -->
-            <main class="lg:col-span-2 space-y-10">
+            <main class="lg:col-span-2 space-y-10 relative">
                 
                 <!-- PILLARS SECTION -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                <section class="reveal-on-scroll interactive-card-parent bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">🎯</span> Architectural Pillars & Capabilities
                     </h2>
                     
                     <div class="space-y-4">
-                        <!-- Individual tech cards with dynamic scaling and background shift -->
                         <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
                             <h3 class="text-sm font-semibold text-accentBlue mb-2">Resilient Systems Design</h3>
                             <div class="flex flex-wrap gap-2">
@@ -115,27 +130,31 @@
                                 <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Zero-Trust Cloud Environments</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
-                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Platform Engineering & Observability</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Proactive Observability Pipelines</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Telemetry Signals & Alerting Systems</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">MTTR & On-Call Fatigue Mitigation</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">SRE Strategy Implementation</span>
-                            </div>
-                        </div>
+                    <!-- THE JOKER PEEPING OUT OF THE BOTTOM GAP -->
+                    <div class="joker-peeper">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Minimal Joker Mask/Face Peek -->
+                            <path d="M20,80 Q50,30 80,80" fill="#ff3e3e"/> <!-- Jester Hat Left/Right Background -->
+                            <circle cx="50" cy="75" r="28" fill="#f4edd2" stroke="#161b22" stroke-width="3"/> <!-- Face Grid -->
+                            <path d="M38,70 Q43,62 48,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Left Eye Diamond Archetype -->
+                            <path d="M52,70 Q57,62 62,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Right Eye Diamond Archetype -->
+                            <path d="M35,82 Q50,95 65,82" stroke="#ff3e3e" stroke-width="3" fill="none"/> <!-- Wide Malicious Smile -->
+                            <!-- Classic Jester Mini Pom-Poms -->
+                            <circle cx="20" cy="78" r="6" fill="#ffd700"/>
+                            <circle cx="80" cy="78" r="6" fill="#ffd700"/>
+                        </svg>
                     </div>
                 </section>
 
                 <!-- SOLUTIONS SHOWCASE -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">⚡</span> Architectural Solutions
                     </h2>
                     
                     <div class="space-y-6">
-                        <!-- Enhanced project card micro-interactions -->
                         <div class="group border-l-2 border-accentGlow/40 hover:border-accentBlue pl-4 space-y-2 transition-all duration-300">
                             <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors duration-300">Federated Identity Systems & Security Integration</h3>
                             <p class="text-xs font-mono text-gray-500">Keycloak Custom SPIs, OpenID Connect, OAuth 2.0, CloudIAM, HashiCorp Vault</p>
@@ -148,31 +167,19 @@
                             <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors duration-300">High-Throughput Ecosystem Migrations</h3>
                             <p class="text-xs font-mono text-gray-500">Distributed Microservices, Event-Driven Topologies, Cloud Run, API Gateways</p>
                             <p class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
-                                Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices. Structured reliable messaging cross-connections over cloud environments to orchestrate complex data flows without sacrificing performance.
-                            </p>
-                        </div>
-
-                        <div class="group border-l-2 border-accentGlow/40 hover:border-accentBlue pl-4 space-y-2 transition-all duration-300">
-                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors duration-300">Performance Auditing & Telemetry Optimization</h3>
-                            <p class="text-xs font-mono text-gray-500">New Relic, Grafana Stack, Automated Load Testing (k6/Locust), Node.js Streams</p>
-                            <p class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
-                                Conducted zero-production-impact engineering audits and cryptographic library benchmarking to resolve memory leaks and maximize throughput. Established systemic observability frameworks that turn high-volume telemetry noise into actionable operational insights.
+                                Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices.
                             </p>
                         </div>
                     </div>
                 </section>
 
                 <!-- INSIGHTS SECTION -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6">
+                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">📝</span> Architectural Insights & Perspectives
                     </h2>
-                    <p class="text-sm text-gray-400">
-                        I regularly explore and publish technical perspectives focused on optimizing modern web infrastructure, distributed patterns, and automated platform engineering.
-                    </p>
                     
                     <div class="divide-y divide-borderGray/40">
-                        <!-- Insight list item interactive card states -->
                         <div class="py-4 first:pt-0 group cursor-pointer">
                             <h4 class="text-sm font-medium text-white group-hover:text-accentBlue group-hover:translate-x-1 transition-all duration-300">Most Outages Are Preventable: Designing Self-Healing Cloud Ecosystems</h4>
                             <p class="text-xs text-gray-400 mt-1">A strategic breakdown on reducing on-call fatigue through structured infrastructure safeguards.</p>
@@ -180,10 +187,6 @@
                         <div class="py-4 group cursor-pointer">
                             <h4 class="text-sm font-medium text-white group-hover:text-accentBlue group-hover:translate-x-1 transition-all duration-300">Microfrontends Without Frameworks: Decoupled UI Delivery at Scale</h4>
                             <p class="text-xs text-gray-400 mt-1">Evaluating lightweight, production-proven deployment architectures for multi-team delivery pipelines.</p>
-                        </div>
-                        <div class="py-4 last:pb-0 group cursor-pointer">
-                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue group-hover:translate-x-1 transition-all duration-300">Node.js Streams & Its Structural Performance Patterns</h4>
-                            <p class="text-xs text-gray-400 mt-1">A deep-dive analysis into backpressure handling, high-volume IO buffering, and memory profiling.</p>
                         </div>
                     </div>
                 </section>
@@ -198,20 +201,18 @@
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
-                threshold: 0.12 // Triggers slightly after the card tops peek into view
+                threshold: 0.12
             };
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                        // Stop observing once visible to maintain static layout performance
                         observer.unobserve(entry.target);
                     }
                 });
             }, observerOptions);
 
-            // Select all layout sections configured for tracking
             document.querySelectorAll('.reveal-on-scroll').forEach(el => {
                 observer.observe(el);
             });
