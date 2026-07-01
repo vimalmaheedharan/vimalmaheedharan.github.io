@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -39,26 +40,25 @@
             transform: translateY(0);
         }
 
-        /* Peeping Joker Animation Classes */
-        .joker-peeper {
-            position: absolute;
-            right: 40px;
-            bottom: -22px; 
-            width: 55px;
-            height: 55px;
-            z-index: 0;
-            opacity: 0;
-            transform: translateY(30px) rotate(15deg);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-            pointer-events: none;
-        }
+        
+.card-hover{position:relative;overflow:hidden;}
+.card-hover::before{
+content:"";
+position:absolute;
+inset:0;
+background:radial-gradient(500px circle at var(--x) var(--y),rgba(88,166,255,.10),transparent 40%);
+opacity:0;
+transition:opacity .35s;
+pointer-events:none;
+}
+.card-hover:hover::before{opacity:1;}
+body{animation:fadeIn .8s ease;}
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(20px);}
+to{opacity:1;transform:none;}
+}
 
-        /* When the section card is hovered or focused, make the joker peep out from behind */
-        .interactive-card-parent:hover .joker-peeper {
-            opacity: 0.85;
-            transform: translateY(0px) rotate(0deg);
-        }
-    </style>
+</style>
 </head>
 <body class="font-sans antialiased min-h-screen selection:bg-accentGlow selection:text-white relative">
 
@@ -70,7 +70,7 @@
             
             <!-- LEFT SIDEBAR: PROFILE & HEADLINE -->
             <aside class="lg:sticky lg:top-12 space-y-6">
-                <div class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl relative overflow-hidden group hover:border-accentBlue/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accentGlow/5">
+                <div class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:bg-slate-800 hover:border-accentBlue hover:shadow-2xl hover:shadow-blue-500/20 card-hover relative overflow-hidden group hover:border-accentBlue/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accentGlow/5">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentGlow to-accentBlue"></div>
                     
                     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accentGlow to-accentBlue flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accentGlow/30 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
@@ -105,7 +105,7 @@
             <main class="lg:col-span-2 space-y-10 relative">
                 
                 <!-- PILLARS SECTION -->
-                <section class="reveal-on-scroll interactive-card-parent bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
+                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:bg-slate-800 hover:border-accentBlue hover:shadow-2xl hover:shadow-blue-500/20 card-hover space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">🎯</span> Architectural Pillars & Capabilities
                     </h2>
@@ -114,42 +114,28 @@
                         <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
                             <h3 class="text-sm font-semibold text-accentBlue mb-2">Resilient Systems Design</h3>
                             <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Monolith-to-Microservices Modernization</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Self-Healing Infrastructure</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Enterprise Integration Patterns (EIP)</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Domain-Driven Design (DDD)</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Monolith-to-Microservices Modernization</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Self-Healing Infrastructure</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Enterprise Integration Patterns (EIP)</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Domain-Driven Design (DDD)</span>
                             </div>
                         </div>
 
                         <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
                             <h3 class="text-sm font-semibold text-accentBlue mb-2">Identity & Security Governance</h3>
                             <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Global IAM Ecosystems</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Keycloak & Auth0 SPI Frameworks</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">OIDC / OAuth 2.0 Identity Federation</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Zero-Trust Cloud Environments</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Global IAM Ecosystems</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Keycloak & Auth0 SPI Frameworks</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">OIDC / OAuth 2.0 Identity Federation</span>
+                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 transition-all duration-300 ease-out hover:bg-accentGlow/15 hover:border-accentBlue hover:text-white hover:scale-110 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 cursor-default">Zero-Trust Cloud Environments</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- THE JOKER PEEPING OUT OF THE BOTTOM GAP -->
-                    <div class="joker-peeper">
-                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Minimal Joker Mask/Face Peek -->
-                            <path d="M20,80 Q50,30 80,80" fill="#ff3e3e"/> <!-- Jester Hat Left/Right Background -->
-                            <circle cx="50" cy="75" r="28" fill="#f4edd2" stroke="#161b22" stroke-width="3"/> <!-- Face Grid -->
-                            <path d="M38,70 Q43,62 48,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Left Eye Diamond Archetype -->
-                            <path d="M52,70 Q57,62 62,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Right Eye Diamond Archetype -->
-                            <path d="M35,82 Q50,95 65,82" stroke="#ff3e3e" stroke-width="3" fill="none"/> <!-- Wide Malicious Smile -->
-                            <!-- Classic Jester Mini Pom-Poms -->
-                            <circle cx="20" cy="78" r="6" fill="#ffd700"/>
-                            <circle cx="80" cy="78" r="6" fill="#ffd700"/>
-                        </svg>
-                    </div>
-                </section>
+                    </section>
 
                 <!-- SOLUTIONS SHOWCASE -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
+                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:bg-slate-800 hover:border-accentBlue hover:shadow-2xl hover:shadow-blue-500/20 card-hover space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">⚡</span> Architectural Solutions
                     </h2>
@@ -174,7 +160,7 @@
                 </section>
 
                 <!-- INSIGHTS SECTION -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
+                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl transition-all duration-500 ease-out hover:-translate-y-2 hover:scale-[1.015] hover:bg-slate-800 hover:border-accentBlue hover:shadow-2xl hover:shadow-blue-500/20 card-hover space-y-6 relative z-10">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
                         <span class="text-accentBlue">📝</span> Architectural Insights & Perspectives
                     </h2>
@@ -212,6 +198,16 @@
                     }
                 });
             }, observerOptions);
+
+            
+document.querySelectorAll(".card-hover").forEach(card=>{
+ card.addEventListener("mousemove",e=>{
+   const r=card.getBoundingClientRect();
+   card.style.setProperty("--x",(e.clientX-r.left)+"px");
+   card.style.setProperty("--y",(e.clientY-r.top)+"px");
+ });
+});
+document.querySelectorAll(".reveal-on-scroll").forEach((el,i)=>el.style.transitionDelay=(i*120)+"ms");
 
             document.querySelectorAll('.reveal-on-scroll').forEach(el => {
                 observer.observe(el);
