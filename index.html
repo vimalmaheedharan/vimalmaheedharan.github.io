@@ -1,222 +1,290 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vimal Maheedharan | Solutions Architect & Systems Strategist</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%231f6feb'/><text x='50%25' y='65%25' font-family='sans-serif' font-weight='bold' font-size='48' fill='white' dominant-baseline='middle' text-anchor='middle'>VM</text></svg>">
-    <!-- Tailwind CSS CDN for modern utility-first styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        obsidian: '#0b0f17',
-                        slateDark: '#161b22',
-                        borderGray: '#30363d',
-                        accentBlue: '#58a6ff',
-                        accentGlow: '#1f6feb',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #0b0f17; color: #c9d1d9; }
-        
-        /* High-performance initial states for scroll animation */
-        .reveal-on-scroll {
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: opacity, transform;
-        }
-        
-        .reveal-on-scroll.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
 
-        /* Peeping Joker Animation Classes */
-        .joker-peeper {
-            position: absolute;
-            right: 40px;
-            bottom: -22px; 
-            width: 55px;
-            height: 55px;
-            z-index: 0;
-            opacity: 0;
-            transform: translateY(30px) rotate(15deg);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
-            pointer-events: none;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        /* When the section card is hovered or focused, make the joker peep out from behind */
-        .interactive-card-parent:hover .joker-peeper {
-            opacity: 0.85;
-            transform: translateY(0px) rotate(0deg);
-        }
-    </style>
+<title>E-Diversify | Engineering Intelligence | Cloud • AI • Platform Engineering</title>
+
+<meta name="description"
+content="E-Diversify helps enterprises modernize legacy systems into resilient, cloud-native platforms. We specialize in AI-augmented software engineering, platform engineering, digital identity, distributed computing and secure architecture.">
+
+<meta name="keywords"
+content="Platform Engineering, Cloud Native, AI Engineering, Enterprise Architecture, Kubernetes, DevSecOps, GitOps, Zero Trust, Identity, Keycloak, OAuth2, OpenID Connect, Event Driven Architecture, Kafka, Microservices, Cloud Security, Observability, Distributed Systems, Platform Reliability">
+
+<meta name="robots" content="index,follow">
+
+<meta name="theme-color" content="#09090B">
+
+<link rel="canonical" href="https://e-diversify.com/">
+
+<!-- Open Graph -->
+<meta property="og:title" content="E-Diversify | Engineering Intelligence">
+<meta property="og:description" content="Cloud Native • AI • Identity • Platform Engineering">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://e-diversify.com/">
+<meta property="og:site_name" content="E-Diversify">
+<!-- TODO: replace with a real 1200x630 image hosted on the domain -->
+<meta property="og:image" content="https://e-diversify.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="E-Diversify">
+<meta name="twitter:description" content="Engineering Intelligence">
+<meta name="twitter:image" content="https://e-diversify.com/assets/og-image.png">
+
+<link rel="icon" href="/favicon.ico">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "E-Diversify",
+  "url": "https://e-diversify.com",
+  "description": "Engineering practice specializing in cloud-native architecture, platform engineering, AI systems, digital identity, distributed computing and secure software engineering.",
+  "sameAs": [
+    "https://www.linkedin.com/in/REPLACE_ME",
+    "https://github.com/REPLACE_ME"
+  ],
+  "areaServed": "Global",
+  "knowsAbout": [
+    "Platform Engineering",
+    "Cloud Native Architecture",
+    "Artificial Intelligence",
+    "Identity and Access Management",
+    "Zero Trust Security",
+    "Distributed Systems",
+    "Site Reliability Engineering"
+  ]
+}
+</script>
+
 </head>
-<body class="font-sans antialiased min-h-screen selection:bg-accentGlow selection:text-white relative">
 
-    <!-- Subtle background gradient glow -->
-    <div class="absolute top-0 left-1/4 w-96 h-96 bg-accentGlow/10 rounded-full blur-3xl pointer-events-none"></div>
+<body>
 
-    <div class="max-w-6xl mx-auto px-6 py-12 lg:py-20">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-            
-            <!-- LEFT SIDEBAR: PROFILE & HEADLINE -->
-            <aside class="lg:sticky lg:top-12 space-y-6">
-                <div class="bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl relative overflow-hidden group hover:border-accentBlue/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accentGlow/5">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accentGlow to-accentBlue"></div>
-                    
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accentGlow to-accentBlue flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accentGlow/30 mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                        VM
-                    </div>
-                    
-                    <h1 class="text-2xl font-bold tracking-tight text-white mb-2">Vimal Maheedharan</h1>
-                    <p class="text-sm font-semibold tracking-wider text-accentBlue uppercase mb-4">Solutions Architect</p>
-                    
-                    <p class="text-sm text-gray-400 leading-relaxed mb-6">
-                        I design cloud-native digital infrastructures with a core focus on structural resilience, security engineering, and systemic observability. My philosophy centers on building self-healing, deterministic systems that bridge complex enterprise goals with clean, predictable software execution.
-                    </p>
-                    
-                    <div class="border-t border-borderGray/60 pt-6 space-y-3 text-xs text-gray-400">
-                        <div class="flex items-center gap-3 group/link">
-                            <span class="text-base text-accentBlue group-hover/link:scale-110 transition-transform">✉️</span>
-                            <a href="mailto:vimal.vasant@gmail.com" class="text-gray-300 hover:text-accentBlue transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-accentBlue hover:after:w-full after:transition-all after:duration-300">vimal.vasant@gmail.com</a>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-base text-accentBlue">📱</span>
-                            
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-base text-accentBlue">📍</span>
-                            <span class="text-gray-300">Kochi, Kerala, India</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+<header>
 
-            <!-- RIGHT COLUMN: MAIN CONTENT SHOWCASE -->
-            <main class="lg:col-span-2 space-y-10 relative">
-                
-                <!-- PILLARS SECTION -->
-                <section class="reveal-on-scroll interactive-card-parent bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
-                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
-                        <span class="text-accentBlue">🎯</span> Architectural Pillars & Capabilities
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
-                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Resilient Systems Design</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Monolith-to-Microservices Modernization</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Self-Healing Infrastructure</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Enterprise Integration Patterns (EIP)</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Domain-Driven Design (DDD)</span>
-                            </div>
-                        </div>
+<nav>
+  <a href="#home">HOME</a>
+  <a href="#services">SERVICES</a>
+  <a href="#insights">INSIGHTS</a>
+  <a href="#labs">LABS</a>
+  <a href="#projects">PROJECTS</a>
+  <a href="/vimal/">ABOUT</a>
+  <a href="#contact">CONTACT</a>
+</nav>
 
-                        <div class="p-4 rounded-xl bg-obsidian/40 border border-borderGray/40 hover:border-accentBlue/30 hover:bg-obsidian/80 transition-all duration-300 transform hover:-translate-y-0.5">
-                            <h3 class="text-sm font-semibold text-accentBlue mb-2">Identity & Security Governance</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Global IAM Ecosystems</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Keycloak & Auth0 SPI Frameworks</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">OIDC / OAuth 2.0 Identity Federation</span>
-                                <span class="px-2.5 py-1 text-xs rounded-md bg-obsidian border border-borderGray text-gray-300 hover:border-accentBlue/40 transition-colors">Zero-Trust Cloud Environments</span>
-                            </div>
-                        </div>
-                    </div>
+<section id="home">
 
-                    <!-- THE JOKER PEEPING OUT OF THE BOTTOM GAP -->
-                    <div class="joker-peeper">
-                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Minimal Joker Mask/Face Peek -->
-                            <path d="M20,80 Q50,30 80,80" fill="#ff3e3e"/> <!-- Jester Hat Left/Right Background -->
-                            <circle cx="50" cy="75" r="28" fill="#f4edd2" stroke="#161b22" stroke-width="3"/> <!-- Face Grid -->
-                            <path d="M38,70 Q43,62 48,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Left Eye Diamond Archetype -->
-                            <path d="M52,70 Q57,62 62,70" stroke="#000" stroke-width="3" fill="none"/> <!-- Right Eye Diamond Archetype -->
-                            <path d="M35,82 Q50,95 65,82" stroke="#ff3e3e" stroke-width="3" fill="none"/> <!-- Wide Malicious Smile -->
-                            <!-- Classic Jester Mini Pom-Poms -->
-                            <circle cx="20" cy="78" r="6" fill="#ffd700"/>
-                            <circle cx="80" cy="78" r="6" fill="#ffd700"/>
-                        </svg>
-                    </div>
-                </section>
+<h1>E-DIVERSIFY</h1>
 
-                <!-- SOLUTIONS SHOWCASE -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
-                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
-                        <span class="text-accentBlue">⚡</span> Architectural Solutions
-                    </h2>
-                    
-                    <div class="space-y-6">
-                        <div class="group border-l-2 border-accentGlow/40 hover:border-accentBlue pl-4 space-y-2 transition-all duration-300">
-                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors duration-300">Federated Identity Systems & Security Integration</h3>
-                            <p class="text-xs font-mono text-gray-500">Keycloak Custom SPIs, OpenID Connect, OAuth 2.0, CloudIAM, HashiCorp Vault</p>
-                            <p class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
-                                Architected complex identity management modernizations to secure high-tier global enterprise platforms. Focused heavily on custom event listener implementations to actively detect threat vectors and brute-force scenarios, translating strict regulatory compliance into robust authentication gates.
-                            </p>
-                        </div>
+<h2>Engineering Intelligence</h2>
 
-                        <div class="group border-l-2 border-accentGlow/40 hover:border-accentBlue pl-4 space-y-2 transition-all duration-300">
-                            <h3 class="text-base font-medium text-white group-hover:text-accentBlue transition-colors duration-300">High-Throughput Ecosystem Migrations</h3>
-                            <p class="text-xs font-mono text-gray-500">Distributed Microservices, Event-Driven Topologies, Cloud Run, API Gateways</p>
-                            <p class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">
-                                Designed technical roadmaps transforming highly coupled legacy monoliths into horizontally scalable, event-driven microservices.
-                            </p>
-                        </div>
-                    </div>
-                </section>
+<p>
+We help enterprises design and build resilient digital ecosystems —
+combining cloud-native architecture, platform engineering, artificial
+intelligence, enterprise integration and secure identity into systems
+that scale without becoming fragile.
+</p>
 
-                <!-- INSIGHTS SECTION -->
-                <section class="reveal-on-scroll bg-slateDark border border-borderGray rounded-2xl p-8 shadow-xl space-y-6 relative z-10">
-                    <h2 class="text-lg font-semibold text-white flex items-center gap-3 border-b border-borderGray/60 pb-3">
-                        <span class="text-accentBlue">📝</span> Architectural Insights & Perspectives
-                    </h2>
-                    
-                    <div class="divide-y divide-borderGray/40">
-                        <div class="py-4 first:pt-0 group cursor-pointer">
-                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue group-hover:translate-x-1 transition-all duration-300">Most Outages Are Preventable: Designing Self-Healing Cloud Ecosystems</h4>
-                            <p class="text-xs text-gray-400 mt-1">A strategic breakdown on reducing on-call fatigue through structured infrastructure safeguards.</p>
-                        </div>
-                        <div class="py-4 group cursor-pointer">
-                            <h4 class="text-sm font-medium text-white group-hover:text-accentBlue group-hover:translate-x-1 transition-all duration-300">Microfrontends Without Frameworks: Decoupled UI Delivery at Scale</h4>
-                            <p class="text-xs text-gray-400 mt-1">Evaluating lightweight, production-proven deployment architectures for multi-team delivery pipelines.</p>
-                        </div>
-                    </div>
-                </section>
+<a href="#services">Explore our capabilities →</a>
 
-            </main>
-        </div>
-    </div>
+</section>
 
-    <!-- Scroll Intersection Observer Logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.12
-            };
+</header>
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
+<main>
 
-            document.querySelectorAll('.reveal-on-scroll').forEach(el => {
-                observer.observe(el);
-            });
-        });
-    </script>
+<section id="services">
+
+<h2>Capabilities</h2>
+
+<p>
+From modernizing legacy platforms to building AI-native systems from
+the ground up, we work across the full lifecycle of enterprise
+engineering — reducing operational risk while increasing delivery
+velocity.
+</p>
+
+<ul>
+  <li>Platform Engineering</li>
+  <li>Cloud Native Transformation</li>
+  <li>AI-Augmented Software Engineering</li>
+  <li>Enterprise Architecture</li>
+  <li>Identity &amp; Access Management</li>
+  <li>Zero Trust Security</li>
+  <li>Distributed Systems</li>
+  <li>Microservices Modernization</li>
+  <li>API Strategy</li>
+  <li>Infrastructure as Code</li>
+  <li>GitOps Automation</li>
+  <li>Event Streaming Platforms</li>
+  <li>Cloud Security</li>
+  <li>Platform Reliability Engineering</li>
+  <li>Site Reliability Engineering</li>
+  <li>Observability</li>
+  <li>Kubernetes</li>
+  <li>Digital Transformation</li>
+</ul>
+
+</section>
+
+<section id="tech-stack">
+
+<h2>Technology Focus</h2>
+
+<p>
+We build with tools chosen for reliability at scale, not novelty for
+its own sake:
+</p>
+
+<h3>Languages &amp; Frameworks</h3>
+<ul>
+  <li>Java</li>
+  <li>Spring Boot</li>
+  <li>Node.js</li>
+  <li>Python</li>
+  <li>Go</li>
+  <li>React</li>
+  <li>Angular</li>
+</ul>
+
+<h3>Messaging &amp; Identity</h3>
+<ul>
+  <li>Kafka</li>
+  <li>Keycloak</li>
+  <li>OAuth2</li>
+  <li>OIDC</li>
+  <li>RabbitMQ</li>
+</ul>
+
+<h3>APIs &amp; Data</h3>
+<ul>
+  <li>GraphQL</li>
+  <li>REST APIs</li>
+  <li>MongoDB</li>
+  <li>PostgreSQL</li>
+  <li>MySQL</li>
+  <li>Redis</li>
+</ul>
+
+<h3>Infrastructure &amp; Cloud</h3>
+<ul>
+  <li>Docker</li>
+  <li>Kubernetes</li>
+  <li>Azure</li>
+  <li>AWS</li>
+  <li>GCP</li>
+  <li>Terraform</li>
+  <li>Vault</li>
+</ul>
+
+<h3>Observability</h3>
+<ul>
+  <li>Prometheus</li>
+  <li>Grafana</li>
+  <li>New Relic</li>
+  <li>Elastic</li>
+  <li>OpenTelemetry</li>
+</ul>
+
+<h3>Delivery</h3>
+<ul>
+  <li>GitHub</li>
+  <li>Azure DevOps</li>
+  <li>GitLab</li>
+  <li>CI/CD</li>
+</ul>
+
+</section>
+
+<section id="principles">
+
+<h2>Engineering Principles</h2>
+
+<p>
+Technology evolves; the principles behind good engineering endure.
+Every platform we build is guided by the same core commitments:
+</p>
+
+<ul>
+  <li><strong>Design for resilience</strong> — systems that degrade gracefully, not catastrophically.</li>
+  <li><strong>Build for scale</strong> — architecture that grows with demand instead of against it.</li>
+  <li><strong>Secure by design</strong> — security built into the foundation, not bolted on afterward.</li>
+  <li><strong>Observe everything</strong> — visibility into system behavior before problems become incidents.</li>
+  <li><strong>Automate relentlessly</strong> — repeatable processes over manual toil.</li>
+  <li><strong>Optimize continuously</strong> — performance and cost as ongoing disciplines, not one-time projects.</li>
+</ul>
+
+</section>
+
+<section id="emerging-tech">
+
+<h2>Emerging Technologies</h2>
+
+<p>
+We track and apply what's next, but only where it earns its place in
+production systems:
+</p>
+
+<ul>
+  <li>Generative AI</li>
+  <li>Agentic AI</li>
+  <li>Large Language Models</li>
+  <li>Retrieval-Augmented Generation</li>
+  <li>AI Governance</li>
+  <li>Edge AI</li>
+  <li>Cloud AI Platforms</li>
+  <li>Intelligent Automation</li>
+  <li>Digital Twins</li>
+  <li>Autonomous Platforms</li>
+</ul>
+
+</section>
+
+<section id="about">
+
+<h2>About</h2>
+
+<p>
+E-Diversify is the engineering practice of an architect with a
+background spanning cloud-native systems, digital identity and
+platform reliability. Learn more about the person behind the work.
+</p>
+
+<a href="/vimal/">About Me →</a>
+
+</section>
+
+<section id="contact">
+
+<h2>Contact</h2>
+
+<p>
+Interested in working together? Reach out directly:
+</p>
+
+<ul>
+  <!-- TODO: replace placeholders with real contact details -->
+  <li>Email: <a href="mailto:hello@e-diversify.com">hello@e-diversify.com</a></li>
+  <li>LinkedIn: <a href="https://www.linkedin.com/in/REPLACE_ME">linkedin.com/in/REPLACE_ME</a></li>
+  <li>GitHub: <a href="https://github.com/REPLACE_ME">github.com/REPLACE_ME</a></li>
+</ul>
+
+</section>
+
+</main>
+
+<footer>
+  <p>© 2026 E-Diversify — Engineering Intelligence</p>
+  <p>Cloud Native • AI • Identity • Platform Engineering</p>
+</footer>
+
 </body>
+
 </html>
