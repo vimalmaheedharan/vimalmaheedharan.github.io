@@ -1,290 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering at Scale</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<title>E-Diversify | Engineering Intelligence | Cloud • AI • Platform Engineering</title>
+    <style>
+        body{
+            background:#030712;
+            overflow-x:hidden;
+        }
 
-<meta name="description"
-content="E-Diversify helps enterprises modernize legacy systems into resilient, cloud-native platforms. We specialize in AI-augmented software engineering, platform engineering, digital identity, distributed computing and secure architecture.">
+        .blob{
+            filter: blur(90px);
+            animation: float 12s ease-in-out infinite;
+        }
 
-<meta name="keywords"
-content="Platform Engineering, Cloud Native, AI Engineering, Enterprise Architecture, Kubernetes, DevSecOps, GitOps, Zero Trust, Identity, Keycloak, OAuth2, OpenID Connect, Event Driven Architecture, Kafka, Microservices, Cloud Security, Observability, Distributed Systems, Platform Reliability">
+        @keyframes float{
+            0%,100%{transform:translateY(0px) translateX(0px);}
+            50%{transform:translateY(-40px) translateX(30px);}
+        }
 
-<meta name="robots" content="index,follow">
+        .glass{
+            background:rgba(255,255,255,.05);
+            backdrop-filter:blur(12px);
+            border:1px solid rgba(255,255,255,.08);
+        }
 
-<meta name="theme-color" content="#09090B">
-
-<link rel="canonical" href="https://e-diversify.com/">
-
-<!-- Open Graph -->
-<meta property="og:title" content="E-Diversify | Engineering Intelligence">
-<meta property="og:description" content="Cloud Native • AI • Identity • Platform Engineering">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://e-diversify.com/">
-<meta property="og:site_name" content="E-Diversify">
-<!-- TODO: replace with a real 1200x630 image hosted on the domain -->
-<meta property="og:image" content="https://e-diversify.com/assets/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="E-Diversify">
-<meta name="twitter:description" content="Engineering Intelligence">
-<meta name="twitter:image" content="https://e-diversify.com/assets/og-image.png">
-
-<link rel="icon" href="/favicon.ico">
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  "name": "E-Diversify",
-  "url": "https://e-diversify.com",
-  "description": "Engineering practice specializing in cloud-native architecture, platform engineering, AI systems, digital identity, distributed computing and secure software engineering.",
-  "sameAs": [
-    "https://www.linkedin.com/in/REPLACE_ME",
-    "https://github.com/REPLACE_ME"
-  ],
-  "areaServed": "Global",
-  "knowsAbout": [
-    "Platform Engineering",
-    "Cloud Native Architecture",
-    "Artificial Intelligence",
-    "Identity and Access Management",
-    "Zero Trust Security",
-    "Distributed Systems",
-    "Site Reliability Engineering"
-  ]
-}
-</script>
-
+        .grid-bg{
+            background-image:
+            linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+            background-size:40px 40px;
+        }
+    </style>
 </head>
 
-<body>
+<body class="text-white grid-bg">
 
-<header>
+<div class="fixed inset-0 overflow-hidden -z-10">
 
-<nav>
-  <a href="#home">HOME</a>
-  <a href="#services">SERVICES</a>
-  <a href="#insights">INSIGHTS</a>
-  <a href="#labs">LABS</a>
-  <a href="#projects">PROJECTS</a>
-  <a href="/vimal/">ABOUT</a>
-  <a href="#contact">CONTACT</a>
+    <div class="blob absolute w-96 h-96 bg-cyan-500 opacity-20 rounded-full top-10 left-10"></div>
+
+    <div class="blob absolute w-[500px] h-[500px] bg-purple-600 opacity-20 rounded-full bottom-0 right-0"></div>
+
+</div>
+
+<!-- NAV -->
+
+<nav class="max-w-7xl mx-auto px-8 py-8 flex justify-between items-center">
+
+    <div class="text-2xl font-bold tracking-widest">
+        VM
+    </div>
+
+    <div class="space-x-8 text-gray-300">
+
+        <a href="#" class="hover:text-cyan-400 transition">Home</a>
+
+        <a href="/vimal/index.html" class="hover:text-cyan-400 transition">About Me</a>
+
+    </div>
+
 </nav>
 
-<section id="home">
+<!-- HERO -->
 
-<h1>E-DIVERSIFY</h1>
+<section class="max-w-7xl mx-auto px-8 pt-16 pb-24">
 
-<h2>Engineering Intelligence</h2>
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
 
-<p>
-We help enterprises design and build resilient digital ecosystems —
-combining cloud-native architecture, platform engineering, artificial
-intelligence, enterprise integration and secure identity into systems
-that scale without becoming fragile.
-</p>
+        <div>
 
-<a href="#services">Explore our capabilities →</a>
+            <div class="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 mb-8">
+                Modern Software Architecture • Cloud • AI • Observability
+            </div>
 
-</section>
+            <h1 class="text-5xl md:text-7xl font-black leading-tight">
 
-</header>
+                Engineering
 
-<main>
+                <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
 
-<section id="services">
+                    Digital Platforms
 
-<h2>Capabilities</h2>
+                </span>
 
-<p>
-From modernizing legacy platforms to building AI-native systems from
-the ground up, we work across the full lifecycle of enterprise
-engineering — reducing operational risk while increasing delivery
-velocity.
-</p>
+                for Scale.
 
-<ul>
-  <li>Platform Engineering</li>
-  <li>Cloud Native Transformation</li>
-  <li>AI-Augmented Software Engineering</li>
-  <li>Enterprise Architecture</li>
-  <li>Identity &amp; Access Management</li>
-  <li>Zero Trust Security</li>
-  <li>Distributed Systems</li>
-  <li>Microservices Modernization</li>
-  <li>API Strategy</li>
-  <li>Infrastructure as Code</li>
-  <li>GitOps Automation</li>
-  <li>Event Streaming Platforms</li>
-  <li>Cloud Security</li>
-  <li>Platform Reliability Engineering</li>
-  <li>Site Reliability Engineering</li>
-  <li>Observability</li>
-  <li>Kubernetes</li>
-  <li>Digital Transformation</li>
-</ul>
+            </h1>
 
-</section>
+            <p class="mt-8 text-gray-400 text-lg leading-8 max-w-xl">
 
-<section id="tech-stack">
+                Designing secure, cloud-native, event-driven systems that
+                power modern enterprises. From distributed architectures
+                and identity platforms to AI-enabled applications and
+                observability-first operations.
 
-<h2>Technology Focus</h2>
+            </p>
 
-<p>
-We build with tools chosen for reliability at scale, not novelty for
-its own sake:
-</p>
+            <div class="mt-10 flex gap-4">
 
-<h3>Languages &amp; Frameworks</h3>
-<ul>
-  <li>Java</li>
-  <li>Spring Boot</li>
-  <li>Node.js</li>
-  <li>Python</li>
-  <li>Go</li>
-  <li>React</li>
-  <li>Angular</li>
-</ul>
+                <a href="/vimal/index.html"
+                   class="px-7 py-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 transition font-semibold">
 
-<h3>Messaging &amp; Identity</h3>
-<ul>
-  <li>Kafka</li>
-  <li>Keycloak</li>
-  <li>OAuth2</li>
-  <li>OIDC</li>
-  <li>RabbitMQ</li>
-</ul>
+                    About Me
 
-<h3>APIs &amp; Data</h3>
-<ul>
-  <li>GraphQL</li>
-  <li>REST APIs</li>
-  <li>MongoDB</li>
-  <li>PostgreSQL</li>
-  <li>MySQL</li>
-  <li>Redis</li>
-</ul>
+                </a>
 
-<h3>Infrastructure &amp; Cloud</h3>
-<ul>
-  <li>Docker</li>
-  <li>Kubernetes</li>
-  <li>Azure</li>
-  <li>AWS</li>
-  <li>GCP</li>
-  <li>Terraform</li>
-  <li>Vault</li>
-</ul>
+                <a href="https://github.com/vimalmaheedharan"
+                   class="px-7 py-4 rounded-xl border border-gray-700 hover:border-cyan-400 transition">
 
-<h3>Observability</h3>
-<ul>
-  <li>Prometheus</li>
-  <li>Grafana</li>
-  <li>New Relic</li>
-  <li>Elastic</li>
-  <li>OpenTelemetry</li>
-</ul>
+                    GitHub
 
-<h3>Delivery</h3>
-<ul>
-  <li>GitHub</li>
-  <li>Azure DevOps</li>
-  <li>GitLab</li>
-  <li>CI/CD</li>
-</ul>
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Right Card -->
+
+        <div class="glass rounded-3xl p-8">
+
+            <div class="grid grid-cols-2 gap-5">
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition">
+
+                    <div class="text-cyan-400 text-4xl mb-3">☁️</div>
+
+                    <h3 class="font-bold">Cloud Native</h3>
+
+                    <p class="text-sm text-gray-400 mt-2">
+                        AWS • Azure • Kubernetes
+                    </p>
+
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition">
+
+                    <div class="text-purple-400 text-4xl mb-3">🔒</div>
+
+                    <h3 class="font-bold">Security</h3>
+
+                    <p class="text-sm text-gray-400 mt-2">
+                        OAuth2 • OIDC • SAML • MFA
+                    </p>
+
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition">
+
+                    <div class="text-green-400 text-4xl mb-3">⚡</div>
+
+                    <h3 class="font-bold">Performance</h3>
+
+                    <p class="text-sm text-gray-400 mt-2">
+                        High Throughput Systems
+                    </p>
+
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition">
+
+                    <div class="text-pink-400 text-4xl mb-3">📈</div>
+
+                    <h3 class="font-bold">Observability</h3>
+
+                    <p class="text-sm text-gray-400 mt-2">
+                        Metrics • Logs • Traces
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </section>
 
-<section id="principles">
+<!-- TECHNOLOGIES -->
 
-<h2>Engineering Principles</h2>
+<section class="max-w-7xl mx-auto px-8 py-20">
 
-<p>
-Technology evolves; the principles behind good engineering endure.
-Every platform we build is guided by the same core commitments:
-</p>
+    <h2 class="text-4xl font-bold text-center mb-14">
 
-<ul>
-  <li><strong>Design for resilience</strong> — systems that degrade gracefully, not catastrophically.</li>
-  <li><strong>Build for scale</strong> — architecture that grows with demand instead of against it.</li>
-  <li><strong>Secure by design</strong> — security built into the foundation, not bolted on afterward.</li>
-  <li><strong>Observe everything</strong> — visibility into system behavior before problems become incidents.</li>
-  <li><strong>Automate relentlessly</strong> — repeatable processes over manual toil.</li>
-  <li><strong>Optimize continuously</strong> — performance and cost as ongoing disciplines, not one-time projects.</li>
-</ul>
+        Technology Focus
+
+    </h2>
+
+    <div class="grid md:grid-cols-3 gap-8">
+
+        <div class="glass rounded-3xl p-8 hover:-translate-y-2 transition">
+
+            <h3 class="text-2xl font-semibold mb-5">
+
+                Architecture
+
+            </h3>
+
+            <ul class="space-y-3 text-gray-400">
+
+                <li>Microservices</li>
+                <li>Event-Driven Systems</li>
+                <li>CQRS</li>
+                <li>Domain Driven Design</li>
+                <li>Scalable APIs</li>
+
+            </ul>
+
+        </div>
+
+        <div class="glass rounded-3xl p-8 hover:-translate-y-2 transition">
+
+            <h3 class="text-2xl font-semibold mb-5">
+
+                Platform Engineering
+
+            </h3>
+
+            <ul class="space-y-3 text-gray-400">
+
+                <li>Kubernetes</li>
+                <li>Docker</li>
+                <li>CI/CD</li>
+                <li>Infrastructure Automation</li>
+                <li>Cloud Operations</li>
+
+            </ul>
+
+        </div>
+
+        <div class="glass rounded-3xl p-8 hover:-translate-y-2 transition">
+
+            <h3 class="text-2xl font-semibold mb-5">
+
+                Intelligent Systems
+
+            </h3>
+
+            <ul class="space-y-3 text-gray-400">
+
+                <li>AI Integration</li>
+                <li>Automation</li>
+                <li>Developer Experience</li>
+                <li>Observability</li>
+                <li>Secure Identity</li>
+
+            </ul>
+
+        </div>
+
+    </div>
 
 </section>
 
-<section id="emerging-tech">
+<footer class="py-12 text-center text-gray-500 border-t border-gray-800">
 
-<h2>Emerging Technologies</h2>
+    Building resilient systems for tomorrow.
 
-<p>
-We track and apply what's next, but only where it earns its place in
-production systems:
-</p>
-
-<ul>
-  <li>Generative AI</li>
-  <li>Agentic AI</li>
-  <li>Large Language Models</li>
-  <li>Retrieval-Augmented Generation</li>
-  <li>AI Governance</li>
-  <li>Edge AI</li>
-  <li>Cloud AI Platforms</li>
-  <li>Intelligent Automation</li>
-  <li>Digital Twins</li>
-  <li>Autonomous Platforms</li>
-</ul>
-
-</section>
-
-<section id="about">
-
-<h2>About</h2>
-
-<p>
-E-Diversify is the engineering practice of an architect with a
-background spanning cloud-native systems, digital identity and
-platform reliability. Learn more about the person behind the work.
-</p>
-
-<a href="/vimal/">About Me →</a>
-
-</section>
-
-<section id="contact">
-
-<h2>Contact</h2>
-
-<p>
-Interested in working together? Reach out directly:
-</p>
-
-<ul>
-  <!-- TODO: replace placeholders with real contact details -->
-  <li>Email: <a href="mailto:hello@e-diversify.com">hello@e-diversify.com</a></li>
-  <li>LinkedIn: <a href="https://www.linkedin.com/in/REPLACE_ME">linkedin.com/in/REPLACE_ME</a></li>
-  <li>GitHub: <a href="https://github.com/REPLACE_ME">github.com/REPLACE_ME</a></li>
-</ul>
-
-</section>
-
-</main>
-
-<footer>
-  <p>© 2026 E-Diversify — Engineering Intelligence</p>
-  <p>Cloud Native • AI • Identity • Platform Engineering</p>
 </footer>
 
 </body>
-
 </html>
