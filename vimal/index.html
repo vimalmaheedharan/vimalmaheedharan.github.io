@@ -3,154 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering at Scale | Solutions Architecture</title>
+    <title>About Me | Solutions Architecture Portfolio</title>
     <!-- Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Extracted External Production Stylesheet -->
-    <link rel="stylesheet" href="./assets/css/style.css">
+    <!-- Relative Path Tracking Back to Root Assets CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body class="text-white grid-bg antialiased">
 
     <!-- Ambient Glow Fields -->
     <div class="fixed inset-0 overflow-hidden -z-10" aria-hidden="true">
-        <div class="blob absolute w-96 h-96 bg-cyan-500 opacity-15 rounded-full top-10 left-10"></div>
-        <div class="blob absolute w-[500px] h-[500px] bg-purple-600 opacity-15 rounded-full bottom-0 right-0"></div>
+        <div class="blob absolute w-96 h-96 bg-purple-500 opacity-15 rounded-full top-20 right-10"></div>
+        <div class="blob absolute w-[500px] h-[500px] bg-cyan-600 opacity-10 rounded-full bottom-10 left-10"></div>
     </div>
 
     <!-- Navigation Header -->
     <header class="w-full border-b border-gray-800/50 backdrop-blur-md sticky top-0 z-50">
         <nav class="max-w-7xl mx-auto px-6 sm:px-8 py-5 flex justify-between items-center">
-            <div class="text-xl font-bold tracking-widest text-white hover:text-cyan-400 transition-colors cursor-default">
-                VM
+            <!-- Brand Logo Mark & Trademarked Phrase -->
+            <div class="flex items-center space-x-3 cursor-default group">
+                <span class="text-2xl font-black tracking-wider text-white bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    ED
+                </span>
+                <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase border-l border-gray-700 pl-3">
+                    Fluidity In Motion ©
+                </span>
             </div>
             <div class="flex items-center space-x-8 text-sm font-medium text-gray-300">
-                <a href="#" class="text-cyan-400 transition-colors">Home</a>
-                <a href="./vimal/index.html" class="hover:text-cyan-400 transition-colors">About Me</a>
+                <a href="../index.html" class="hover:text-cyan-400 transition-colors">Home</a>
+                <a href="#" class="text-cyan-400 transition-colors">About Me</a>
             </div>
         </nav>
     </header>
 
-    <!-- Hero Showcase Section -->
-    <main class="max-w-7xl mx-auto px-6 sm:px-8 pt-20 pb-24">
-        <section class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+    <!-- Profile Summary Main Content -->
+    <main class="max-w-4xl mx-auto px-6 pt-16 pb-24">
+        <section class="glass rounded-3xl p-8 sm:p-12 border border-gray-800/80 bg-gray-950/40 backdrop-blur-lg">
             
-            <!-- Left Text Context Block -->
-            <div class="lg:col-span-7 flex flex-col justify-center">
-                <div class="inline-flex self-start items-center rounded-full border border-cyan-500/20 bg-cyan-500/5 px-4 py-1.5 text-xs font-medium tracking-wide text-cyan-400 mb-6 uppercase">
-                    Architecture • Cloud • Observability • Performance
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b border-gray-800">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center font-bold text-2xl tracking-wider shadow-inner text-white">
+                    ED
                 </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Solutions Architect & Engineering Leader</h1>
+                    <p class="text-cyan-400 text-sm font-medium mt-1">Specializing in high-performance cloud ecosystems and secure enterprise platform designs.</p>
+                </div>
+            </div>
 
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
-                    Engineering 
-                    <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
-                        Digital Platforms
-                    </span> 
-                    for Scale.
-                </h1>
-
-                <p class="mt-6 text-gray-400 text-base sm:text-lg leading-relaxed max-w-2xl">
-                    Designing highly reliable, secure, cloud-native, and event-driven systems built to power modern enterprises. Specialized in distributed architectures, identity integration platforms, performance auditing, and observability-first systems strategy.
+            <!-- Architectural Approach Bio -->
+            <div class="mt-8 space-y-6 text-gray-300 leading-relaxed text-base">
+                <h2 class="text-xl font-bold text-white tracking-tight">Architectural Philosophy</h2>
+                <p>
+                    With extensive expertise in architecting and delivering production-grade distributed architectures, I build scalable systems where stability and performance are core components from day one. I prioritize deep observability patterns, zero-trust security postures, and comprehensive platform visibility to deliver systems that handle unexpected loads smoothly.
                 </p>
+                <p>
+                    My experience focuses heavily on performance optimization, evaluating execution contexts (such as cryptographic token engines), establishing robust event broker behaviors, and engineering zero-downtime microservice migration strategy roadmaps.
+                </p>
+            </div>
 
-                <div class="mt-10 flex flex-wrap gap-4">
-                    <a href="./vimal/index.html" class="px-6 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-900/20 transform hover:-translate-y-0.5 transition-all text-sm">
-                        View Technical Profile
-                    </a>
-                    <a href="https://github.com/vimalmaheedharan" target="_blank" rel="noopener noreferrer" class="px-6 py-3.5 rounded-xl border border-gray-700 hover:border-cyan-400 text-gray-300 hover:text-white font-medium transform hover:-translate-y-0.5 transition-all text-sm bg-gray-900/40">
-                        Explore Repositories
-                    </a>
+            <!-- Focus Matrix Indicators -->
+            <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gray-900/40 border border-gray-800/60 rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-white mb-2 uppercase tracking-wider text-cyan-400">Core Architecture Focus</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Event Broker Systems, Keycloak Identity Extension & SPI Implementation, Distributed Caching Engines, Resilient Fallback Mechanics.</p>
+                </div>
+                <div class="bg-gray-900/40 border border-gray-800/60 rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-white mb-2 uppercase tracking-wider text-purple-400">Observability Metrics</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">System Health Monitoring Signals, Low-overhead Telemetry Pipelines, Autonomic Error Rectification Systems, Structured Alert Runbooks.</p>
                 </div>
             </div>
 
-            <!-- Right Core Capability Pillars -->
-            <div class="lg:col-span-5 w-full">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-cyan-950/20 hover:border-cyan-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-xl font-semibold mb-4">☁️</div>
-                        <h3 class="font-bold text-gray-200">Cloud Native</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">AWS • GCP • Azure • Cloud Infrastructure Orchestration</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-950/20 hover:border-purple-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl font-semibold mb-4">🔒</div>
-                        <h3 class="font-bold text-gray-200">Identity & Security</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">OAuth2 • OIDC Systems Integration • Custom Keycloak SPIs</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-emerald-950/20 hover:border-emerald-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xl font-semibold mb-4">⚡</div>
-                        <h3 class="font-bold text-gray-200">Performance</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">High-Throughput Node.js/Java Core Engine Tuning</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-pink-950/20 hover:border-pink-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 text-xl font-semibold mb-4">📈</div>
-                        <h3 class="font-bold text-gray-200">Observability</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Structured Tracing Metrics • RCA Automation • OpenTelemetry</p>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- Technology Focus Matrix -->
-        <section class="mt-28">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-extrabold tracking-tight">Technical Directives</h2>
-                <div class="w-12 h-1 bg-cyan-500 mx-auto mt-4 rounded-full"></div>
+            <div class="mt-12 pt-8 border-t border-gray-800 flex justify-between items-center">
+                <a href="../index.html" class="inline-flex items-center text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors group">
+                    <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Return to Main Platform
+                </a>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
-                
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-cyan-400 mr-3"></span> Architecture Domains
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Distributed Microservices Ecosystems</li>
-                        <li class="flex items-center"> Event-Driven Paradigms & CQRS</li>
-                        <li class="flex items-center"> Domain-Driven Structural Design (DDD)</li>
-                        <li class="flex items-center"> Enterprise API Gateway Topology</li>
-                        <li class="flex items-center"> Highly Available Systems Audit Ready</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-blue-400 mr-3"></span> Infrastructure Strategy
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Orchestration & Topology (Kubernetes)</li>
-                        <li class="flex items-center"> Containerization Patterns (Docker)</li>
-                        <li class="flex items-center"> Immutable Infrastructure Automation</li>
-                        <li class="flex items-center"> Advanced CI/CD Engineering Pipelines</li>
-                        <li class="flex items-center"> Site Reliability Strategy & SRE Plays</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-purple-400 mr-3"></span> Intelligence & Automation
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> AI System Engine Integrations</li>
-                        <li class="flex items-center"> Operational Autonomic Systems</li>
-                        <li class="flex items-center"> Advanced Developer Experience Metrics</li>
-                        <li class="flex items-center"> End-to-End Enterprise Systems Audits</li>
-                        <li class="flex items-center"> Secure Federated Access Governance</li>
-                    </ul>
-                </div>
-
-            </div>
         </section>
     </main>
 
     <!-- Footer Area -->
-    <footer class="py-10 text-center text-xs text-gray-500 border-t border-gray-900/60 bg-gray-950/20 backdrop-blur-sm">
-        <p class="tracking-wide">&copy; 2026 Platform Engineering Portfolio. All rights reserved.</p>
-        <p class="text-gray-600 mt-2 font-mono">Building resilient, self-healing systems for enterprise scale.</p>
+    <footer class="py-8 text-center text-xs text-gray-600 border-t border-gray-900/40">
+        <p>&copy; 2026 E-Diversify. All rights reserved.</p>
     </footer>
 
 </body>
