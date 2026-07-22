@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Evolution of Technology</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper: #f2e9d8;
+    --paper-ink: #2b2015;
+    --brass: #9c6b2e;
+    --brass-dark: #6e4a1c;
+    --mid-ink: #1f2430;
+    --mid-accent: #3f7d6b;
+    --mid-accent-2: #b8863f;
+    --digital-bg: #0a1420;
+    --digital-ink: #e7f3f2;
+    --circuit: #3ddad0;
+    --circuit-dim: #1f7a73;
+    --ai-bg: #120a24;
+    --ai-ink: #f1e9ff;
+    --ai-glow: #b98cff;
+    --ai-glow-2: #ff8cc8;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper);
+    color:var(--paper-ink);
+    overflow-x:hidden;
+  }
+
+  .display{font-family:'Fraunces', serif;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:6vh 6vw;
+    position:relative;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(156,107,46,0.15), transparent 45%),
+      radial-gradient(circle at 80% 75%, rgba(63,125,107,0.12), transparent 50%),
+      var(--paper);
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(43,32,21,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,32,21,0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 50% 40%, black 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-size:0.78rem;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin-bottom:1.4rem;
+    z-index:1;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 7vw, 5.6rem);
+    font-weight:900;
+    font-variation-settings:'opsz' 144;
+    line-height:1.02;
+    margin:0 0 1.2rem;
+    max-width:16ch;
+    z-index:1;
+  }
+  .hero h1 em{
+    font-style:italic;
+    font-weight:400;
+    background:linear-gradient(90deg, var(--brass), var(--mid-accent), var(--circuit), var(--ai-glow));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p{
+    max-width:46ch;
+    font-size:1rem;
+    line-height:1.65;
+    color:#4a3a26;
+    z-index:1;
+  }
+  .scroll-cue{
+    margin-top:3rem;
+    font-size:0.72rem;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.5rem;
+    z-index:1;
+  }
+  .scroll-cue .bar{
+    width:1px; height:38px;
+    background:linear-gradient(var(--brass-dark), transparent);
+    animation:pulseDown 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDown{
+    0%,100%{transform:scaleY(1); opacity:0.7;}
+    50%{transform:scaleY(1.3); opacity:1;}
+  }
+
+  /* ---------- TIMELINE WRAPPER ---------- */
+  .timeline{
+    position:relative;
+    max-width:920px;
+    margin:0 auto;
+    padding: 8vh 6vw 14vh;
+  }
+
+  .spine{
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:3px;
+    transform:translateX(-50%);
+    background:linear-gradient(
+      to bottom,
+      var(--brass) 0%,
+      var(--brass) 22%,
+      var(--mid-accent) 42%,
+      var(--circuit) 64%,
+      var(--ai-glow) 86%,
+      var(--ai-glow) 100%
+    );
+    opacity:0.55;
+  }
+
+  .era-label{
+    text-align:center;
+    font-size:0.7rem;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    padding: 3.5rem 0 2.2rem;
+    position:relative;
+    z-index:2;
+  }
+
+  .milestone{
+    position:relative;
+    width:calc(50% - 46px);
+    padding:1.6rem 1.7rem;
+    margin: 0 0 3.2rem;
+    border-radius:2px;
+    z-index:2;
+  }
+  .milestone:nth-child(odd){ margin-right:auto; text-align:right; }
+  .milestone:nth-child(even){ margin-left:auto; text-align:left; }
+
+  .milestone .dot{
+    position:absolute;
+    top:1.9rem;
+    width:13px; height:13px;
+    border-radius:50%;
+    background:var(--dot-color, var(--brass));
+    box-shadow: 0 0 0 4px var(--dot-ring, rgba(156,107,46,0.18));
+  }
+  .milestone:nth-child(odd) .dot{ right:-38.5px; }
+  .milestone:nth-child(even) .dot{ left:-38.5px; }
+
+  .milestone .year{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.05em;
+    display:block;
+    margin-bottom:0.4rem;
+  }
+  .milestone h3{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    margin:0 0 0.5rem;
+  }
+  .milestone p{
+    font-size:0.86rem;
+    line-height:1.6;
+    margin:0;
+    opacity:0.85;
+  }
+
+  /* Era: Mechanical (paper) */
+  .era-mech .milestone{
+    background:rgba(255,252,244,0.55);
+    border:1px solid rgba(156,107,46,0.35);
+    color:var(--paper-ink);
+  }
+  .era-mech .year{ color:var(--brass-dark); }
+
+  /* Era: Electric (transitional ink) */
+  .section-electric{ background:linear-gradient(to bottom, var(--paper), #e9e4d6 30%, #d9dcd6 65%, #1a2733); color:var(--mid-ink); }
+  .era-electric .milestone{
+    background:rgba(255,255,255,0.5);
+    border:1px solid rgba(63,125,107,0.4);
+  }
+  .era-electric .year{ color:var(--mid-accent); }
+
+  /* Era: Digital */
+  .section-digital{ background:var(--digital-bg); color:var(--digital-ink); }
+  .era-digital .milestone{
+    background:rgba(61,218,208,0.06);
+    border:1px solid rgba(61,218,208,0.35);
+  }
+  .era-digital .year{ color:var(--circuit); }
+  .era-digital .dot{ background:var(--circuit); box-shadow:0 0 0 4px rgba(61,218,208,0.18), 0 0 14px rgba(61,218,208,0.5); }
+
+  /* Era: AI */
+  .section-ai{ background:linear-gradient(to bottom, var(--digital-bg), var(--ai-bg)); color:var(--ai-ink); }
+  .era-ai .milestone{
+    background:rgba(185,140,255,0.07);
+    border:1px solid rgba(185,140,255,0.4);
+  }
+  .era-ai .year{ color:var(--ai-glow); }
+  .era-ai .dot{ background:var(--ai-glow); box-shadow:0 0 0 4px rgba(185,140,255,0.2), 0 0 16px rgba(185,140,255,0.6); }
+
+  .era-label.mech{ color:var(--brass-dark); }
+  .era-label.electric{ color:var(--mid-accent); }
+  .era-label.digital{ color:var(--circuit); }
+  .era-label.ai{ color:var(--ai-glow); }
+
+  /* ---------- CLOSING ---------- */
+  .closing{
+    background:var(--ai-bg);
+    color:var(--ai-ink);
+    text-align:center;
+    padding:12vh 6vw 10vh;
+    position:relative;
+    overflow:hidden;
+  }
+  .closing::before{
+    content:"";
+    position:absolute; inset:-20%;
+    background: radial-gradient(circle at 50% 30%, rgba(185,140,255,0.18), transparent 60%);
+    pointer-events:none;
+  }
+  .closing h2{
+    font-size:clamp(1.8rem, 4.5vw, 3rem);
+    font-weight:700;
+    max-width:20ch;
+    margin:0 auto 1.2rem;
+    position:relative;
+    z-index:1;
+  }
+  .closing p{
+    max-width:52ch;
+    margin:0 auto;
+    font-size:0.9rem;
+    line-height:1.7;
+    opacity:0.75;
+    position:relative;
+    z-index:1;
+  }
+  .closing .signature{
+    margin-top:2.5rem;
+    font-size:0.72rem;
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--ai-glow);
+    position:relative;
+    z-index:1;
+  }
+
+  @media (max-width:720px){
+    .spine{ left:22px; }
+    .milestone{ width:calc(100% - 56px); margin-left:56px !important; text-align:left !important; }
+    .milestone:nth-child(odd) .dot,
+    .milestone:nth-child(even) .dot{ left:-38.5px; right:auto; }
+  }
+
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--circuit);
+    outline-offset:3px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .scroll-cue .bar{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="eyebrow">A short history, told as one line</div>
+    <h1 class="display">From clay tablets to <em>thinking machines</em></h1>
+    <p>Every technology inherits the one before it. Follow the thread — mechanical, electrical, digital, intelligent — as it runs through eleven inventions that rewired how humans record, connect, and think.</p>
+    <div class="scroll-cue">
+      <span>Scroll the timeline</span>
+      <div class="bar"></div>
+    </div>
+  </section>
+
+  <div class="timeline">
+    <div class="spine" aria-hidden="true"></div>
+
+    <div class="era-mech">
+      <div class="era-label mech">I — Mechanical Era</div>
+
+      <div class="milestone" style="--dot-color:var(--brass); --dot-ring:rgba(156,107,46,0.2);">
+        <span class="dot"></span>
+        <span class="year">c. 2700 BCE</span>
+        <h3 class="display">The Abacus</h3>
+        <p>Beads on rods turn arithmetic into something you can touch. The first tool built purely to extend human calculation.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--brass); --dot-ring:rgba(156,107,46,0.2);">
+        <span class="dot"></span>
+        <span class="year">1440</span>
+        <h3 class="display">The Printing Press</h3>
+        <p>Gutenberg's movable type turns copying a book from a year of labor into an afternoon — the first machine to mass-produce ideas.</p>
+      </div>
+    </div>
+
+    <div class="section-electric era-electric">
+      <div class="era-label electric">II — Electrical Era</div>
+
+      <div class="milestone" style="--dot-color:var(--mid-accent); --dot-ring:rgba(63,125,107,0.2);">
+        <span class="dot"></span>
+        <span class="year">1837</span>
+        <h3 class="display">The Telegraph</h3>
+        <p>Morse's dots and dashes send words down a wire at the speed of electricity, shrinking a continent to the space of a message.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--mid-accent); --dot-ring:rgba(63,125,107,0.2);">
+        <span class="dot"></span>
+        <span class="year">1876</span>
+        <h3 class="display">The Telephone</h3>
+        <p>Bell converts voice itself into signal. For the first time, distance stops mattering to conversation.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--mid-accent); --dot-ring:rgba(63,125,107,0.2);">
+        <span class="dot"></span>
+        <span class="year">1946</span>
+        <h3 class="display">ENIAC</h3>
+        <p>Thirty tons of vacuum tubes become the first general-purpose electronic computer — arithmetic finally has no hands left in it.</p>
+      </div>
+    </div>
+
+    <div class="section-digital era-digital">
+      <div class="era-label digital">III — Digital Era</div>
+
+      <div class="milestone" style="--dot-color:var(--circuit); --dot-ring:rgba(61,218,208,0.2);">
+        <span class="dot"></span>
+        <span class="year">1969</span>
+        <h3 class="display">ARPANET</h3>
+        <p>Four university computers exchange the first packet-switched message. The network that becomes the internet takes its first breath.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--circuit); --dot-ring:rgba(61,218,208,0.2);">
+        <span class="dot"></span>
+        <span class="year">1975</span>
+        <h3 class="display">The Personal Computer</h3>
+        <p>The Altair 8800 puts a computer on a desk instead of in a basement — and hands ordinary people the machine that once filled a room.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--circuit); --dot-ring:rgba(61,218,208,0.2);">
+        <span class="dot"></span>
+        <span class="year">1991</span>
+        <h3 class="display">The World Wide Web</h3>
+        <p>Tim Berners-Lee links documents across machines with a single click. The network becomes a place, not just a wire.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--circuit); --dot-ring:rgba(61,218,208,0.2);">
+        <span class="dot"></span>
+        <span class="year">2007</span>
+        <h3 class="display">The Smartphone</h3>
+        <p>The iPhone folds the phone, the computer, and the camera into a single pane of glass that fits in a pocket.</p>
+      </div>
+    </div>
+
+    <div class="section-ai era-ai">
+      <div class="era-label ai">IV — Intelligent Era</div>
+
+      <div class="milestone" style="--dot-color:var(--ai-glow); --dot-ring:rgba(185,140,255,0.2);">
+        <span class="dot"></span>
+        <span class="year">2012</span>
+        <h3 class="display">Deep Learning Takes Off</h3>
+        <p>A neural network named AlexNet crushes an image-recognition contest, proving machines can learn to see rather than being told how.</p>
+      </div>
+
+      <div class="milestone" style="--dot-color:var(--ai-glow); --dot-ring:rgba(185,140,255,0.2);">
+        <span class="dot"></span>
+        <span class="year">2022</span>
+        <h3 class="display">Conversational AI</h3>
+        <p>Large language models move from research paper to everyday tool — machines that don't just compute, but converse.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="closing">
+    <h2 class="display">Each layer becomes the floor for the next.</h2>
+    <p>The abacus made arithmetic portable. The press made ideas copyable. The wire made distance irrelevant. The chip made computation personal. The network made knowledge shared. And now, the model makes language itself a tool. The thread never actually breaks — it just keeps getting faster.</p>
+    <div class="signature">End of timeline</div>
+  </section>
+
+</body>
+</html>
