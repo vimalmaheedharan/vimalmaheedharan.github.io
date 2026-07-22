@@ -37,6 +37,88 @@
 
   .display{font-family:'Fraunces', serif;}
 
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(242,233,216,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(43,32,21,0.12);
+  }
+  .top-nav a{
+    text-decoration:none;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--paper-ink);
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    transition:color 0.2s ease;
+  }
+  .top-nav a:hover, .top-nav a:focus-visible{
+    color:var(--brass-dark);
+  }
+  .top-nav .brand{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:1.3rem;
+    letter-spacing:0.05em;
+    text-transform:none;
+    background:linear-gradient(90deg, var(--brass-dark), var(--mid-accent));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  /* ---------- BACK TO TOP ---------- */
+  .to-top{
+    position:fixed;
+    right:6vw;
+    bottom:2.4rem;
+    z-index:100;
+    width:46px; height:46px;
+    border-radius:50%;
+    border:1px solid rgba(43,32,21,0.25);
+    background:rgba(242,233,216,0.85);
+    backdrop-filter:blur(6px);
+    color:var(--paper-ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    text-decoration:none;
+    font-size:1.1rem;
+    opacity:0;
+    transform:translateY(12px);
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .to-top.visible{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+  .to-top:hover, .to-top:focus-visible{
+    border-color:var(--brass-dark);
+    background:rgba(242,233,216,1);
+  }
+  /* Adapt back-to-top styling once it's over the dark digital/AI sections */
+  .to-top.on-dark{
+    background:rgba(18,10,36,0.55);
+    border-color:rgba(185,140,255,0.4);
+    color:var(--ai-ink);
+  }
+  .to-top.on-dark:hover, .to-top.on-dark:focus-visible{
+    border-color:var(--ai-glow);
+    background:rgba(18,10,36,0.8);
+  }
+
   /* ---------- HERO ---------- */
   .hero{
     min-height:100vh;
@@ -297,7 +379,14 @@
 </head>
 <body>
 
-  <section class="hero">
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">ED</a>
+    <a href="/">
+      <span aria-hidden="true">←</span> Home
+    </a>
+  </nav>
+
+  <section class="hero" id="top">
     <div class="eyebrow">A short history, told as one line</div>
     <h1 class="display">From clay tablets to <em>thinking machines</em></h1>
     <p>Every technology inherits the one before it. Follow the thread — mechanical, electrical, digital, intelligent — as it runs through eleven inventions that rewired how humans record, connect, and think.</p>
@@ -409,6 +498,37 @@
     <p>The abacus made arithmetic portable. The press made ideas copyable. The wire made distance irrelevant. The chip made computation personal. The network made knowledge shared. And now, the model makes language itself a tool. The thread never actually breaks — it just keeps getting faster.</p>
     <div class="signature">End of timeline</div>
   </section>
+
+  <a href="#top" class="to-top" id="toTop" aria-label="Back to top">↑</a>
+
+  <script>
+    (function(){
+      var btn = document.getElementById('toTop');
+      var darkSections = document.querySelectorAll('.section-digital, .section-ai, .closing');
+
+      function isOverDarkSection(){
+        var probeY = window.innerHeight - 70; // roughly where the button sits
+        for (var i = 0; i < darkSections.length; i++){
+          var rect = darkSections[i].getBoundingClientRect();
+          if (rect.top <= probeY && rect.bottom >= probeY) return true;
+        }
+        return false;
+      }
+
+      function onScroll(){
+        if (window.scrollY > window.innerHeight * 0.6){
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+        btn.classList.toggle('on-dark', isOverDarkSection());
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+  </script>
 
 </body>
 </html>

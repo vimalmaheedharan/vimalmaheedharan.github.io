@@ -18,6 +18,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
+    padding-top:64px;
     font-family:'IBM Plex Mono', monospace;
     background:var(--paper);
     color:var(--paper-ink);
@@ -25,6 +26,45 @@
   }
 
   .display{font-family:'Fraunces', serif;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(242,233,216,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(43,32,21,0.12);
+  }
+  .top-nav a{
+    text-decoration:none;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--paper-ink);
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    transition:color 0.2s ease;
+  }
+  .top-nav a:hover, .top-nav a:focus-visible{
+    color:var(--brass-dark);
+  }
+  .top-nav .brand{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:1.3rem;
+    letter-spacing:0.05em;
+    text-transform:none;
+    background:linear-gradient(90deg, var(--brass-dark), var(--mid-accent));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
 
   header{
     max-width:920px;
@@ -156,6 +196,13 @@
 </style>
 </head>
 <body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">ED</a>
+    <a href="/">
+      <span aria-hidden="true">←</span> Home
+    </a>
+  </nav>
 
   <header>
     <div class="eyebrow">e-diversify / blog</div>
