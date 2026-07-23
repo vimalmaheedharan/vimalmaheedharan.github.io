@@ -35,145 +35,351 @@
 <!-- Dynamic Inline SVG Favicon (Renders "ED") -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
 
-<!-- Tailwind CSS Engine -->
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body{ background:#0b1120; }
-  .grid-bg{
-    background-image:
-      linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
-    background-size: 44px 44px;
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,500&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #1b1815;
+    --bg-soft: #221e1a;
+    --ink: #f2ece1;
+    --ink-dim: #ab9f8f;
+    --copper: #d68a4c;
+    --copper-dim: #9c6a3a;
+    --line: rgba(242,236,225,0.1);
   }
-  .blob{ filter: blur(90px); }
-  ::selection{ background:rgba(34,211,238,0.35); }
-  .prose-body p{ margin-bottom:1.15rem; }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink-dim);
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    line-height:1.75;
+  }
+  .serif{ font-family:'Newsreader', serif; }
+
+  a{ color:inherit; }
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 6vw;
+    background:rgba(27,24,21,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .top-nav .brand{
+    font-family:'Newsreader', serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:1.3rem;
+    color:var(--copper);
+    text-decoration:none;
+  }
+  .top-nav .links{
+    display:flex;
+    gap:2rem;
+    font-size:0.78rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .top-nav .links a{
+    text-decoration:none;
+    color:var(--ink-dim);
+    transition:color 0.2s ease;
+  }
+  .top-nav .links a:hover, .top-nav .links a:focus-visible{
+    color:var(--copper);
+  }
+  .top-nav .links a.current{ color:var(--copper); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width:760px;
+    margin:0 auto;
+    padding:11rem 6vw 5rem;
+    position:relative;
+  }
+  .kicker{
+    font-size:0.75rem;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--copper);
+    margin-bottom:1.4rem;
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+  }
+  .kicker .node{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--copper);
+  }
+  .hero h1{
+    font-size:clamp(2.4rem, 5.5vw, 3.6rem);
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.15;
+    margin:0 0 1.4rem;
+    max-width:14ch;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--copper);
+  }
+  .hero .lede{
+    font-size:1.15rem;
+    max-width:52ch;
+    color:var(--ink-dim);
+  }
+  .meta-row{
+    margin-top:2.2rem;
+    display:flex;
+    gap:1rem;
+    align-items:center;
+    font-size:0.75rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    opacity:0.7;
+  }
+  .meta-row .sep{ width:4px; height:4px; border-radius:50%; background:var(--ink-dim); opacity:0.6; }
+
+  /* ---------- NETWORK DIAGRAM ---------- */
+  .network{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 6vw 4rem;
+  }
+  .network svg{ width:100%; height:auto; display:block; }
+
+  hr.divider{
+    border:none;
+    border-top:1px solid var(--line);
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  /* ---------- ARTICLE BODY ---------- */
+  article{
+    max-width:680px;
+    margin:0 auto;
+    padding:4.5rem 6vw 2rem;
+  }
+  article p{ margin:0 0 1.4rem; color:var(--ink-dim); }
+  article h2{
+    font-family:'Newsreader', serif;
+    font-weight:600;
+    color:var(--ink);
+    font-size:1.9rem;
+    margin:3rem 0 1.4rem;
+  }
+
+  .lever-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin:2rem 0 2.5rem;
+  }
+  .lever{
+    background:var(--bg);
+    padding:1.8rem;
+  }
+  .lever .num{
+    font-family:'Newsreader', serif;
+    font-style:italic;
+    color:var(--copper);
+    font-size:1.6rem;
+    display:block;
+    margin-bottom:0.6rem;
+  }
+  .lever h3{
+    font-size:1rem;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 0.6rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .lever p{
+    font-size:0.92rem;
+    margin:0;
+    color:var(--ink-dim);
+  }
+
+  blockquote{
+    margin:2.8rem 0;
+    padding-left:1.6rem;
+    border-left:2px solid var(--copper);
+    font-family:'Newsreader', serif;
+    font-style:italic;
+    font-size:1.4rem;
+    color:var(--ink);
+  }
+
+  footer{
+    max-width:680px;
+    margin:0 auto;
+    padding:2rem 6vw 5rem;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    opacity:0.6;
+    border-top:1px solid var(--line);
+  }
+
+  /* ---------- BACK TO TOP ---------- */
+  .to-top{
+    position:fixed;
+    right:6vw;
+    bottom:2.2rem;
+    z-index:100;
+    width:44px; height:44px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(34,30,26,0.85);
+    backdrop-filter:blur(6px);
+    color:var(--copper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-size:1.05rem;
+    opacity:0;
+    transform:translateY(10px);
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease;
+  }
+  .to-top.visible{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .to-top:hover, .to-top:focus-visible{ border-color:var(--copper); }
+
+  @media (max-width:640px){
+    .lever-grid{ grid-template-columns:1fr; }
+    .top-nav .links{ gap:1.2rem; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+  }
 </style>
 </head>
-<body class="text-white grid-bg antialiased">
+<body>
 
-  <!-- Ambient Glow Fields -->
-  <div class="fixed inset-0 overflow-hidden -z-10" aria-hidden="true">
-    <div class="blob absolute w-96 h-96 bg-cyan-500 opacity-15 rounded-full top-10 left-10"></div>
-    <div class="blob absolute w-[500px] h-[500px] bg-purple-600 opacity-15 rounded-full bottom-0 right-0"></div>
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">ED</a>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="/blog/" class="current">Blog</a>
+    </div>
+  </nav>
+
+  <section class="hero" id="top">
+    <div class="kicker"><span class="node"></span>Engineering Leadership · Distributed Teams</div>
+    <h1 class="serif">Leadership through <em>influence</em></h1>
+    <p class="lede">In distributed systems work, the person who actually unblocks the migration is rarely the person with the title. Here's what leading a team without formal authority actually looks like — and the four things that make it work.</p>
+    <div class="meta-row">
+      <span>July 2026</span>
+      <span class="sep"></span>
+      <span>8 min read</span>
+    </div>
+  </section>
+
+  <div class="network" aria-hidden="true">
+    <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#d68a4c" stroke-opacity="0.35" stroke-width="1">
+        <line x1="90" y1="80" x2="230" y2="40"/>
+        <line x1="90" y1="80" x2="230" y2="120"/>
+        <line x1="230" y1="40" x2="380" y2="80"/>
+        <line x1="230" y1="120" x2="380" y2="80"/>
+        <line x1="380" y1="80" x2="520" y2="40"/>
+        <line x1="380" y1="80" x2="520" y2="120"/>
+        <line x1="520" y1="40" x2="630" y2="80"/>
+        <line x1="520" y1="120" x2="630" y2="80"/>
+      </g>
+      <g fill="#1b1815" stroke="#d68a4c" stroke-width="1.5">
+        <circle cx="90" cy="80" r="7"/>
+        <circle cx="230" cy="40" r="5"/>
+        <circle cx="230" cy="120" r="5"/>
+        <circle cx="380" cy="80" r="9" fill="#d68a4c"/>
+        <circle cx="520" cy="40" r="5"/>
+        <circle cx="520" cy="120" r="5"/>
+        <circle cx="630" cy="80" r="7"/>
+      </g>
+    </svg>
   </div>
 
-  <!-- Navigation Header -->
-  <header class="w-full border-b border-gray-800/50 backdrop-blur-md sticky top-0 z-50">
-    <nav class="max-w-4xl mx-auto px-6 sm:px-8 py-5 flex justify-between items-center">
-      <div class="flex items-center space-x-3 cursor-default group">
-        <a href="/" class="text-2xl font-black tracking-wider text-white bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          ED
-        </a>
-        <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase border-l border-gray-700 pl-3 hidden sm:inline">
-          Fluidity In Motion ©
-        </span>
+  <hr class="divider">
+
+  <article>
+
+    <p>Most org charts describe who reports to whom. They say almost nothing about who a team actually listens to when a system is on fire at 2 a.m. Those are frequently different people — and in distributed systems work, that gap is where real leadership happens.</p>
+
+    <p>Authority tells people what to do. Influence is what makes them want to. On a team spanning multiple services, multiple time zones, and multiple managers, authority often doesn't even reach that far — you can't formally direct an engineer on another team's roadmap. Influence is the only lever left. The good news: it's also the more durable one.</p>
+
+    <h2 class="serif">The four levers that actually move a distributed team</h2>
+
+    <div class="lever-grid">
+      <div class="lever">
+        <span class="num">01</span>
+        <h3>Technical credibility</h3>
+        <p>People follow the engineer whose calls have been right before. Credibility isn't built in the big design review — it's built in the small moments: catching the race condition nobody else saw, actually reading the postmortem instead of skimming it.</p>
       </div>
-      <div class="flex items-center space-x-8 text-sm font-medium text-gray-300">
-        <a href="/" class="hover:text-cyan-400 transition-colors">Home</a>
-        <a href="/blog/" class="text-cyan-400 transition-colors">Blog</a>
+      <div class="lever">
+        <span class="num">02</span>
+        <h3>Written clarity</h3>
+        <p>A clear design doc travels further than a persuasive meeting ever will. Most people will never hear you argue your point live — they'll only ever read what you wrote. Make the writing carry the weight.</p>
       </div>
-    </nav>
-  </header>
-
-  <!-- Hero -->
-  <main class="max-w-4xl mx-auto px-6 sm:px-8">
-    <section class="pt-20 pb-16">
-      <div class="inline-flex items-center rounded-full border border-cyan-500/20 bg-cyan-500/5 px-4 py-1.5 text-xs font-medium tracking-wide text-cyan-400 mb-6 uppercase">
-        Engineering Leadership · Distributed Teams
+      <div class="lever">
+        <span class="num">03</span>
+        <h3>Consistency under pressure</h3>
+        <p>Anyone can look composed in a calm planning meeting. What earns trust is showing up the same way during an incident — clear, calm, focused on the fix instead of the blame.</p>
       </div>
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.1]">
-        Leadership Through
-        <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">Influence</span>
-      </h1>
-      <p class="mt-6 text-gray-400 text-lg leading-relaxed max-w-2xl">
-        In distributed systems work, the person who actually unblocks the migration is rarely the person with the title. Here's what leading a team without formal authority actually looks like — and the four things that make it work.
-      </p>
-      <div class="mt-8 flex items-center gap-4 text-xs text-gray-500 uppercase tracking-wide">
-        <span>July 2026</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>8 min read</span>
+      <div class="lever">
+        <span class="num">04</span>
+        <h3>Making others' work easier</h3>
+        <p>The fastest way to earn influence on a team you don't manage is to remove a blocker for someone who does the work day to day. Influence compounds every time you help without being asked.</p>
       </div>
-    </section>
+    </div>
 
-    <hr class="border-gray-800">
+    <h2 class="serif">A migration nobody officially owned</h2>
 
-    <!-- Body -->
-    <article class="prose-body text-gray-300 text-base sm:text-lg leading-relaxed py-14">
+    <p>The clearest version of this shows up during a cross-team migration — the kind where three services need to move together, no single manager owns all three teams, and the timeline is tight enough that nobody wants to volunteer to run it.</p>
 
-      <p>Most org charts describe who reports to whom. They say almost nothing about who a team actually listens to when a system is on fire at 2 a.m. Those are frequently different people — and in distributed systems work, that gap is where real leadership happens.</p>
+    <p>In situations like that, the person who ends up steering it is rarely appointed. They're the one who wrote the first rollout doc before anyone asked for one, flagged the shared dependency the other two teams hadn't noticed yet, and kept a plain-language status update flowing so no one had to chase updates in five different channels. None of that required a title. All of it required doing the unglamorous coordination work before someone else had to.</p>
 
-      <p>Authority tells people what to do. Influence is what makes them want to. On a team spanning multiple services, multiple time zones, and multiple managers, authority often doesn't even reach that far — you can't formally direct an engineer on another team's roadmap. Influence is the only lever left. The good news: it's also the more durable one.</p>
+    <blockquote>Authority is given to you. Influence is something a team decides you've earned — one clear decision at a time.</blockquote>
 
-      <h2 class="text-2xl sm:text-3xl font-bold text-white mt-4 mb-6">The four levers that actually move a distributed team</h2>
+    <h2 class="serif">Where this breaks down</h2>
 
-      <div class="grid sm:grid-cols-2 gap-5 not-prose mb-8">
+    <p>Influence isn't a substitute for authority in every situation — it has real limits. It doesn't help you make an unpopular call that requires enforcement, and it can quietly erode if you're right too rarely, or if you start using your credibility to avoid being challenged rather than to earn trust. Influence has to keep being re-earned; that's what makes it different from a title, which sticks around whether or not you deserve it that week.</p>
 
-        <div class="rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-          <div class="text-cyan-400 text-sm font-semibold uppercase tracking-wide mb-2">01 — Technical credibility</div>
-          <p class="text-gray-400 text-sm leading-relaxed">People follow the engineer whose calls have been right before. Credibility isn't built in the big design review — it's built in the small moments: catching the race condition nobody else saw, being the one who actually reads the postmortem instead of skimming it.</p>
-        </div>
+    <p>It also isn't a reason to avoid seeking formal authority when a team genuinely needs it — sometimes a decision needs someone empowered to make the final call, not just someone persuasive. The two aren't in competition. Influence is what makes authority, when you do have it, actually work.</p>
 
-        <div class="rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-          <div class="text-cyan-400 text-sm font-semibold uppercase tracking-wide mb-2">02 — Written clarity</div>
-          <p class="text-gray-400 text-sm leading-relaxed">A clear design doc travels further than a persuasive meeting ever will. In a distributed team, most people will never hear you argue your point live — they'll only ever read what you wrote. Make the writing carry the weight.</p>
-        </div>
+    <h2 class="serif">The takeaway</h2>
 
-        <div class="rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-          <div class="text-cyan-400 text-sm font-semibold uppercase tracking-wide mb-2">03 — Consistency under pressure</div>
-          <p class="text-gray-400 text-sm leading-relaxed">Anyone can look composed in a calm sprint planning meeting. What earns trust is showing up the same way during an incident — clear, calm, focused on the fix instead of the blame. Teams remember who stayed level when it mattered.</p>
-        </div>
+    <p>On a distributed team, nobody is going to hand you the authority to make the migration go smoothly. But every team is quietly watching for who they can trust to make the hard call, write the doc no one else wants to write, and stay steady when things break. That's the leadership that's actually available to you — and it scales a lot further than a title ever will.</p>
 
-        <div class="rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-          <div class="text-cyan-400 text-sm font-semibold uppercase tracking-wide mb-2">04 — Making other people's work easier</div>
-          <p class="text-gray-400 text-sm leading-relaxed">The fastest way to earn influence on a team you don't manage is to remove a blocker for someone who does the work day to day. Influence compounds every time you make someone else's job easier without being asked.</p>
-        </div>
+  </article>
 
-      </div>
+  <footer>© 2026 e-diversify</footer>
 
-      <h2 class="text-2xl sm:text-3xl font-bold text-white mt-4 mb-6">A migration nobody officially owned</h2>
-
-      <p>The clearest version of this shows up during a cross-team migration — the kind where three services need to move together, no single manager owns all three teams, and the timeline is tight enough that nobody wants to volunteer to run it.</p>
-
-      <p>In situations like that, the person who ends up steering it is rarely appointed. They're the one who wrote the first rollout doc before anyone asked for one, flagged the shared dependency the other two teams hadn't noticed yet, and kept a plain-language status update flowing so no one had to chase updates in five different channels. None of that required a title. All of it required doing the unglamorous coordination work before someone else had to.</p>
-
-      <blockquote class="border-l-2 border-cyan-500/50 pl-6 my-8 text-gray-200 text-xl italic">
-        Authority is given to you. Influence is something a team decides you've earned — one clear decision at a time.
-      </blockquote>
-
-      <h2 class="text-2xl sm:text-3xl font-bold text-white mt-4 mb-6">Where this breaks down</h2>
-
-      <p>Influence isn't a substitute for authority in every situation — it has real limits. It doesn't help you make an unpopular call that requires enforcement, and it can quietly erode if you're right too rarely, or if you start using your credibility to avoid being challenged rather than to earn trust. Influence has to keep being re-earned; that's what makes it different from a title, which sticks around whether or not you deserve it that week.</p>
-
-      <p>It also isn't a reason to avoid seeking formal authority when a team genuinely needs it — sometimes a decision needs someone empowered to make the final call, not just someone persuasive. The two aren't in competition. Influence is what makes authority, when you do have it, actually work.</p>
-
-      <h2 class="text-2xl sm:text-3xl font-bold text-white mt-4 mb-6">The takeaway</h2>
-
-      <p>On a distributed team, nobody is going to hand you the authority to make the migration go smoothly. But every team is quietly watching for who they can trust to make the hard call, write the doc no one else wants to write, and stay steady when things break. That's the leadership that's actually available to you — and it scales a lot further than a title ever will.</p>
-
-    </article>
-  </main>
-
-  <a href="#top" id="toTop" aria-label="Back to top"
-     class="fixed right-6 sm:right-10 bottom-8 z-50 w-12 h-12 rounded-full border border-gray-700 bg-gray-900/70 backdrop-blur-md flex items-center justify-center text-cyan-400 opacity-0 translate-y-3 pointer-events-none transition-all duration-300 hover:border-cyan-400 hover:bg-gray-900">
-    ↑
-  </a>
-
-  <footer class="max-w-4xl mx-auto px-6 sm:px-8 py-10 text-xs text-gray-500 uppercase tracking-wide border-t border-gray-800/60">
-    © 2026 e-diversify
-  </footer>
+  <a href="#top" class="to-top" id="toTop" aria-label="Back to top">↑</a>
 
   <script>
     (function(){
       var btn = document.getElementById('toTop');
       function onScroll(){
-        if (window.scrollY > window.innerHeight * 0.5){
-          btn.classList.remove('opacity-0','translate-y-3','pointer-events-none');
-          btn.classList.add('opacity-100','translate-y-0');
-        } else {
-          btn.classList.add('opacity-0','translate-y-3','pointer-events-none');
-          btn.classList.remove('opacity-100','translate-y-0');
-        }
+        btn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.5);
       }
       window.addEventListener('scroll', onScroll, { passive:true });
       onScroll();
