@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>Boundaries: The Art of Deciding What Not to Couple | Vimal Maheedharan</title>
+<meta name="description" content="The best architecture decisions are rarely about what to connect — they're about what to deliberately keep apart. Notes on coupling, cohesion, and drawing boundaries that survive change. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="Software Architecture, System Design, Coupling and Cohesion, Microservices Boundaries, Domain Driven Design, Distributed Systems, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Site Reliability Engineering, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/boundaries-what-not-to-couple.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Boundaries: The Art of Deciding What Not to Couple">
+<meta property="og:description" content="The best architecture decisions are rarely about what to connect — they're about what to deliberately keep apart. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta property="og:url" content="https://e-diversify.com/blog/boundaries-what-not-to-couple.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Boundaries: The Art of Deciding What Not to Couple">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Boundaries: The Art of Deciding What Not to Couple">
+<meta name="twitter:description" content="Notes on coupling, cohesion, and drawing boundaries that survive change. By Vimal Maheedharan.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  :root{
+    --paper: #fbfaf7;
+    --ink: #0e0e0e;
+    --ink-soft: #4a4a46;
+    --rule: #d8d5cc;
+    --red: #c23b2e;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    line-height:1.75;
+  }
+  .serif{ font-family:'Source Serif 4', serif; }
+
+  a{ color:inherit; }
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1.1rem 6vw;
+    background:rgba(251,250,247,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--ink);
+  }
+  .top-nav .brand{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    text-decoration:none;
+    border:1.5px solid var(--ink);
+    padding:0.15rem 0.5rem;
+  }
+  .top-nav .links{
+    display:flex;
+    gap:2rem;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+  .top-nav .links a{
+    text-decoration:none;
+    color:var(--ink-soft);
+    transition:color 0.2s ease;
+  }
+  .top-nav .links a:hover, .top-nav .links a:focus-visible{ color:var(--red); }
+  .top-nav .links a.current{ color:var(--red); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width:780px;
+    margin:0 auto;
+    padding:10.5rem 6vw 3.5rem;
+  }
+  .doc-number{
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin-bottom:1.2rem;
+  }
+  .hero h1{
+    font-family:'Source Serif 4', serif;
+    font-weight:700;
+    font-size:clamp(2.2rem, 5vw, 3.3rem);
+    color:var(--ink);
+    line-height:1.18;
+    margin:0 0 1.3rem;
+    max-width:17ch;
+  }
+  .hero .lede{
+    font-size:1.05rem;
+    max-width:56ch;
+    color:var(--ink-soft);
+  }
+  .meta-row{
+    margin-top:2rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.9rem;
+    align-items:center;
+    font-size:0.7rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .meta-row .sep{ color:var(--rule); }
+
+  /* ---------- BLUEPRINT DIAGRAM ---------- */
+  .blueprint{
+    max-width:780px;
+    margin:0 auto;
+    padding:0 6vw 3.5rem;
+  }
+  .blueprint svg{ width:100%; height:auto; display:block; }
+  .blueprint-caption{
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:0.8rem;
+    opacity:0.7;
+  }
+
+  hr.divider{
+    border:none;
+    border-top:1.5px solid var(--ink);
+    max-width:780px;
+    margin:0 auto;
+  }
+
+  /* ---------- ARTICLE BODY ---------- */
+  article{
+    max-width:700px;
+    margin:0 auto;
+    padding:4rem 6vw 2rem;
+  }
+  article p{ margin:0 0 1.4rem; }
+  article h2{
+    font-family:'Source Serif 4', serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:1.7rem;
+    margin:3rem 0 1.3rem;
+    padding-bottom:0.6rem;
+    border-bottom:1.5px solid var(--ink);
+  }
+
+  .coupling-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.4rem;
+    margin:2rem 0 2.5rem;
+  }
+  .coupling-card{
+    border:1.5px solid var(--ink);
+    padding:1.5rem;
+    position:relative;
+  }
+  .coupling-card::before{
+    content:"";
+    position:absolute;
+    top:-1px; left:-1px;
+    width:14px; height:14px;
+    border-top:2px solid var(--red);
+    border-left:2px solid var(--red);
+  }
+  .coupling-card .tag{
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin-bottom:0.6rem;
+    display:block;
+  }
+  .coupling-card h3{
+    font-family:'Source Serif 4', serif;
+    font-size:1.1rem;
+    color:var(--ink);
+    margin:0 0 0.6rem;
+  }
+  .coupling-card p{
+    font-size:0.88rem;
+    margin:0;
+    color:var(--ink-soft);
+  }
+
+  blockquote{
+    margin:2.8rem 0;
+    padding:1.4rem 1.6rem;
+    border:1.5px dashed var(--red);
+    font-family:'Source Serif 4', serif;
+    font-style:italic;
+    font-size:1.25rem;
+    color:var(--ink);
+  }
+
+  footer{
+    max-width:700px;
+    margin:0 auto;
+    padding:2rem 6vw 5rem;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    opacity:0.65;
+    border-top:1px solid var(--rule);
+  }
+
+  /* ---------- BACK TO TOP ---------- */
+  .to-top{
+    position:fixed;
+    right:6vw;
+    bottom:2.2rem;
+    z-index:100;
+    width:44px; height:44px;
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-size:1rem;
+    opacity:0;
+    transform:translateY(10px);
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .to-top.visible{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .to-top:hover, .to-top:focus-visible{ border-color:var(--red); color:var(--red); }
+
+  @media (max-width:640px){
+    .coupling-grid{ grid-template-columns:1fr; }
+    .top-nav .links{ gap:1.2rem; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">ED</a>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="/blog/" class="current">Blog</a>
+    </div>
+  </nav>
+
+  <section class="hero" id="top">
+    <div class="doc-number">FIG. 03 — Software Architecture · System Design</div>
+    <h1 class="serif">Boundaries: The art of deciding what not to couple</h1>
+    <p class="lede">The best architecture decisions are rarely about what to connect. They're about what to deliberately keep apart — and having the discipline to leave a seam where it's tempting to build a shortcut.</p>
+    <div class="meta-row">
+      <span>July 2026</span>
+      <span class="sep">/</span>
+      <span>7 min read</span>
+      <span class="sep">/</span>
+      <span>By Vimal Maheedharan</span>
+    </div>
+  </section>
+
+  <div class="blueprint" aria-hidden="true">
+    <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="#0e0e0e" stroke-width="1.5">
+        <rect x="40" y="60" width="150" height="100"/>
+        <rect x="305" y="60" width="150" height="100"/>
+        <rect x="570" y="60" width="150" height="100"/>
+      </g>
+      <g fill="#0e0e0e" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle">
+        <text x="115" y="115">MODULE A</text>
+        <text x="380" y="115">MODULE B</text>
+        <text x="645" y="115">MODULE C</text>
+      </g>
+      <!-- allowed boundary: thin solid connector -->
+      <line x1="190" y1="110" x2="305" y2="110" stroke="#0e0e0e" stroke-width="1.5"/>
+      <text x="247" y="98" font-family="JetBrains Mono, monospace" font-size="9" fill="#4a4a46" text-anchor="middle">defined interface</text>
+      <!-- rejected shortcut: crossed-out dashed connector -->
+      <line x1="455" y1="110" x2="570" y2="110" stroke="#c23b2e" stroke-width="1.5" stroke-dasharray="5,4"/>
+      <line x1="495" y1="95" x2="530" y2="125" stroke="#c23b2e" stroke-width="1.5"/>
+      <line x1="530" y1="95" x2="495" y2="125" stroke="#c23b2e" stroke-width="1.5"/>
+      <text x="512" y="98" font-family="JetBrains Mono, monospace" font-size="9" fill="#c23b2e" text-anchor="middle">shared table — rejected</text>
+    </svg>
+    <div class="blueprint-caption">Fig. 03.1 — a defined interface vs. a shortcut left uncut</div>
+  </div>
+
+  <hr class="divider">
+
+  <article>
+
+    <p>Every system design conversation eventually arrives at the same fork: connect these two things directly, right now, and ship faster — or draw a boundary between them and pay for it later in extra plumbing. The direct connection almost always wins the room. It's faster this sprint, it's fewer files touched, and nobody has to write an interface for something that "will obviously never change."</p>
+
+    <p>Then it changes.</p>
+
+    <h2 class="serif">Why coupling feels productive</h2>
+
+    <p>Coupling is what happens when two parts of a system reach into each other's internals instead of talking through a defined seam. It's seductive because it's fast — one extra database join, one shared struct, one direct function call across a module boundary, and the feature ships today. Every individual coupling decision looks small. The debt shows up later, all at once, the day two teams need to deploy those "obviously never going to change" pieces independently and discover they can't.</p>
+
+    <h2 class="serif">Four shapes coupling takes</h2>
+
+    <div class="coupling-grid">
+      <div class="coupling-card">
+        <span class="tag">Data coupling</span>
+        <h3>Shared tables</h3>
+        <p>Two services reading and writing the same database table. Neither can change its schema without coordinating a migration across both.</p>
+      </div>
+      <div class="coupling-card">
+        <span class="tag">Temporal coupling</span>
+        <h3>Deploy ordering</h3>
+        <p>Service B breaks unless Service A is deployed first. The dependency is invisible until a release goes out of order.</p>
+      </div>
+      <div class="coupling-card">
+        <span class="tag">Semantic coupling</span>
+        <h3>Shared assumptions</h3>
+        <p>Two teams both assume a field means the same thing, with nothing enforcing it. The drift is silent until it isn't.</p>
+      </div>
+      <div class="coupling-card">
+        <span class="tag">Deployment coupling</span>
+        <h3>Shared release trains</h3>
+        <p>Independent services bundled into one deploy pipeline. A change to one forces every other team to ship on its schedule.</p>
+      </div>
+    </div>
+
+    <h2 class="serif">The migration that a boundary made boring</h2>
+
+    <p>The clearest case for a boundary shows up in hindsight, during a migration. A payments service that talked to the rest of the platform only through a defined event contract — never a shared table, never a direct internal call — turned what should have been a six-team, multi-week coordination effort into a change made by one team, on one schedule, that nobody else even had to notice. The boundary had been drawn a year earlier, for reasons that felt almost unnecessary at the time. It stopped being unnecessary the moment the system needed to change.</p>
+
+    <blockquote>A boundary is a bet that this part of the system will need to change on its own schedule someday. You rarely lose that bet — you just don't know yet which boundary was the one that mattered.</blockquote>
+
+    <h2 class="serif">Where boundaries go too far</h2>
+
+    <p>Over-decoupling is a real failure mode, not a hypothetical one. Splitting two things that always change together into separate services just because "boundaries are good practice" adds network calls, retry logic, and failure modes to a relationship that was never actually independent. The cost of a boundary is real — it's paid in latency, in operational surface area, in one more thing that can time out. A boundary only earns its cost when the two sides genuinely have separate reasons to change.</p>
+
+    <p>The practical test isn't "could this be a boundary" — almost anything could. It's "do these two pieces have different owners, different release cadences, or different reasons to exist." If the honest answer is no, the shortcut isn't technical debt. It's just correctly modeling that these things are, in fact, one thing.</p>
+
+    <h2 class="serif">The takeaway</h2>
+
+    <p>Coupling isn't a mistake you make once and fix later — it's a decision made dozens of times a week, mostly by default, mostly under deadline pressure. The architects whose systems age well aren't the ones who avoided every shortcut. They're the ones who could tell, in the moment, which shortcut they could afford and which one they'd be explaining in a postmortem eighteen months from now.</p>
+
+  </article>
+
+  <footer>© 2026 e-diversify — Vimal Maheedharan</footer>
+
+  <a href="#top" class="to-top" id="toTop" aria-label="Back to top">↑</a>
+
+  <script>
+    (function(){
+      var btn = document.getElementById('toTop');
+      function onScroll(){
+        btn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.5);
+      }
+      window.addEventListener('scroll', onScroll, { passive:true });
+      onScroll();
+    })();
+  </script>
+
+</body>
+</html>
