@@ -1,253 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="/assets/js/analytics.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Core SEO Meta Directives -->
-    <title>ED | Production Infrastructure & Distributed Systems</title>
-    <meta name="description" content="Production infrastructure ownership and distributed systems architecture for cloud-native platforms. Specializing in infrastructure automation, container orchestration, deep production debugging, and deterministic cloud benchmark task authoring.">
-    <meta name="keywords" content="Production Infrastructure Ownership, Distributed Systems Architecture, Cloud Architecture, Infrastructure Automation, Containers, Kubernetes, Docker, Production Debugging, Deterministic Benchmarks, Cloud Benchmark Authoring, SRE">
-    <meta name="author" content="E-Diversify">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://e-diversify.com/">
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- OpenGraph Enterprise Social Shared Cards -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="ED | Production Infrastructure & Distributed Systems">
-    <meta property="og:description" content="Owning production infrastructure and architecting distributed systems built to survive scale, failure, and scrutiny.">
-    <meta property="og:url" content="https://e-diversify.com/">
-    <meta property="og:site_name" content="E-Diversify Platform Architecture">
-    <meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
-    <meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="E-Diversify — Production Infrastructure & Distributed Systems">
+<!-- Core SEO Meta Directives -->
+<title>Blog | Vimal Maheedharan — Technical Architect & SRE Consultant</title>
+<meta name="description" content="Longer-form notes on technology, engineering, and architecture by Vimal Maheedharan — Technical Architect, Solutions Architect, and SRE Consultant.">
+<meta name="keywords" content="Technology Blog, Engineering Blog, Tech History, Software Engineering, Distributed Systems, ED, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Site Reliability Engineering, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/">
 
-    <!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ED | Production Infrastructure & Distributed Systems">
-    <meta name="twitter:description" content="Owning production infrastructure and architecting distributed systems built to survive scale, failure, and scrutiny.">
-    <meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Blog | Vimal Maheedharan — Technical Architect & SRE Consultant">
+<meta property="og:description" content="Longer-form notes on technology, engineering, and architecture by Vimal Maheedharan — Technical Architect, Solutions Architect, and SRE Consultant.">
+<meta property="og:url" content="https://e-diversify.com/blog/">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="E-Diversify Blog — Notes on Technology & Engineering">
 
-    <!-- Dynamic Inline SVG Favicon (Renders "ED") -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blog | Vimal Maheedharan — Technical Architect & SRE Consultant">
+<meta name="twitter:description" content="Longer-form notes on technology, engineering, and architecture by Vimal Maheedharan — Technical Architect, Solutions Architect, and SRE Consultant.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
 
-    <!-- Tailwind CSS Engine -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Extracted External Production Stylesheet -->
-    <link rel="stylesheet" href="./assets/css/style.css">
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper: #f2e9d8;
+    --paper-ink: #2b2015;
+    --brass: #9c6b2e;
+    --brass-dark: #6e4a1c;
+    --mid-accent: #3f7d6b;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    padding-top:64px;
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper);
+    color:var(--paper-ink);
+    min-height:100vh;
+  }
+
+  .display{font-family:'Fraunces', serif;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(242,233,216,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(43,32,21,0.12);
+  }
+  .top-nav a{
+    text-decoration:none;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--paper-ink);
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    transition:color 0.2s ease;
+  }
+  .top-nav a:hover, .top-nav a:focus-visible{
+    color:var(--brass-dark);
+  }
+  .top-nav .brand{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:1.3rem;
+    letter-spacing:0.05em;
+    text-transform:none;
+    background:linear-gradient(90deg, var(--brass-dark), var(--mid-accent));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  header{
+    max-width:920px;
+    margin:0 auto;
+    padding:8vh 6vw 4vh;
+    position:relative;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(43,32,21,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,32,21,0.05) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 30% 30%, black 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-size:0.75rem;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin-bottom:1rem;
+    position:relative; z-index:1;
+  }
+  header h1{
+    font-size:clamp(2.2rem, 5vw, 3.4rem);
+    font-weight:900;
+    font-variation-settings:'opsz' 144;
+    margin:0 0 0.8rem;
+    position:relative; z-index:1;
+  }
+  header p{
+    max-width:52ch;
+    font-size:0.95rem;
+    line-height:1.6;
+    color:#4a3a26;
+    margin:0;
+    position:relative; z-index:1;
+  }
+
+  main{
+    max-width:920px;
+    margin:0 auto;
+    padding:2vh 6vw 12vh;
+  }
+
+  .post-list{
+    display:flex;
+    flex-direction:column;
+    border-top:1px solid rgba(43,32,21,0.15);
+  }
+
+  .post-card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    padding:2.2rem 0;
+    border-bottom:1px solid rgba(43,32,21,0.15);
+    transition:padding-left 0.2s ease, opacity 0.2s ease;
+  }
+  .post-card:hover, .post-card:focus-visible{
+    padding-left:0.6rem;
+  }
+  .post-card:focus-visible{
+    outline:2px solid var(--mid-accent);
+    outline-offset:4px;
+  }
+
+  .post-meta{
+    display:flex;
+    align-items:center;
+    gap:0.9rem;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin-bottom:0.7rem;
+  }
+  .post-meta .dot{
+    width:5px; height:5px;
+    border-radius:50%;
+    background:var(--brass-dark);
+    opacity:0.6;
+  }
+
+  .post-card h2{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:clamp(1.5rem, 3vw, 2rem);
+    margin:0 0 0.6rem;
+  }
+
+  .post-card p{
+    font-size:0.9rem;
+    line-height:1.65;
+    color:#4a3a26;
+    margin:0 0 0.9rem;
+    max-width:62ch;
+  }
+
+  .read-more{
+    font-size:0.78rem;
+    letter-spacing:0.05em;
+    color:var(--mid-accent);
+    font-weight:600;
+  }
+  .post-card:hover .read-more{
+    text-decoration:underline;
+  }
+
+  .empty-note{
+    padding:2.5rem 0;
+    font-size:0.85rem;
+    color:#6e5b40;
+    font-style:italic;
+  }
+
+  footer{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 6vw 6vh;
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    opacity:0.7;
+  }
+</style>
 </head>
+<body>
 
-<body class="text-white grid-bg antialiased">
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">ED</a>
+    <a href="/">
+      <span aria-hidden="true">←</span> Home
+    </a>
+  </nav>
 
-    <!-- Ambient Glow Fields -->
-    <div class="fixed inset-0 overflow-hidden -z-10" aria-hidden="true">
-        <div class="blob absolute w-96 h-96 bg-cyan-500 opacity-15 rounded-full top-10 left-10"></div>
-        <div class="blob absolute w-[500px] h-[500px] bg-purple-600 opacity-15 rounded-full bottom-0 right-0"></div>
+  <header>
+    <div class="eyebrow">e-diversify / blog</div>
+    <h1 class="display">Notes &amp; ideas</h1>
+    <p>Longer-form pieces on technology, design, and everything in between — starting with a look at how one invention always becomes the foundation for the next.</p>
+  </header>
+
+  <main>
+    <div class="post-list">
+
+      <a class="post-card" href="/blog/kiss-in-ai.html">
+        <div class="post-meta">
+          <span>July 2026</span>
+          <span class="dot"></span>
+          <span>AI Systems · Engineering Philosophy</span>
+        </div>
+        <h2 class="display">Dear Complexity, We Need to Talk</h2>
+        <p>A love letter to simplicity in AI systems — on RAG pipelines that don't need six re-ranking stages, models that ship instead of sitting in notebooks, and why every added layer is a promise you have to keep.</p>
+        <span class="read-more">Read the post →</span>
+      </a>
+
+      <a class="post-card" href="/blog/boundaries-what-not-to-couple.html">
+        <div class="post-meta">
+          <span>July 2026</span>
+          <span class="dot"></span>
+          <span>Software Architecture · System Design</span>
+        </div>
+        <h2 class="display">Boundaries: The Art of Deciding What Not to Couple</h2>
+        <p>The best architecture decisions are rarely about what to connect — they're about what to deliberately keep apart. Notes on coupling, cohesion, and drawing boundaries that survive change.</p>
+        <span class="read-more">Read the post →</span>
+      </a>
+
+      <a class="post-card" href="/blog/leadership-through-influence.html">
+        <div class="post-meta">
+          <span>July 2026</span>
+          <span class="dot"></span>
+          <span>Engineering · Leadership</span>
+        </div>
+        <h2 class="display">Leadership Through Influence</h2>
+        <p>In distributed systems work, the person who unblocks the migration is rarely the person with the title. Notes on leading through credibility, clarity, and consistency — not authority.</p>
+        <span class="read-more">Read the post →</span>
+      </a>
+
+      <a class="post-card" href="/blog/evolution-of-technology.html">
+        <div class="post-meta">
+          <span>July 2026</span>
+          <span class="dot"></span>
+          <span>Technology · History</span>
+        </div>
+        <h2 class="display">From Clay Tablets to Thinking Machines</h2>
+        <p>A visual timeline tracing technology's biggest turning points — from the abacus and the printing press through ENIAC, the internet, the smartphone, and today's AI models.</p>
+        <span class="read-more">Read the post →</span>
+      </a>
+
+      <!--
+        To add a new post, copy the <a class="post-card"> block above,
+        update the href, date, category, title, and description,
+        and paste it here above this comment.
+      -->
+
     </div>
+  </main>
 
-    <!-- Navigation Header -->
-    <header class="w-full border-b border-gray-800/50 backdrop-blur-md sticky top-0 z-50">
-        <nav class="max-w-7xl mx-auto px-6 sm:px-8 py-5 flex justify-between items-center">
-            <!-- Brand Logo Mark & Trademarked Phrase -->
-            <div class="flex items-center space-x-3 cursor-default group">
-                <span class="text-2xl font-black tracking-wider text-white bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                    ED
-                </span>
-                <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase border-l border-gray-700 pl-3">
-                    Fluidity In Motion ©
-                </span>
-            </div>
-            <div class="flex items-center space-x-8 text-sm font-medium text-gray-300">
-                <a href="#" class="text-cyan-400 transition-colors">Home</a>
-                <a href="./blog/" class="hover:text-cyan-400 transition-colors">
-    The Runbook
-</a>
-                <a href="./vimal/index.html" class="hover:text-cyan-400 transition-colors">
-    Who's On-Call
-</a>
-            </div>
-        </nav>
-    </header>
-
-    <!-- Hero Showcase Section -->
-    <main class="max-w-7xl mx-auto px-6 sm:px-8 pt-20 pb-24">
-        <section class="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
-            <!-- Left Text Context Block -->
-            <div class="lg:col-span-7 flex flex-col justify-center">
-                <div class="inline-flex self-start items-center rounded-full border border-cyan-500/20 bg-cyan-500/5 px-4 py-1.5 text-xs font-medium tracking-wide text-cyan-400 mb-6 uppercase">
-                    Production Ownership • Distributed Systems • Automation • Benchmarks
-                </div>
-
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.15]">
-                    Owning Production. 
-                    <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">
-                        Architecting Distributed Systems.
-                    </span>
-                </h1>
-
-                <p class="mt-6 text-gray-400 text-base sm:text-lg leading-relaxed max-w-2xl">
-                    I run production infrastructure end to end — designing distributed, cloud-native systems, automating the platforms that keep them healthy, and going deep into containers and live systems when something breaks. I also author deterministic cloud benchmark tasks used to evaluate infrastructure reasoning under real, reproducible failure conditions.
-                </p>
-
-                <div class="mt-10 flex flex-wrap gap-4">
-                    <a href="./vimal/index.html" class="px-6 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold shadow-lg shadow-cyan-900/20 transform hover:-translate-y-0.5 transition-all text-sm">
-                        View Technical Profile
-                    </a>
-                    <a href="https://www.linkedin.com/in/vimalmaheedharan/"
-   target="_blank"
-   rel="noopener noreferrer"
-   class="inline-flex items-center justify-center
-          w-14 h-14 rounded-xl
-          border border-gray-700
-          hover:border-cyan-400
-          bg-gray-900/40
-          hover:bg-cyan-500/10
-          transition-all">
-
-    <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 24 24"
-         fill="currentColor"
-         class="w-6 h-6 text-[#0A66C2]">
-        <path d="M20.447 20.452H16.89v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.347V9h3.414v1.561h.049c.476-.9 1.637-1.849 3.37-1.849 3.603 0 4.268 2.372 4.268 5.455v6.285zM5.337 7.433a2.063 2.063 0 110-4.126 2.063 2.063 0 010 4.126zM7.119 20.452H3.555V9h3.564v11.452z"/>
-    </svg>
-
-</a>
-                </div>
-            </div>
-
-            <!-- Right Core Capability Pillars -->
-            <div class="lg:col-span-5 w-full">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-cyan-950/20 hover:border-cyan-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 text-xl font-semibold mb-4">🛡️</div>
-                        <h3 class="font-bold text-gray-200">Production Ownership</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">On-call accountability • Incident command • Capacity & risk management</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-950/20 hover:border-purple-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl font-semibold mb-4">🌐</div>
-                        <h3 class="font-bold text-gray-200">Distributed Systems</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Cloud-native architecture • Consensus & consistency • Fault-tolerant design</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-emerald-950/20 hover:border-emerald-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xl font-semibold mb-4">📦</div>
-                        <h3 class="font-bold text-gray-200">Automation & Containers</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Kubernetes • Docker • IaC pipelines • Self-healing platforms</p>
-                    </div>
-
-                    <div class="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-pink-950/20 hover:border-pink-500/30">
-                        <div class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 text-xl font-semibold mb-4">🧪</div>
-                        <h3 class="font-bold text-gray-200">Benchmark Authoring</h3>
-                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Deterministic cloud task design • Reproducible failure environments</p>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- Technology Focus Matrix -->
-        <section class="mt-28">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-extrabold tracking-tight">Technical Directives</h2>
-                <div class="w-12 h-1 bg-cyan-500 mx-auto mt-4 rounded-full"></div>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-6 lg:gap-8">
-                
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-cyan-400 mr-3"></span> Production Infrastructure Ownership
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> End-to-end platform accountability</li>
-                        <li class="flex items-center"> Incident response & postmortem discipline</li>
-                        <li class="flex items-center"> SLO/SLA-driven reliability targets</li>
-                        <li class="flex items-center"> Change management & rollout safety</li>
-                        <li class="flex items-center"> Cost, capacity, and risk stewardship</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-blue-400 mr-3"></span> Cloud & Distributed Systems Architecture
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Multi-cloud topology (AWS • GCP • Azure)</li>
-                        <li class="flex items-center"> Event-driven & message-based architectures</li>
-                        <li class="flex items-center"> Consensus, partitioning & consistency models</li>
-                        <li class="flex items-center"> Fault-tolerant, highly available design</li>
-                        <li class="flex items-center"> Domain-driven service boundaries</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-3"></span> Infrastructure Automation & Containers
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Kubernetes orchestration at scale</li>
-                        <li class="flex items-center"> Docker & container runtime engineering</li>
-                        <li class="flex items-center"> Infrastructure as code & immutable builds</li>
-                        <li class="flex items-center"> Self-healing, autoscaling pipelines</li>
-                        <li class="flex items-center"> Advanced CI/CD delivery systems</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-pink-400 mr-3"></span> Debugging & Root Cause Analysis
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Live production debugging under pressure</li>
-                        <li class="flex items-center"> Distributed tracing & structured logging</li>
-                        <li class="flex items-center"> Performance profiling & regression hunting</li>
-                        <li class="flex items-center"> OpenTelemetry-based observability</li>
-                        <li class="flex items-center"> Systemic failure-mode analysis</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-purple-400 mr-3"></span> Deterministic Cloud Benchmark Task Authoring
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> Reproducible, seedable cloud environments</li>
-                        <li class="flex items-center"> Ground-truth failure scenario design</li>
-                        <li class="flex items-center"> Task grading & verification harnesses</li>
-                        <li class="flex items-center"> Realistic infra-reasoning evaluation suites</li>
-                        <li class="flex items-center"> Environment isolation & determinism guarantees</li>
-                    </ul>
-                </div>
-
-                <div class="glass rounded-2xl p-8 hover:border-gray-700">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-cyan-300 mr-3"></span> Identity & Secure Access
-                    </h3>
-                    <ul class="space-y-3.5 text-sm text-gray-400 font-medium">
-                        <li class="flex items-center"> OAuth2 / OIDC systems integration</li>
-                        <li class="flex items-center"> Custom Keycloak SPIs</li>
-                        <li class="flex items-center"> Secure federated access governance</li>
-                        <li class="flex items-center"> Zero-trust service-to-service auth</li>
-                        <li class="flex items-center"> Secrets & credential lifecycle management</li>
-                    </ul>
-                </div>
-
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer Area -->
-    <footer class="py-10 text-center text-xs text-gray-500 border-t border-gray-900/60 bg-gray-950/20 backdrop-blur-sm">
-        <p class="tracking-wide">&copy; 2026 E-Diversify. All rights reserved.</p>
-        <p class="text-gray-600 mt-2 font-mono">Owning production infrastructure. Debugging what breaks. Benchmarking what matters.</p>
-    </footer>
+  <footer>
+    © 2026 e-diversify
+  </footer>
 
 </body>
 </html>
