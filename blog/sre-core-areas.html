@@ -362,6 +362,9 @@
       <span class="count">04 entries</span>
     </div>
 
+
+
+
     <article class="incident" style="--sev-color:var(--red);">
       <div class="incident-meta">
         <span class="badge sev1">SEV-1</span>
@@ -380,21 +383,20 @@
       <p class="resolution"><span class="label">Fix</span>Pool tuning, a missing circuit breaker, and a new alert on saturation metrics that fires <em>before</em> the error rate does — because by the time errors show up, you're already behind.</p>
     </article>
 
-    <article class="incident" style="--sev-color:var(--red);">
+    <article class="incident" style="--sev-color:var(--amber);">
       <div class="incident-meta">
-        <span class="badge sev1">SEV-1</span>
-        <span class="id">INC-2214</span>
-        <span class="service">edge-routing</span>
+        <span class="badge sev2">SEV-2</span>
+        <span class="id">INC-2233</span>
+        <span class="service">primary-db / replicas</span>
       </div>
-      <h3>A DNS change sends traffic to the wrong cluster</h3>
-      <p class="symptom">Production traffic gets misrouted after a routine DNS change. This is a contain-first, understand-later situation — the instinct to dig into "why" before "how do I stop it" is the wrong instinct here.</p>
+      <h3>A failover leaves reads stale for 90 seconds</h3>
+      <p class="symptom">Nothing breaks in the traditional sense — the service stays up. That's exactly why it's dangerous. Nobody pages you for data that's merely wrong.</p>
       <ul class="steps">
-        <li><strong>Revert immediately</strong> — but don't trust DNS alone to save you. TTLs lie, propagation isn't instant. Flip routing at the load balancer or edge layer if speed matters more than elegance.</li>
-        <li><strong>Ask what state mutated</strong> on the wrong cluster before you caught it. Any writes accepted there are now a data-integrity question, not a routing question.</li>
-        <li><strong>Pause anything asynchronous</strong> — queues, background workers — on the wrong cluster until you're certain nothing partial got committed.</li>
-        <li><strong>Reconcile after containment.</strong> Look for orphaned records or duplicate transactions written during the misroute window.</li>
+        <li><strong>Expose replication lag as a first-class metric</strong>, with alerting tied directly to failover events — not discovered after the fact.</li>
+        <li><strong>Run synthetic canaries.</strong> Write a known value, read it back on a schedule, alert on mismatch.</li>
+        <li><strong>Route consistency-sensitive reads to primary</strong> — a balance check right after a transaction can't afford to trust eventual consistency to catch up in time.</li>
       </ul>
-      <p class="resolution"><span class="label">Fix</span>Staged rollout and a health-check gate on any DNS change, plus lower TTLs on records that sit in front of anything critical.</p>
+      <p class="resolution"><span class="label">Fix</span>Treat failover as an event that automatically tightens monitoring for a window afterward, rather than waiting for steady-state alerting to notice.</p>
     </article>
 
     <article class="incident" style="--sev-color:var(--amber);">
@@ -413,20 +415,21 @@
       <p class="resolution"><span class="label">Fix</span>Multi-metric autoscaling (queue depth, custom app metrics) plus pre-scaling ahead of known peak events. Single-metric autoscaling is a fair-weather strategy.</p>
     </article>
 
-    <article class="incident" style="--sev-color:var(--amber);">
+    <article class="incident" style="--sev-color:var(--red);">
       <div class="incident-meta">
-        <span class="badge sev2">SEV-2</span>
-        <span class="id">INC-2233</span>
-        <span class="service">primary-db / replicas</span>
+        <span class="badge sev1">SEV-1</span>
+        <span class="id">INC-2214</span>
+        <span class="service">edge-routing</span>
       </div>
-      <h3>A failover leaves reads stale for 90 seconds</h3>
-      <p class="symptom">Nothing breaks in the traditional sense — the service stays up. That's exactly why it's dangerous. Nobody pages you for data that's merely wrong.</p>
+      <h3>A DNS change sends traffic to the wrong cluster</h3>
+      <p class="symptom">Production traffic gets misrouted after a routine DNS change. This is a contain-first, understand-later situation — the instinct to dig into "why" before "how do I stop it" is the wrong instinct here.</p>
       <ul class="steps">
-        <li><strong>Expose replication lag as a first-class metric</strong>, with alerting tied directly to failover events — not discovered after the fact.</li>
-        <li><strong>Run synthetic canaries.</strong> Write a known value, read it back on a schedule, alert on mismatch.</li>
-        <li><strong>Route consistency-sensitive reads to primary</strong> — a balance check right after a transaction can't afford to trust eventual consistency to catch up in time.</li>
+        <li><strong>Revert immediately</strong> — but don't trust DNS alone to save you. TTLs lie, propagation isn't instant. Flip routing at the load balancer or edge layer if speed matters more than elegance.</li>
+        <li><strong>Ask what state mutated</strong> on the wrong cluster before you caught it. Any writes accepted there are now a data-integrity question, not a routing question.</li>
+        <li><strong>Pause anything asynchronous</strong> — queues, background workers — on the wrong cluster until you're certain nothing partial got committed.</li>
+        <li><strong>Reconcile after containment.</strong> Look for orphaned records or duplicate transactions written during the misroute window.</li>
       </ul>
-      <p class="resolution"><span class="label">Fix</span>Treat failover as an event that automatically tightens monitoring for a window afterward, rather than waiting for steady-state alerting to notice.</p>
+      <p class="resolution"><span class="label">Fix</span>Staged rollout and a health-check gate on any DNS change, plus lower TTLs on records that sit in front of anything critical.</p>
     </article>
 
     <div class="postmortem">
