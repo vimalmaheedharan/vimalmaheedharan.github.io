@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>SRE Core Areas — What Breaks Under Pressure | Vimal Maheedharan</title>
+<meta name="description" content="Four production scenarios — peak-load errors, misrouted traffic, silent autoscaler failure, stale reads after failover — worked through as SRE reasoning patterns. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="SRE, Site Reliability Engineering, Production Incidents, Postmortems, Kubernetes, Autoscaling, Database Failover, Incident Response, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/sre-core-areas.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="SRE Core Areas — What Breaks Under Pressure | Vimal Maheedharan">
+<meta property="og:description" content="Four production scenarios worked through as SRE reasoning patterns — saturation, containment, silent failure, and stale reads.">
+<meta property="og:url" content="https://e-diversify.com/blog/sre-core-areas.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="SRE Core Areas — an incident-log style walkthrough of four production scenarios">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SRE Core Areas — What Breaks Under Pressure">
+<meta name="twitter:description" content="Four production scenarios worked through as SRE reasoning patterns.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05070a;
+    --panel:#0b0f14;
+    --panel-line:#1a2129;
+    --green:#39ff9a;
+    --green-dim:#1f7a4d;
+    --amber:#ffb454;
+    --red:#ff5c5c;
+    --ink:#dce6e2;
+    --ink-dim:#6c7c78;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    min-height:100vh;
+    position:relative;
+  }
+  /* scanline texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(57,255,154,0.025) 0px,
+      rgba(57,255,154,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events:none;
+    z-index:1;
+  }
+  .display{font-family:'Space Grotesk', sans-serif;}
+
+  a{color:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0.9rem 6vw;
+    background:rgba(5,7,10,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--panel-line);
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .top-nav a{ text-decoration:none; display:flex; align-items:center; gap:0.5rem; color:var(--ink-dim); transition:color 0.2s ease;}
+  .top-nav a:hover{ color:var(--green); }
+  .top-nav .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.02em;
+    color:var(--green);
+    text-transform:none;
+  }
+  .top-nav .brand::before{
+    content:"● ";
+    color:var(--green);
+  }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:0 6vw; position:relative; z-index:2;}
+
+  /* ---------- HERO / STATUS BANNER ---------- */
+  header.hero{
+    padding-top:110px;
+    padding-bottom:2.5rem;
+  }
+  .status-line{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--green);
+    margin-bottom:1.6rem;
+  }
+  .status-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:0.35;}
+  }
+  header.hero h1{
+    font-size:clamp(1.9rem, 4.4vw, 3rem);
+    font-weight:700;
+    line-height:1.15;
+    color:#f4fbf8;
+    margin-bottom:1rem;
+  }
+  header.hero h1 span{ color:var(--green); }
+  header.hero .lede{
+    font-size:0.94rem;
+    line-height:1.75;
+    color:var(--ink-dim);
+    max-width:64ch;
+  }
+  .byline{
+    margin-top:1.6rem;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-top:1px solid var(--panel-line);
+    padding-top:1rem;
+  }
+  .byline strong{ color:var(--ink); }
+
+  /* ---------- INTRO PROSE ---------- */
+  .prose{
+    font-size:0.98rem;
+    line-height:1.85;
+    color:var(--ink);
+    padding:1.5rem 0 0.5rem;
+  }
+  .prose p{ margin-bottom:1.3rem; }
+  .prose p:last-child{ margin-bottom:0; }
+
+  /* ---------- INCIDENT LOG ---------- */
+  .log-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:3.2rem 0 1.4rem;
+    padding-bottom:0.8rem;
+    border-bottom:1px dashed var(--panel-line);
+  }
+  .log-header .tag{
+    font-size:0.7rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .log-header .count{
+    font-size:0.7rem;
+    color:var(--green-dim);
+  }
+
+  .incident{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-left:3px solid var(--sev-color, var(--green));
+    border-radius:6px;
+    padding:1.6rem 1.7rem;
+    margin-bottom:1.6rem;
+    position:relative;
+  }
+  .incident-meta{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:0.7rem;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:0.9rem;
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    padding:0.22rem 0.55rem;
+    border-radius:3px;
+    font-weight:700;
+    letter-spacing:0.06em;
+  }
+  .badge.sev1{ background:rgba(255,92,92,0.14); color:var(--red); border:1px solid rgba(255,92,92,0.35);}
+  .badge.sev2{ background:rgba(255,180,84,0.14); color:var(--amber); border:1px solid rgba(255,180,84,0.35);}
+  .badge.sev3{ background:rgba(57,255,154,0.12); color:var(--green); border:1px solid rgba(57,255,154,0.35);}
+  .incident-meta .id{ color:var(--ink-dim); }
+  .incident-meta .service{ color:var(--ink-dim); }
+
+  .incident h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:1.18rem;
+    font-weight:600;
+    color:#f4fbf8;
+    margin-bottom:0.9rem;
+    line-height:1.4;
+  }
+  .incident .symptom{
+    font-size:0.86rem;
+    color:var(--ink-dim);
+    line-height:1.7;
+    margin-bottom:1.2rem;
+    padding-bottom:1.1rem;
+    border-bottom:1px dashed var(--panel-line);
+  }
+  .incident .symptom em{ color:var(--ink); font-style:normal; }
+
+  .steps{
+    list-style:none;
+  }
+  .steps li{
+    position:relative;
+    padding-left:1.6rem;
+    margin-bottom:0.85rem;
+    font-size:0.88rem;
+    line-height:1.7;
+    color:var(--ink);
+  }
+  .steps li:last-child{ margin-bottom:0; }
+  .steps li::before{
+    content:"›";
+    position:absolute;
+    left:0;
+    color:var(--green);
+    font-weight:700;
+  }
+  .steps li strong{ color:#f4fbf8; }
+
+  .resolution{
+    margin-top:1.2rem;
+    padding-top:1.1rem;
+    border-top:1px dashed var(--panel-line);
+    font-size:0.86rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+  }
+  .resolution .label{
+    color:var(--green);
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:0.68rem;
+    margin-right:0.5rem;
+  }
+
+  /* ---------- CLOSING ---------- */
+  .postmortem{
+    margin-top:3rem;
+    padding:1.7rem 1.8rem;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+  }
+  .postmortem .label{
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:0.8rem;
+  }
+  .postmortem p{
+    font-size:0.92rem;
+    line-height:1.8;
+    color:var(--ink);
+  }
+
+  .next-up{
+    margin-top:2.4rem;
+    padding-top:1.6rem;
+    border-top:1px solid var(--panel-line);
+    font-size:0.82rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+    font-style:normal;
+  }
+  .next-up .label{
+    display:block;
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--green-dim);
+    margin-bottom:0.5rem;
+  }
+
+  footer{
+    max-width:880px;
+    margin:0 auto;
+    padding:3rem 6vw 5rem;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    position:relative; z-index:2;
+  }
+
+  @media (max-width:600px){
+    .incident{ padding:1.3rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/">
+      <span aria-hidden="true">←</span> All posts
+    </a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="status-line">
+        <span class="status-dot"></span>
+        incident log / reliability notebook
+      </div>
+      <h1 class="display">SRE Core Areas: What Breaks <span>Under Pressure</span></h1>
+      <p class="lede">There's a kind of question that separates "I know the theory" from "I've been paged for this." It's not the vocabulary — it's the sequence of moves you make in the first five minutes of a production fire, and the decisions you make long before the fire starts.</p>
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · July 2026</p>
+    </header>
+
+    <section class="prose">
+      <p>Four scenarios, logged below the way an incident channel might read them — symptom, investigation, resolution. Not a postmortem template exactly, more a set of reasoning patterns worth keeping close, because the failures that matter most rarely announce themselves. They hide in saturation, in propagation delay, in a metric nobody's watching, in consistency nobody's testing.</p>
+    </section>
+
+    <div class="log-header">
+      <span class="tag">Reliability &amp; Production Incidents</span>
+      <span class="count">04 entries</span>
+    </div>
+
+    <article class="incident" style="--sev-color:var(--red);">
+      <div class="incident-meta">
+        <span class="badge sev1">SEV-1</span>
+        <span class="id">INC-2201</span>
+        <span class="service">payments-gateway</span>
+      </div>
+      <h3>5xx errors appear only under peak load</h3>
+      <p class="symptom">Service behaves correctly at normal traffic, then starts throwing server errors the moment load spikes. Easy to mistake for a code bug — it usually <em>isn't</em>. It's a capacity bug wearing a code bug's clothes.</p>
+      <ul class="steps">
+        <li><strong>Confirm the correlation first.</strong> Overlay error rate against request volume, not against deploy timestamps — ruling out "did we just ship something" early saves the whole investigation from going sideways.</li>
+        <li><strong>Check saturation before anything else.</strong> Connection pools, worker queues, CPU throttling, GC pauses — invisible at low concurrency, the entire story at high concurrency.</li>
+        <li><strong>Trace the slow requests specifically.</strong> Where does latency actually balloon — a query, a lock, an external call?</li>
+        <li><strong>Watch for locks that only bite under concurrency.</strong> A query that takes 200ms alone can take 8 seconds queued fifty-deep behind the same lock.</li>
+        <li><strong>Check the downstream dependency.</strong> A bank API or payment gateway rate-limiting you exactly when you need it most is a common, easy-to-miss culprit.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Pool tuning, a missing circuit breaker, and a new alert on saturation metrics that fires <em>before</em> the error rate does — because by the time errors show up, you're already behind.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--red);">
+      <div class="incident-meta">
+        <span class="badge sev1">SEV-1</span>
+        <span class="id">INC-2214</span>
+        <span class="service">edge-routing</span>
+      </div>
+      <h3>A DNS change sends traffic to the wrong cluster</h3>
+      <p class="symptom">Production traffic gets misrouted after a routine DNS change. This is a contain-first, understand-later situation — the instinct to dig into "why" before "how do I stop it" is the wrong instinct here.</p>
+      <ul class="steps">
+        <li><strong>Revert immediately</strong> — but don't trust DNS alone to save you. TTLs lie, propagation isn't instant. Flip routing at the load balancer or edge layer if speed matters more than elegance.</li>
+        <li><strong>Ask what state mutated</strong> on the wrong cluster before you caught it. Any writes accepted there are now a data-integrity question, not a routing question.</li>
+        <li><strong>Pause anything asynchronous</strong> — queues, background workers — on the wrong cluster until you're certain nothing partial got committed.</li>
+        <li><strong>Reconcile after containment.</strong> Look for orphaned records or duplicate transactions written during the misroute window.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Staged rollout and a health-check gate on any DNS change, plus lower TTLs on records that sit in front of anything critical.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--amber);">
+      <div class="incident-meta">
+        <span class="badge sev2">SEV-2</span>
+        <span class="id">INC-2229</span>
+        <span class="service">autoscaler</span>
+      </div>
+      <h3>Autoscaling goes silent during a flash sale</h3>
+      <p class="symptom">A CPU-based autoscaling policy stops adding nodes exactly when a flash sale needs it most. Deceptive, because everything looks correctly configured on paper.</p>
+      <ul class="steps">
+        <li><strong>Check whether metrics are actually arriving.</strong> Under heavy load, the metrics pipeline itself can fall behind — you can be flying blind while believing you're being monitored.</li>
+        <li><strong>Look for a hard ceiling.</strong> Node pool max size, cloud quota, no available instance type in the zone.</li>
+        <li><strong>Question the signal itself.</strong> If the real constraint is memory or I/O wait, a CPU-based policy will never fire, no matter how stressed the system is.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Multi-metric autoscaling (queue depth, custom app metrics) plus pre-scaling ahead of known peak events. Single-metric autoscaling is a fair-weather strategy.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--amber);">
+      <div class="incident-meta">
+        <span class="badge sev2">SEV-2</span>
+        <span class="id">INC-2233</span>
+        <span class="service">primary-db / replicas</span>
+      </div>
+      <h3>A failover leaves reads stale for 90 seconds</h3>
+      <p class="symptom">Nothing breaks in the traditional sense — the service stays up. That's exactly why it's dangerous. Nobody pages you for data that's merely wrong.</p>
+      <ul class="steps">
+        <li><strong>Expose replication lag as a first-class metric</strong>, with alerting tied directly to failover events — not discovered after the fact.</li>
+        <li><strong>Run synthetic canaries.</strong> Write a known value, read it back on a schedule, alert on mismatch.</li>
+        <li><strong>Route consistency-sensitive reads to primary</strong> — a balance check right after a transaction can't afford to trust eventual consistency to catch up in time.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Treat failover as an event that automatically tightens monitoring for a window afterward, rather than waiting for steady-state alerting to notice.</p>
+    </article>
+
+    <div class="postmortem">
+      <div class="label">Pattern across all four</div>
+      <p>The failures that matter most rarely announce themselves. They hide in saturation, in propagation delay, in a metric nobody's watching, in consistency nobody's testing. The job isn't memorizing incidents — it's building the reflex to ask "what would this look like <em>before</em> it becomes visible" every time you design a system.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Platform design trade-offs — multi-region rollouts, security guardrails at scale, and the tension between developer velocity and compliance.
+    </div>
+  </div>
+
+  <footer>
+    © 2026 e-diversify
+  </footer>
+
+</body>
+</html>
