@@ -227,6 +227,13 @@
             font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim);
             margin: 0.5rem 0 0; min-height: 1.2em;
         }
+        .commentary {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text);
+            margin: 0.9rem 0 0; padding: 0.55rem 0.8rem;
+            background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+            min-height: 1.3em;
+        }
+        .commentary .prompt { color: var(--cyan); margin-right: 0.4rem; }
         .control-bar {
             display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
             margin-top: 1.4rem; padding-top: 1.2rem;
@@ -313,6 +320,7 @@
                 <div class="bars-frame" id="bars-bubble">
                     <div class="scanner" id="scanner-bubble"></div>
                 </div>
+                <p class="commentary" id="commentary-bubble"><span class="prompt">›</span>Click Run to begin.</p>
 
                 <div class="control-bar">
                     <div class="control-group">
@@ -362,6 +370,7 @@
                     <div class="merge-range right" id="merge-right-merge"></div>
                 </div>
                 <p class="merge-caption" id="merge-caption-merge">&nbsp;</p>
+                <p class="commentary" id="commentary-merge"><span class="prompt">›</span>Click Run to begin.</p>
 
                 <div class="control-bar">
                     <div class="control-group">
@@ -406,6 +415,7 @@
                 <div class="bars-frame" id="bars-quick">
                     <div class="scanner" id="scanner-quick"></div>
                 </div>
+                <p class="commentary" id="commentary-quick"><span class="prompt">›</span>Click Run to begin.</p>
 
                 <div class="control-bar">
                     <div class="control-group">
@@ -554,10 +564,11 @@
         for (let i = 0; i < n - 1; i++) {
             let swapped = false;
             for (let j = 0; j < n - i - 1; j++) {
-                steps.push({ type: 'compare', i: j, j: j + 1 });
+                steps.push({ type: 'compare', i: j, j: j + 1, vi: a[j], vj: a[j + 1] });
                 if (a[j] > a[j + 1]) {
+                    const vi = a[j], vj = a[j + 1];
                     [a[j], a[j + 1]] = [a[j + 1], a[j]];
-                    steps.push({ type: 'swap', i: j, j: j + 1 });
+                    steps.push({ type: 'swap', i: j, j: j + 1, vi, vj });
                     swapped = true;
                 }
             }
@@ -573,21 +584,23 @@
         const steps = [];
         function partition(low, high) {
             const pivot = a[high];
-            steps.push({ type: 'pivot', i: high });
+            steps.push({ type: 'pivot', i: high, value: pivot });
             let i = low - 1;
             for (let j = low; j < high; j++) {
-                steps.push({ type: 'compare', i: j, j: high });
+                steps.push({ type: 'compare', i: j, j: high, vi: a[j], vj: pivot });
                 if (a[j] < pivot) {
                     i++;
                     if (i !== j) {
+                        const vi = a[i], vj = a[j];
                         [a[i], a[j]] = [a[j], a[i]];
-                        steps.push({ type: 'swap', i: i, j: j });
+                        steps.push({ type: 'swap', i: i, j: j, vi, vj });
                     }
                 }
             }
             if (i + 1 !== high) {
+                const vi = a[i + 1], vj = a[high];
                 [a[i + 1], a[high]] = [a[high], a[i + 1]];
-                steps.push({ type: 'swap', i: i + 1, j: high });
+                steps.push({ type: 'swap', i: i + 1, j: high, vi, vj });
             }
             steps.push({ type: 'sorted', i: i + 1 });
             return i + 1;
@@ -622,7 +635,7 @@
             const right = a.slice(m + 1, r + 1);
             let i = 0, j = 0, k = l;
             while (i < left.length && j < right.length) {
-                steps.push({ type: 'compare', i: l + i, j: m + 1 + j });
+                steps.push({ type: 'compare', i: l + i, j: m + 1 + j, vi: left[i], vj: right[j] });
                 if (left[i] <= right[j]) {
                     a[k] = left[i]; steps.push({ type: 'overwrite', i: k, value: left[i] }); i++;
                 } else {
@@ -665,24 +678,35 @@
         const resetBtn = document.getElementById('reset-' + key);
         const cmpEl = document.getElementById('cmp-' + key);
         const swpEl = document.getElementById('swp-' + key);
+        const commentaryEl = document.getElementById('commentary-' + key);
         const badges = document.querySelectorAll('.badge[data-key="' + key + '"]');
         const speedRadios = document.getElementById('panel-' + key).querySelectorAll('input[name="needle-speed"]');
+
+        function say(text) {
+            if (commentaryEl) commentaryEl.innerHTML = '<span class="prompt">›</span>' + text;
+        }
 
         let values = randomArray(N, 15, 100);
         let bars = renderBars('bars-' + key, values);
         let running = false;
+        let paused = false;
         let runId = 0;
+
+        function updateRunLabel() {
+            runBtn.textContent = !running ? '▶ Run' : (paused ? '▶ Resume' : '⏸ Pause');
+        }
 
         async function run() {
             if (running) return;
             const myRunId = ++runId;
             running = true;
-            runBtn.disabled = true;
+            paused = false;
+            updateRunLabel();
             badges.forEach((b) => b.disabled = true);
-            speedRadios.forEach((r) => r.disabled = true);
             bars.forEach((b) => b.classList.remove('compare', 'swap', 'sorted', 'pivot'));
             cmpEl.textContent = '0';
             swpEl.textContent = '0';
+            say('Starting…');
 
             const steps = stepGenerator([...values]);
             const max = Math.max(...values);
@@ -690,26 +714,25 @@
             const stepMs = STEP_MS * (SPEED_MULTIPLIER[key] || 1);
 
             for (const step of steps) {
+                while (paused && myRunId === runId) { await wait(60); }
                 if (myRunId !== runId) return; // cancelled via Reset — abandon this run entirely
                 if (step.type === 'merge-range') {
                     const leftEl = document.getElementById('merge-left-' + key);
                     const rightEl = document.getElementById('merge-right-' + key);
-                    const captionEl = document.getElementById('merge-caption-' + key);
                     if (leftEl && rightEl) {
                         positionRange(leftEl, barsFrame, step.l, step.m);
                         positionRange(rightEl, barsFrame, step.m + 1, step.r);
                     }
-                    if (captionEl) {
-                        const leftSize = step.m - step.l + 1;
-                        const rightSize = step.r - step.m;
-                        captionEl.textContent = leftSize === 1 && rightSize === 1
-                            ? 'Merging two single elements'
-                            : `Merging a group of ${leftSize} with a group of ${rightSize}`;
-                    }
+                    const leftSize = step.m - step.l + 1;
+                    const rightSize = step.r - step.m;
+                    say(leftSize === 1 && rightSize === 1
+                        ? 'Merging two single elements'
+                        : `Merging a sorted group of ${leftSize} with a sorted group of ${rightSize}`);
                     await wait((stepMs * 0.9) / NEEDLE_SPEED); // let the boundary register before writes begin
                 } else if (step.type === 'pivot') {
                     const bar = bars[step.i];
                     bar.classList.add('pivot');
+                    say(`Choosing index ${step.i} (value ${step.value}) as the pivot`);
                     positionScanner(scanner, barsFrame, step.i, (stepMs * 0.4) / 1000 / PIVOT_SPEED / NEEDLE_SPEED);
                     await gsap.fromTo(bar,
                         { scale: 1 },
@@ -721,6 +744,7 @@
                     bars.forEach((b) => b.classList.remove('compare'));
                     bars[step.i].classList.add('compare');
                     bars[step.j].classList.add('compare');
+                    say(`Comparing ${step.vi} and ${step.vj}`);
                     positionScanner(scanner, barsFrame, step.i, (stepMs * 0.4) / 1000 / NEEDLE_SPEED);
                     await wait(stepMs * 0.5);
                     positionScanner(scanner, barsFrame, step.j, (stepMs * 0.4) / 1000 / NEEDLE_SPEED);
@@ -729,6 +753,7 @@
                     swpCount++; swpEl.textContent = swpCount;
                     bars[step.i].classList.add('swap');
                     bars[step.j].classList.add('swap');
+                    say(`Swapping ${step.vi} and ${step.vj}`);
                     const barA = bars[step.i], barB = bars[step.j];
                     const rectA = barA.getBoundingClientRect();
                     const rectB = barB.getBoundingClientRect();
@@ -751,6 +776,7 @@
                     bar.classList.add('swap');
                     values[step.i] = step.value;
                     bar.querySelector('.bar-value').textContent = step.value;
+                    say(`Writing ${step.value} into position ${step.i}`);
                     await gsap.to(bar, { height: (step.value / max * 100) + '%', duration: stepMs / 1000, ease: 'power1.inOut' });
                     bar.classList.remove('swap');
                 } else if (step.type === 'sorted') {
@@ -758,18 +784,14 @@
                     bars[step.i].classList.add('sorted');
                 } else if (step.type === 'sorted-all') {
                     bars.forEach((b) => b.classList.add('sorted'));
-                    const leftEl = document.getElementById('merge-left-' + key);
-                    const rightEl = document.getElementById('merge-right-' + key);
-                    const captionEl = document.getElementById('merge-caption-' + key);
-                    if (leftEl) gsap.to(leftEl, { opacity: 0, duration: 0.3 });
-                    if (rightEl) gsap.to(rightEl, { opacity: 0, duration: 0.3 });
-                    if (captionEl) captionEl.textContent = '';
+                    say('Fully sorted.');
                 }
             }
 
             if (myRunId !== runId) return; // superseded — Reset already restored button state
             running = false;
-            runBtn.disabled = false;
+            paused = false;
+            updateRunLabel();
             badges.forEach((b) => b.disabled = false);
             speedRadios.forEach((r) => r.disabled = false);
         }
@@ -790,19 +812,27 @@
             bars = renderBars('bars-' + key, values);
             cmpEl.textContent = '0';
             swpEl.textContent = '0';
-            running = false;
-            runBtn.disabled = false;
-            badges.forEach((b) => b.disabled = false);
-            speedRadios.forEach((r) => r.disabled = false);
+            say('Click Run to begin.');
             const leftEl = document.getElementById('merge-left-' + key);
             const rightEl = document.getElementById('merge-right-' + key);
-            const captionEl = document.getElementById('merge-caption-' + key);
             if (leftEl) gsap.set(leftEl, { opacity: 0 });
             if (rightEl) gsap.set(rightEl, { opacity: 0 });
-            if (captionEl) captionEl.textContent = '';
+            running = false;
+            paused = false;
+            updateRunLabel();
+            badges.forEach((b) => b.disabled = false);
+            speedRadios.forEach((r) => r.disabled = false);
         }
 
-        runBtn.addEventListener('click', run);
+        runBtn.addEventListener('click', () => {
+            if (!running) {
+                run();
+            } else {
+                paused = !paused;
+                updateRunLabel();
+                say(paused ? 'Paused.' : 'Resumed.');
+            }
+        });
         resetBtn.addEventListener('click', reset);
         badges.forEach((badge) => {
             badge.addEventListener('click', () => runWithCase(badge.dataset.case));
