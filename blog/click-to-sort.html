@@ -214,6 +214,8 @@
             width: 13px; height: 13px; cursor: pointer;
         }
         .radio-pill:has(input:checked) { color: #f4f6fb; font-weight: 600; }
+        .radio-pill:has(input:disabled) { opacity: 0.35; cursor: not-allowed; }
+        .radio-pill input[type="radio"]:disabled { cursor: not-allowed; }
         .control-bar {
             display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
             margin-top: 1.4rem; padding-top: 1.2rem;
@@ -635,6 +637,7 @@
         const cmpEl = document.getElementById('cmp-' + key);
         const swpEl = document.getElementById('swp-' + key);
         const badges = document.querySelectorAll('.badge[data-key="' + key + '"]');
+        const speedRadios = document.getElementById('panel-' + key).querySelectorAll('input[name="needle-speed"]');
 
         let values = randomArray(N, 15, 100);
         let bars = renderBars('bars-' + key, values);
@@ -647,6 +650,7 @@
             running = true;
             runBtn.disabled = true;
             badges.forEach((b) => b.disabled = true);
+            speedRadios.forEach((r) => r.disabled = true);
             bars.forEach((b) => b.classList.remove('compare', 'swap', 'sorted', 'pivot'));
             cmpEl.textContent = '0';
             swpEl.textContent = '0';
@@ -716,6 +720,7 @@
             running = false;
             runBtn.disabled = false;
             badges.forEach((b) => b.disabled = false);
+            speedRadios.forEach((r) => r.disabled = false);
         }
 
         function runWithCase(caseType) {
@@ -737,6 +742,7 @@
             running = false;
             runBtn.disabled = false;
             badges.forEach((b) => b.disabled = false);
+            speedRadios.forEach((r) => r.disabled = false);
         }
 
         runBtn.addEventListener('click', run);
