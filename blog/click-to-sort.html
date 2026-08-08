@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="/assets/js/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Core SEO Meta Directives -->
+    <title>Click to Sort: A Visual Walkthrough of Three Classic Algorithms | Vimal Maheedharan</title>
+    <meta name="description" content="Bubble sort, merge sort, and quick sort, animated bar by bar. Click Run and watch comparisons, swaps, and complexity classes play out in real time — O(n²) vs O(n log n), made visible instead of memorized.">
+    <meta name="keywords" content="Sorting Algorithms Visualization, Bubble Sort, Merge Sort, Quick Sort, Big O Notation, Algorithm Complexity, GSAP Animation, Data Structures and Algorithms, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Distributed Systems Consultant, Platform Engineering Consultant">
+    <meta name="author" content="Vimal Maheedharan">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://e-diversify.com/blog/click-to-sort.html">
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Click to Sort: A Visual Walkthrough of Three Classic Algorithms">
+    <meta property="og:description" content="Bubble sort, merge sort, and quick sort, animated bar by bar. Click Run and watch O(n²) vs O(n log n) play out in real time.">
+    <meta property="og:url" content="https://e-diversify.com/blog/click-to-sort.html">
+    <meta property="og:site_name" content="E-Diversify Platform Architecture">
+    <meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+    <meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Click to Sort — sorting algorithms visualized">
+
+    <!-- Twitter/X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Click to Sort: A Visual Walkthrough of Three Classic Algorithms">
+    <meta name="twitter:description" content="Bubble sort, merge sort, and quick sort, animated bar by bar — O(n²) vs O(n log n), made visible.">
+    <meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root{
+            --bg: #08090d;
+            --panel: #101319;
+            --panel-2: #0c0e13;
+            --line: rgba(255,255,255,0.08);
+            --text: #d4d8e2;
+            --text-dim: #7a8296;
+            --amber: #ffb454;
+            --cyan: #5ce1e6;
+            --magenta: #ff6bb0;
+            --lime: #a3e635;
+            --danger: #ff5470;
+            --violet: #a78bfa;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 34px 34px;
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        a { color: var(--cyan); text-decoration: none; }
+        a:hover { color: var(--amber); }
+
+        header.top { position: sticky; top: 0; z-index: 50; background: rgba(8,9,13,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+        .nav-wrap { max-width: 920px; margin: 0 auto; padding: 1.1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .brand { display: flex; align-items: center; gap: 0.6rem; }
+        .brand-mark { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.15rem; color: var(--cyan); }
+        .brand-tag { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); border-left: 1px solid var(--line); padding-left: 0.7rem; }
+        nav.links a { font-size: 0.85rem; margin-left: 1.4rem; color: var(--text-dim); }
+        nav.links a.current, nav.links a:hover { color: var(--cyan); }
+
+        main { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+
+        .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--amber); letter-spacing: 0.08em; margin-bottom: 1.1rem; }
+        h1.title { font-size: clamp(2rem, 4.8vw, 3rem); font-weight: 700; line-height: 1.18; color: #f4f6fb; margin: 0 0 1.1rem; }
+        h1.title .hi { color: var(--cyan); }
+        .subtitle { font-size: 1.12rem; color: var(--text-dim); line-height: 1.65; max-width: 42rem; }
+        .byline { margin-top: 1.75rem; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim); display: flex; align-items: center; gap: 0.7rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+        .byline .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--amber); }
+
+        .body-text { font-size: 1.06rem; line-height: 1.85; margin-top: 2.5rem; }
+        .body-text p { margin: 0 0 1.4rem; color: var(--text); }
+        .body-text strong { color: #f4f6fb; font-weight: 600; }
+        .body-text code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: var(--amber); background: rgba(255,180,84,0.08); padding: 0.1em 0.4em; border-radius: 4px; }
+
+        /* ---- Visualizer panels ---- */
+        .viz-panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.75rem 1.5rem 1.5rem;
+            margin: 3rem 0;
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        .viz-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.4rem; }
+        .viz-title { font-size: 1.4rem; font-weight: 700; color: #f4f6fb; }
+        .viz-title .accent { display: inline-block; }
+        .complexity-badges { display: flex; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+        .badge { padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid var(--line); color: var(--text-dim); cursor: pointer; background: none; font-family: 'JetBrains Mono', monospace; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease; }
+        .badge:hover { background: rgba(255,255,255,0.05); }
+        .badge.worst:hover { border-color: var(--danger); color: var(--danger); }
+        .badge.best:hover { border-color: var(--lime); color: var(--lime); }
+        .badge.random:hover { border-color: var(--cyan); color: var(--cyan); }
+        .badge:disabled { opacity: 0.4; cursor: not-allowed; }
+        .badge.worst { color: var(--danger); border-color: rgba(255,84,112,0.3); }
+        .badge.best { color: var(--lime); border-color: rgba(163,230,53,0.3); }
+
+        .viz-desc { font-size: 0.92rem; color: var(--text-dim); margin: 0.6rem 0 1.4rem; max-width: 60ch; line-height: 1.6; }
+
+        .scanner {
+            position: absolute; top: -14px; bottom: 0; width: 30px; border-radius: 6px;
+            background: linear-gradient(180deg, rgba(255,180,84,0.85), rgba(255,180,84,0.05) 85%);
+            box-shadow: 0 0 22px 6px rgba(255,180,84,0.6);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .scanner::before {
+            content: "";
+            position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--amber);
+            box-shadow: 0 0 12px 4px rgba(255,180,84,0.85);
+        }
+
+        .bars-frame {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 180px;
+            padding: 0 4px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+        }
+        .bar {
+            flex: 1 1 0;
+            min-width: 8px;
+            background: linear-gradient(180deg, var(--cyan), rgba(92,225,230,0.35));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transform-origin: center bottom;
+            transition: background 0.15s ease;
+        }
+        .bar.compare { background: linear-gradient(180deg, var(--amber), rgba(255,180,84,0.4)); }
+        .bar.swap { background: linear-gradient(180deg, var(--magenta), rgba(255,107,176,0.4)); }
+        .bar.sorted { background: linear-gradient(180deg, var(--lime), rgba(163,230,53,0.35)); }
+        .bar.pivot {
+            box-shadow: 0 0 0 2px var(--violet), 0 0 18px 4px rgba(167,139,250,0.5);
+        }
+        .bar.pivot::after {
+            content: "PIVOT";
+            position: absolute;
+            bottom: calc(100% + 18px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--violet);
+            white-space: nowrap;
+        }
+        .bar-value {
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+            color: var(--text-dim); white-space: nowrap; pointer-events: none;
+        }
+        .bar.compare .bar-value, .bar.swap .bar-value { color: #f4f6fb; }
+
+        .viz-controls { display: flex; align-items: center; gap: 0.9rem; margin-top: 1.4rem; flex-wrap: wrap; }
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase;
+            padding: 0.55rem 1.1rem; border-radius: 8px; border: 1px solid var(--line);
+            background: var(--panel-2); color: var(--text); cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+        }
+        .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+        .btn:active { transform: scale(0.97); }
+        .btn.run { border-color: rgba(92,225,230,0.4); color: var(--cyan); }
+
+        .needle-speed-group {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel-2);
+        }
+        .speed-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+        .radio-pill {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim);
+            cursor: pointer; user-select: none;
+        }
+        .radio-pill input[type="radio"] {
+            accent-color: var(--cyan);
+            width: 13px; height: 13px; cursor: pointer;
+        }
+        .radio-pill:has(input:checked) { color: #f4f6fb; font-weight: 600; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .stats { display: flex; gap: 1.4rem; margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-dim); }
+        .stats .stat b { color: #f4f6fb; font-weight: 700; }
+        .stats .text-dim { opacity: 0.7; }
+        .stats .text-dim b { color: var(--text-dim); font-weight: 600; }
+
+        .callout {
+            background: var(--panel);
+            border-left: 3px solid var(--cyan);
+            border-radius: 0 10px 10px 0;
+            padding: 1.1rem 1.4rem;
+            margin: 2.25rem 0;
+            font-size: 0.98rem;
+        }
+        .callout strong { color: #f4f6fb; }
+
+        /* Summary table */
+        .summary-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.92rem; }
+        .summary-table th { text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--line); }
+        .summary-table td { padding: 0.85rem 0.8rem; border-bottom: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+        .summary-table tr:last-child td { border-bottom: none; }
+        .summary-table td.name { font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #f4f6fb; }
+
+        .end-nav { margin-top: 3.5rem; padding-top: 1.75rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; }
+        footer.site-footer { border-top: 1px solid var(--line); padding: 2rem 1.5rem; text-align: center; margin-top: 2rem; }
+        footer.site-footer p { font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bar { transition: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="top">
+        <div class="nav-wrap">
+            <a href="/" class="brand">
+                <span class="brand-mark">ED</span>
+                <span class="brand-tag">Fluidity In Motion</span>
+            </a>
+            <nav class="links">
+                <a href="/">Home</a>
+                <a href="/vimal/index.html">Who's On-Call</a>
+                <a href="/blog/index.html" class="current">The Runbook</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="eyebrow">// algorithms, visualized</div>
+        <h1 class="title">Click to Sort: A Visual Walkthrough of <span class="hi">Three Classic Algorithms</span></h1>
+        <p class="subtitle">O(n²) vs O(n log n) — click Run and watch the difference happen.</p>
+
+        <div class="byline">
+            <span>Vimal Maheedharan</span><span class="dot"></span><span>Algorithms · Interactive</span>
+        </div>
+
+        <div class="body-text">
+            <p style="margin-top:1.75rem; font-size:0.98rem;">Amber = comparing. Pink = swapping. Green = sorted. Click <strong>Worst</strong> on any panel to see its bad day.</p>
+
+            <!-- ===================== BUBBLE SORT ===================== -->
+            <div class="viz-panel" id="panel-bubble" style="margin-top:1.5rem;">
+                <div class="viz-head">
+                    <div class="viz-title"><span class="accent" style="color:var(--cyan)">01 /</span> Bubble Sort</div>
+                    <div class="complexity-badges">
+                        <button class="badge random" data-key="bubble" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="bubble" data-case="best" title="Click to demo the best case">Best: O(n)</button>
+                        <button class="badge worst" data-key="bubble" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
+                    </div>
+                </div>
+                <p class="viz-desc">Repeatedly compares neighbors and swaps them if they're out of order.
+                Click <strong>Worst</strong> to feed it a reverse-sorted array and watch the comparison count
+                climb.</p>
+
+                <div class="bars-frame" id="bars-bubble">
+                    <div class="scanner" id="scanner-bubble"></div>
+                </div>
+
+                <div class="viz-controls">
+                    <button class="btn run" id="run-bubble">▶ Run</button>
+                    <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
+                        <span class="speed-label">Speed</span>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.5" checked> 0.5x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
+                    </div>
+                    <div class="stats">
+                        <span class="stat">n = <b id="n-bubble">14</b></span>
+                        <span class="stat">Comparisons: <b id="cmp-bubble">0</b> <span class="text-dim">/ n²=<b id="theory-bubble">196</b></span></span>
+                        <span class="stat">Swaps: <b id="swp-bubble">0</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== MERGE SORT ===================== -->
+            <div class="viz-panel" id="panel-merge">
+                <div class="viz-head">
+                    <div class="viz-title"><span class="accent" style="color:var(--magenta)">02 /</span> Merge Sort</div>
+                    <div class="complexity-badges">
+                        <button class="badge random" data-key="merge" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="merge" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
+                        <button class="badge worst" data-key="merge" data-case="worst" title="Click to demo a reverse-sorted input">Worst: O(n log n)</button>
+                    </div>
+                </div>
+                <p class="viz-desc">Splits the array in half, sorts each half, merges them back in order.
+                No swaps — writes. Same effort no matter the input, which is exactly the point.</p>
+
+                <div class="bars-frame" id="bars-merge">
+                    <div class="scanner" id="scanner-merge"></div>
+                </div>
+
+                <div class="viz-controls">
+                    <button class="btn run" id="run-merge">▶ Run</button>
+                    <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
+                        <span class="speed-label">Speed</span>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.5" checked> 0.5x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
+                    </div>
+                    <div class="stats">
+                        <span class="stat">n = <b id="n-merge">14</b></span>
+                        <span class="stat">Comparisons: <b id="cmp-merge">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-merge">53</b></span></span>
+                        <span class="stat">Writes: <b id="swp-merge">0</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== QUICK SORT ===================== -->
+            <div class="viz-panel" id="panel-quick">
+                <div class="viz-head">
+                    <div class="viz-title"><span class="accent" style="color:var(--lime)">03 /</span> Quick Sort</div>
+                    <div class="complexity-badges">
+                        <button class="badge random" data-key="quick" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="quick" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
+                        <button class="badge worst" data-key="quick" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
+                    </div>
+                </div>
+                <p class="viz-desc">Picks a pivot, partitions smaller left / larger right, recurses. Click
+                <strong>Worst</strong> to see already-sorted data quietly drag it back to O(n²). Watch for the
+                violet <strong>PIVOT</strong> marker — that's the one choice that decides everything else.</p>
+
+                <div class="bars-frame" id="bars-quick">
+                    <div class="scanner" id="scanner-quick"></div>
+                </div>
+
+                <div class="viz-controls">
+                    <button class="btn run" id="run-quick">▶ Run</button>
+                    <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
+                        <span class="speed-label">Speed</span>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="0.5" checked> 0.5x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
+                        <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
+                    </div>
+                    <div class="stats">
+                        <span class="stat">n = <b id="n-quick">14</b></span>
+                        <span class="stat">Comparisons: <b id="cmp-quick">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-quick">53</b></span></span>
+                        <span class="stat">Swaps: <b id="swp-quick">0</b></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>Run all three on the same n</strong> and the comparison counters tell the whole
+                story: bubble sort's count grows roughly with the square of the array size, while merge and
+                quick sort's grow far more gently. That gap is invisible in a textbook. It's obvious after
+                thirty seconds of clicking Run — and the theoretical n² / n·log₂n figures next to each counter
+                are there so you can check the real count against the formula directly, not just trust it.
+            </div>
+
+            <h2 style="font-size:1.4rem; font-weight:700; color:#f4f6fb; margin:2.5rem 0 1rem;">The trade-offs, side by side</h2>
+            <table class="summary-table">
+                <thead><tr><th>Algorithm</th><th>Time (avg)</th><th>Space</th><th>Stable?</th><th>Where it earns its place</th></tr></thead>
+                <tbody>
+                    <tr><td class="name">Bubble Sort</td><td>O(n²)</td><td>O(1)</td><td>Yes</td><td>Teaching, tiny or nearly-sorted arrays</td></tr>
+                    <tr><td class="name">Merge Sort</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td><td>Guaranteed performance, external/linked-list sorts</td></tr>
+                    <tr><td class="name">Quick Sort</td><td>O(n log n)</td><td>O(log n)</td><td>No</td><td>General-purpose default, in-memory arrays</td></tr>
+                </tbody>
+            </table>
+
+            <p>None of these are "the best" sort in the abstract — that's the same trap as picking a database
+            index without checking the actual workload. Bubble sort is genuinely fine for sixteen elements.
+            Merge sort's O(n) space cost is a real trade for its guaranteed O(n log n) ceiling. Quick sort's
+            average-case speed comes with a worst case you should actually know about, not just accept on
+            faith. Run the three panels above again with that in mind.</p>
+        </div>
+
+        <div class="end-nav">
+            <a href="/">← Return to Home</a>
+            <a href="https://www.linkedin.com/in/vimalmaheedharan/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>© 2026 e-diversify</p>
+    </footer>
+
+    <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ---------- Scroll reveal for each panel ----------
+    document.querySelectorAll('.viz-panel').forEach((panel) => {
+        gsap.to(panel, {
+            opacity: 1, y: 0, duration: 0.7, ease: 'power2.out',
+            scrollTrigger: { trigger: panel, start: 'top 85%' }
+        });
+    });
+
+    // ---------- Shared helpers ----------
+    function randomArray(n, min, max) {
+        return Array.from({ length: n }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+
+    const N = 14;
+    document.querySelectorAll('[id^="n-"]').forEach((el) => { el.textContent = N; });
+    const theoryQuad = N * N;
+    const theoryLog = Math.round(N * Math.log2(N));
+    document.getElementById('theory-bubble').textContent = theoryQuad;
+    document.getElementById('theory-merge').textContent = theoryLog;
+    document.getElementById('theory-quick').textContent = theoryLog;
+
+    function renderBars(containerId, values) {
+        const container = document.getElementById(containerId);
+        container.querySelectorAll('.bar').forEach((el) => el.remove());
+        const max = Math.max(...values);
+        return values.map((v) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = (v / max * 100) + '%';
+            const label = document.createElement('span');
+            label.className = 'bar-value';
+            label.textContent = v;
+            bar.appendChild(label);
+            container.appendChild(bar);
+            return bar;
+        });
+    }
+
+    function positionScanner(scannerEl, barsFrameEl, index, glideDuration) {
+        const bars = barsFrameEl.children;
+        if (!bars.length || index == null || index < 0 || index >= bars.length) {
+            gsap.to(scannerEl, { opacity: 0, duration: 0.15 });
+            return;
+        }
+        const bar = bars[index];
+        const frameRect = barsFrameEl.getBoundingClientRect();
+        const barRect = bar.getBoundingClientRect();
+        const centerX = (barRect.left - frameRect.left) + barRect.width / 2 - 15;
+        gsap.to(scannerEl, { opacity: 1, x: centerX, duration: glideDuration || 0.18, ease: 'power2.out' });
+    }
+
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const STEP_MS = Math.round(260 / 0.75); // 0.75x speed base
+    const SPEED_MULTIPLIER = { bubble: 1, merge: 1, quick: 1.6 }; // quick sort's partitioning is harder to follow, so it runs slower
+    const PIVOT_SPEED = 0.5; // the pivot beat itself runs at 0.5x speed — slower still, so it reads as a deliberate pause
+    let NEEDLE_SPEED = 0.5; // scanner glide speed — adjustable live via the speed control
+
+    // ---------- Step recorders ----------
+    function bubbleSortSteps(input) {
+        const a = [...input];
+        const steps = [];
+        const n = a.length;
+        for (let i = 0; i < n - 1; i++) {
+            let swapped = false;
+            for (let j = 0; j < n - i - 1; j++) {
+                steps.push({ type: 'compare', i: j, j: j + 1 });
+                if (a[j] > a[j + 1]) {
+                    [a[j], a[j + 1]] = [a[j + 1], a[j]];
+                    steps.push({ type: 'swap', i: j, j: j + 1 });
+                    swapped = true;
+                }
+            }
+            steps.push({ type: 'sorted', i: n - 1 - i });
+            if (!swapped) break;
+        }
+        steps.push({ type: 'sorted-all' });
+        return steps;
+    }
+
+    function quickSortSteps(input) {
+        const a = [...input];
+        const steps = [];
+        function partition(low, high) {
+            const pivot = a[high];
+            steps.push({ type: 'pivot', i: high });
+            let i = low - 1;
+            for (let j = low; j < high; j++) {
+                steps.push({ type: 'compare', i: j, j: high });
+                if (a[j] < pivot) {
+                    i++;
+                    if (i !== j) {
+                        [a[i], a[j]] = [a[j], a[i]];
+                        steps.push({ type: 'swap', i: i, j: j });
+                    }
+                }
+            }
+            if (i + 1 !== high) {
+                [a[i + 1], a[high]] = [a[high], a[i + 1]];
+                steps.push({ type: 'swap', i: i + 1, j: high });
+            }
+            steps.push({ type: 'sorted', i: i + 1 });
+            return i + 1;
+        }
+        function qs(low, high) {
+            if (low < high) {
+                const p = partition(low, high);
+                qs(low, p - 1);
+                qs(p + 1, high);
+            } else if (low === high) {
+                steps.push({ type: 'sorted', i: low });
+            }
+        }
+        qs(0, a.length - 1);
+        steps.push({ type: 'sorted-all' });
+        return steps;
+    }
+
+    function mergeSortSteps(input) {
+        const a = [...input];
+        const steps = [];
+        function mergeSort(l, r) {
+            if (l >= r) return;
+            const m = Math.floor((l + r) / 2);
+            mergeSort(l, m);
+            mergeSort(m + 1, r);
+            merge(l, m, r);
+        }
+        function merge(l, m, r) {
+            const left = a.slice(l, m + 1);
+            const right = a.slice(m + 1, r + 1);
+            let i = 0, j = 0, k = l;
+            while (i < left.length && j < right.length) {
+                steps.push({ type: 'compare', i: l + i, j: m + 1 + j });
+                if (left[i] <= right[j]) {
+                    a[k] = left[i]; steps.push({ type: 'overwrite', i: k, value: left[i] }); i++;
+                } else {
+                    a[k] = right[j]; steps.push({ type: 'overwrite', i: k, value: right[j] }); j++;
+                }
+                k++;
+            }
+            while (i < left.length) { a[k] = left[i]; steps.push({ type: 'overwrite', i: k, value: left[i] }); i++; k++; }
+            while (j < right.length) { a[k] = right[j]; steps.push({ type: 'overwrite', i: k, value: right[j] }); j++; k++; }
+        }
+        mergeSort(0, a.length - 1);
+        steps.push({ type: 'sorted-all' });
+        return steps;
+    }
+
+    // ---------- Worst/best case generators per algorithm ----------
+    const CASES = {
+        bubble: {
+            random: () => randomArray(N, 15, 100),
+            worst: () => Array.from({ length: N }, (_, i) => (N - i) * 7),      // descending: max swaps
+            best:  () => Array.from({ length: N }, (_, i) => (i + 1) * 7)       // ascending: single pass, exits early
+        },
+        quick: {
+            random: () => randomArray(N, 15, 100),
+            worst: () => Array.from({ length: N }, (_, i) => (i + 1) * 7),      // ascending: worst case for last-element pivot
+            best:  () => randomArray(N, 15, 100)                                // random: roughly balanced partitions
+        },
+        merge: {
+            random: () => randomArray(N, 15, 100),
+            worst: () => Array.from({ length: N }, (_, i) => (N - i) * 7),      // effort is ~identical either way
+            best:  () => randomArray(N, 15, 100)
+        }
+    };
+
+    // ---------- Visualizer controller ----------
+    function makeVisualizer(key, stepGenerator) {
+        const barsFrame = document.getElementById('bars-' + key);
+        const scanner = document.getElementById('scanner-' + key);
+        const runBtn = document.getElementById('run-' + key);
+        const cmpEl = document.getElementById('cmp-' + key);
+        const swpEl = document.getElementById('swp-' + key);
+        const badges = document.querySelectorAll('.badge[data-key="' + key + '"]');
+
+        let values = randomArray(N, 15, 100);
+        let bars = renderBars('bars-' + key, values);
+        let running = false;
+
+        async function run() {
+            if (running) return;
+            running = true;
+            runBtn.disabled = true;
+            badges.forEach((b) => b.disabled = true);
+            bars.forEach((b) => b.classList.remove('compare', 'swap', 'sorted', 'pivot'));
+            cmpEl.textContent = '0';
+            swpEl.textContent = '0';
+
+            const steps = stepGenerator([...values]);
+            const max = Math.max(...values);
+            let cmpCount = 0, swpCount = 0;
+            const stepMs = STEP_MS * (SPEED_MULTIPLIER[key] || 1);
+
+            for (const step of steps) {
+                if (step.type === 'pivot') {
+                    const bar = bars[step.i];
+                    bar.classList.add('pivot');
+                    positionScanner(scanner, barsFrame, step.i, (stepMs * 0.4) / 1000 / PIVOT_SPEED / NEEDLE_SPEED);
+                    await gsap.fromTo(bar,
+                        { scale: 1 },
+                        { scale: 1.18, duration: (stepMs / 1000) * 0.4 / PIVOT_SPEED, yoyo: true, repeat: 1, ease: 'power1.inOut' }
+                    );
+                    await wait((stepMs * 1.4) / PIVOT_SPEED); // hold on the pivot before partitioning begins
+                } else if (step.type === 'compare') {
+                    cmpCount++; cmpEl.textContent = cmpCount;
+                    bars.forEach((b) => b.classList.remove('compare'));
+                    bars[step.i].classList.add('compare');
+                    bars[step.j].classList.add('compare');
+                    positionScanner(scanner, barsFrame, step.i, (stepMs * 0.4) / 1000 / NEEDLE_SPEED);
+                    await wait(stepMs * 0.5);
+                    positionScanner(scanner, barsFrame, step.j, (stepMs * 0.4) / 1000 / NEEDLE_SPEED);
+                    await wait(stepMs * 0.5);
+                } else if (step.type === 'swap') {
+                    swpCount++; swpEl.textContent = swpCount;
+                    bars[step.i].classList.add('swap');
+                    bars[step.j].classList.add('swap');
+                    const barA = bars[step.i], barB = bars[step.j];
+                    const rectA = barA.getBoundingClientRect();
+                    const rectB = barB.getBoundingClientRect();
+                    const dx = rectB.left - rectA.left;
+                    await Promise.all([
+                        gsap.to(barA, { x: dx, duration: stepMs / 1000, ease: 'power1.inOut' }),
+                        gsap.to(barB, { x: -dx, duration: stepMs / 1000, ease: 'power1.inOut' })
+                    ]);
+                    gsap.set([barA, barB], { x: 0 });
+                    if (step.i < step.j) {
+                        barsFrame.insertBefore(barB, barA);
+                        barsFrame.insertBefore(barA, bars[step.j + 1] || null);
+                    }
+                    [bars[step.i], bars[step.j]] = [bars[step.j], bars[step.i]];
+                    [values[step.i], values[step.j]] = [values[step.j], values[step.i]];
+                    barA.classList.remove('swap'); barB.classList.remove('swap');
+                } else if (step.type === 'overwrite') {
+                    swpCount++; swpEl.textContent = swpCount;
+                    const bar = bars[step.i];
+                    bar.classList.add('swap');
+                    values[step.i] = step.value;
+                    bar.querySelector('.bar-value').textContent = step.value;
+                    await gsap.to(bar, { height: (step.value / max * 100) + '%', duration: stepMs / 1000, ease: 'power1.inOut' });
+                    bar.classList.remove('swap');
+                } else if (step.type === 'sorted') {
+                    bars[step.i].classList.remove('compare', 'swap', 'pivot');
+                    bars[step.i].classList.add('sorted');
+                } else if (step.type === 'sorted-all') {
+                    bars.forEach((b) => b.classList.add('sorted'));
+                }
+            }
+
+            running = false;
+            runBtn.disabled = false;
+            badges.forEach((b) => b.disabled = false);
+        }
+
+        function runWithCase(caseType) {
+            if (running) return;
+            values = CASES[key][caseType]();
+            bars = renderBars('bars-' + key, values);
+            run();
+        }
+
+        runBtn.addEventListener('click', run);
+        badges.forEach((badge) => {
+            badge.addEventListener('click', () => runWithCase(badge.dataset.case));
+        });
+    }
+
+    makeVisualizer('bubble', bubbleSortSteps);
+    makeVisualizer('merge', mergeSortSteps);
+    makeVisualizer('quick', quickSortSteps);
+
+    // ---------- Needle speed control (radio group, synced natively across all three panels via shared name) ----------
+    document.querySelectorAll('input[name="needle-speed"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) NEEDLE_SPEED = parseFloat(radio.value);
+        });
+    });
+    </script>
+
+</body>
+</html>
