@@ -165,7 +165,7 @@
         .bar.pivot::after {
             content: "PIVOT";
             position: absolute;
-            bottom: calc(100% + 18px);
+            bottom: calc(100% + 28px);
             left: 50%;
             transform: translateX(-50%);
             font-family: 'JetBrains Mono', monospace;
@@ -177,8 +177,8 @@
         }
         .bar-value {
             position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-            margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
-            color: var(--text-dim); white-space: nowrap; pointer-events: none;
+            margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+            font-weight: 700; color: var(--text); white-space: nowrap; pointer-events: none;
         }
         .bar.compare .bar-value, .bar.swap .bar-value { color: #f4f6fb; }
 
@@ -193,6 +193,8 @@
         .btn:hover { border-color: var(--cyan); color: var(--cyan); }
         .btn:active { transform: scale(0.97); }
         .btn.run { border-color: rgba(92,225,230,0.4); color: var(--cyan); }
+        .btn.reset { color: var(--text-dim); }
+        .btn.reset:hover { border-color: var(--amber); color: var(--amber); }
 
         .needle-speed-group {
             display: flex; align-items: center; gap: 0.6rem;
@@ -212,6 +214,18 @@
             width: 13px; height: 13px; cursor: pointer;
         }
         .radio-pill:has(input:checked) { color: #f4f6fb; font-weight: 600; }
+        .control-bar {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
+            margin-top: 1.4rem; padding-top: 1.2rem;
+            border-top: 1px solid var(--line);
+        }
+        .control-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .control-divider { width: 1px; height: 20px; background: var(--line); }
+        .legend-chip { display: inline-flex; align-items: center; gap: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .legend-dot.amber { background: var(--amber); box-shadow: 0 0 6px 1px rgba(255,180,84,0.6); }
+        .legend-dot.magenta { background: var(--magenta); box-shadow: 0 0 6px 1px rgba(255,107,176,0.6); }
+        .legend-dot.lime { background: var(--lime); box-shadow: 0 0 6px 1px rgba(163,230,53,0.6); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .stats { display: flex; gap: 1.4rem; margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-dim); }
@@ -272,17 +286,10 @@
         </div>
 
         <div class="body-text">
-            <p style="margin-top:1.75rem; font-size:0.98rem;">Amber = comparing. Pink = swapping. Green = sorted. Click <strong>Worst</strong> on any panel to see its bad day.</p>
-
             <!-- ===================== BUBBLE SORT ===================== -->
             <div class="viz-panel" id="panel-bubble" style="margin-top:1.5rem;">
                 <div class="viz-head">
                     <div class="viz-title"><span class="accent" style="color:var(--cyan)">01 /</span> Bubble Sort</div>
-                    <div class="complexity-badges">
-                        <button class="badge random" data-key="bubble" data-case="random" title="Fresh random data">⟲ Random</button>
-                        <button class="badge best" data-key="bubble" data-case="best" title="Click to demo the best case">Best: O(n)</button>
-                        <button class="badge worst" data-key="bubble" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
-                    </div>
                 </div>
                 <p class="viz-desc">Repeatedly compares neighbors and swaps them if they're out of order.
                 Click <strong>Worst</strong> to feed it a reverse-sorted array and watch the comparison count
@@ -292,8 +299,15 @@
                     <div class="scanner" id="scanner-bubble"></div>
                 </div>
 
-                <div class="viz-controls">
-                    <button class="btn run" id="run-bubble">▶ Run</button>
+                <div class="control-bar">
+                    <div class="control-group">
+                        <button class="btn run" id="run-bubble">▶ Run</button>
+                        <button class="btn reset" id="reset-bubble" title="Stop and start over with a fresh array">↺ Reset</button>
+                        <button class="badge random" data-key="bubble" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="bubble" data-case="best" title="Click to demo the best case">Best: O(n)</button>
+                        <button class="badge worst" data-key="bubble" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
+                    </div>
+                    <div class="control-divider"></div>
                     <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
                         <span class="speed-label">Speed</span>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
@@ -301,11 +315,18 @@
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
                     </div>
-                    <div class="stats">
-                        <span class="stat">n = <b id="n-bubble">14</b></span>
-                        <span class="stat">Comparisons: <b id="cmp-bubble">0</b> <span class="text-dim">/ n²=<b id="theory-bubble">196</b></span></span>
-                        <span class="stat">Swaps: <b id="swp-bubble">0</b></span>
+                    <div class="control-divider"></div>
+                    <div class="control-group">
+                        <span class="legend-chip"><span class="legend-dot amber"></span>Comparing</span>
+                        <span class="legend-chip"><span class="legend-dot magenta"></span>Swapping</span>
+                        <span class="legend-chip"><span class="legend-dot lime"></span>Sorted</span>
                     </div>
+                </div>
+
+                <div class="stats" style="margin-top:0.9rem;">
+                    <span class="stat">n = <b id="n-bubble">10</b></span>
+                    <span class="stat">Comparisons: <b id="cmp-bubble">0</b> <span class="text-dim">/ n²=<b id="theory-bubble">100</b></span></span>
+                    <span class="stat">Swaps: <b id="swp-bubble">0</b></span>
                 </div>
             </div>
 
@@ -313,11 +334,6 @@
             <div class="viz-panel" id="panel-merge">
                 <div class="viz-head">
                     <div class="viz-title"><span class="accent" style="color:var(--magenta)">02 /</span> Merge Sort</div>
-                    <div class="complexity-badges">
-                        <button class="badge random" data-key="merge" data-case="random" title="Fresh random data">⟲ Random</button>
-                        <button class="badge best" data-key="merge" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
-                        <button class="badge worst" data-key="merge" data-case="worst" title="Click to demo a reverse-sorted input">Worst: O(n log n)</button>
-                    </div>
                 </div>
                 <p class="viz-desc">Splits the array in half, sorts each half, merges them back in order.
                 No swaps — writes. Same effort no matter the input, which is exactly the point.</p>
@@ -326,8 +342,15 @@
                     <div class="scanner" id="scanner-merge"></div>
                 </div>
 
-                <div class="viz-controls">
-                    <button class="btn run" id="run-merge">▶ Run</button>
+                <div class="control-bar">
+                    <div class="control-group">
+                        <button class="btn run" id="run-merge">▶ Run</button>
+                        <button class="btn reset" id="reset-merge" title="Stop and start over with a fresh array">↺ Reset</button>
+                        <button class="badge random" data-key="merge" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="merge" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
+                        <button class="badge worst" data-key="merge" data-case="worst" title="Click to demo a reverse-sorted input">Worst: O(n log n)</button>
+                    </div>
+                    <div class="control-divider"></div>
                     <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
                         <span class="speed-label">Speed</span>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
@@ -335,11 +358,18 @@
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
                     </div>
-                    <div class="stats">
-                        <span class="stat">n = <b id="n-merge">14</b></span>
-                        <span class="stat">Comparisons: <b id="cmp-merge">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-merge">53</b></span></span>
-                        <span class="stat">Writes: <b id="swp-merge">0</b></span>
+                    <div class="control-divider"></div>
+                    <div class="control-group">
+                        <span class="legend-chip"><span class="legend-dot amber"></span>Comparing</span>
+                        <span class="legend-chip"><span class="legend-dot magenta"></span>Swapping</span>
+                        <span class="legend-chip"><span class="legend-dot lime"></span>Sorted</span>
                     </div>
+                </div>
+
+                <div class="stats" style="margin-top:0.9rem;">
+                    <span class="stat">n = <b id="n-merge">10</b></span>
+                    <span class="stat">Comparisons: <b id="cmp-merge">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-merge">33</b></span></span>
+                    <span class="stat">Writes: <b id="swp-merge">0</b></span>
                 </div>
             </div>
 
@@ -347,11 +377,6 @@
             <div class="viz-panel" id="panel-quick">
                 <div class="viz-head">
                     <div class="viz-title"><span class="accent" style="color:var(--lime)">03 /</span> Quick Sort</div>
-                    <div class="complexity-badges">
-                        <button class="badge random" data-key="quick" data-case="random" title="Fresh random data">⟲ Random</button>
-                        <button class="badge best" data-key="quick" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
-                        <button class="badge worst" data-key="quick" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
-                    </div>
                 </div>
                 <p class="viz-desc">Picks a pivot, partitions smaller left / larger right, recurses. Click
                 <strong>Worst</strong> to see already-sorted data quietly drag it back to O(n²). Watch for the
@@ -361,8 +386,15 @@
                     <div class="scanner" id="scanner-quick"></div>
                 </div>
 
-                <div class="viz-controls">
-                    <button class="btn run" id="run-quick">▶ Run</button>
+                <div class="control-bar">
+                    <div class="control-group">
+                        <button class="btn run" id="run-quick">▶ Run</button>
+                        <button class="btn reset" id="reset-quick" title="Stop and start over with a fresh array">↺ Reset</button>
+                        <button class="badge random" data-key="quick" data-case="random" title="Fresh random data">⟲ Random</button>
+                        <button class="badge best" data-key="quick" data-case="best" title="Click to run on fresh random data">Best: O(n log n)</button>
+                        <button class="badge worst" data-key="quick" data-case="worst" title="Click to demo the worst case">Worst: O(n²)</button>
+                    </div>
+                    <div class="control-divider"></div>
                     <div class="needle-speed-group" role="radiogroup" aria-label="Needle speed">
                         <span class="speed-label">Speed</span>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="0.25"> 0.25x</label>
@@ -370,11 +402,19 @@
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="1"> 1x</label>
                         <label class="radio-pill"><input type="radio" name="needle-speed" value="2"> 2x</label>
                     </div>
-                    <div class="stats">
-                        <span class="stat">n = <b id="n-quick">14</b></span>
-                        <span class="stat">Comparisons: <b id="cmp-quick">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-quick">53</b></span></span>
-                        <span class="stat">Swaps: <b id="swp-quick">0</b></span>
+                    <div class="control-divider"></div>
+                    <div class="control-group">
+                        <span class="legend-chip"><span class="legend-dot amber"></span>Comparing</span>
+                        <span class="legend-chip"><span class="legend-dot magenta"></span>Swapping</span>
+                        <span class="legend-chip"><span class="legend-dot lime"></span>Sorted</span>
+                        <span class="legend-chip"><span class="legend-dot" style="background:var(--violet); box-shadow:0 0 6px 1px rgba(167,139,250,0.6);"></span>Pivot</span>
                     </div>
+                </div>
+
+                <div class="stats" style="margin-top:0.9rem;">
+                    <span class="stat">n = <b id="n-quick">10</b></span>
+                    <span class="stat">Comparisons: <b id="cmp-quick">0</b> <span class="text-dim">/ n·log₂n≈<b id="theory-quick">33</b></span></span>
+                    <span class="stat">Swaps: <b id="swp-quick">0</b></span>
                 </div>
             </div>
 
@@ -429,7 +469,7 @@
         return Array.from({ length: n }, () => Math.floor(Math.random() * (max - min + 1)) + min);
     }
 
-    const N = 14;
+    const N = 10;
     document.querySelectorAll('[id^="n-"]').forEach((el) => { el.textContent = N; });
     const theoryQuad = N * N;
     const theoryLog = Math.round(N * Math.log2(N));
@@ -588,6 +628,7 @@
         const barsFrame = document.getElementById('bars-' + key);
         const scanner = document.getElementById('scanner-' + key);
         const runBtn = document.getElementById('run-' + key);
+        const resetBtn = document.getElementById('reset-' + key);
         const cmpEl = document.getElementById('cmp-' + key);
         const swpEl = document.getElementById('swp-' + key);
         const badges = document.querySelectorAll('.badge[data-key="' + key + '"]');
@@ -595,9 +636,11 @@
         let values = randomArray(N, 15, 100);
         let bars = renderBars('bars-' + key, values);
         let running = false;
+        let runId = 0;
 
         async function run() {
             if (running) return;
+            const myRunId = ++runId;
             running = true;
             runBtn.disabled = true;
             badges.forEach((b) => b.disabled = true);
@@ -611,6 +654,7 @@
             const stepMs = STEP_MS * (SPEED_MULTIPLIER[key] || 1);
 
             for (const step of steps) {
+                if (myRunId !== runId) return; // cancelled via Reset — abandon this run entirely
                 if (step.type === 'pivot') {
                     const bar = bars[step.i];
                     bar.classList.add('pivot');
@@ -665,6 +709,7 @@
                 }
             }
 
+            if (myRunId !== runId) return; // superseded — Reset already restored button state
             running = false;
             runBtn.disabled = false;
             badges.forEach((b) => b.disabled = false);
@@ -677,7 +722,22 @@
             run();
         }
 
+        function reset() {
+            runId++; // invalidate any in-flight run loop
+            gsap.killTweensOf(bars);
+            gsap.killTweensOf(scanner);
+            gsap.set(scanner, { opacity: 0, x: 0 });
+            values = randomArray(N, 15, 100);
+            bars = renderBars('bars-' + key, values);
+            cmpEl.textContent = '0';
+            swpEl.textContent = '0';
+            running = false;
+            runBtn.disabled = false;
+            badges.forEach((b) => b.disabled = false);
+        }
+
         runBtn.addEventListener('click', run);
+        resetBtn.addEventListener('click', reset);
         badges.forEach((badge) => {
             badge.addEventListener('click', () => runWithCase(badge.dataset.case));
         });
