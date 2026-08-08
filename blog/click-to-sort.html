@@ -252,7 +252,9 @@
 
         .end-nav { margin-top: 3.5rem; padding-top: 1.75rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; }
         footer.site-footer { border-top: 1px solid var(--line); padding: 2rem 1.5rem; text-align: center; margin-top: 2rem; }
-        footer.site-footer p { font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+        footer.site-footer p { font-size: 0.78rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin: 0.35rem 0; }
+        footer.site-footer a { color: var(--cyan); }
+        footer.site-footer a:hover { color: var(--amber); }
 
         @media (prefers-reduced-motion: reduce) {
             .bar { transition: none; }
@@ -450,6 +452,7 @@
     </main>
 
     <footer class="site-footer">
+        <p>Animated with <a href="https://gsap.com" target="_blank" rel="noopener noreferrer">GSAP</a> + ScrollTrigger · Fonts via <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer">Google Fonts</a> · everything else is vanilla HTML/CSS/JS</p>
         <p>© 2026 e-diversify</p>
     </footer>
 
