@@ -216,6 +216,17 @@
         .radio-pill:has(input:checked) { color: #f4f6fb; font-weight: 600; }
         .radio-pill:has(input:disabled) { opacity: 0.35; cursor: not-allowed; }
         .radio-pill input[type="radio"]:disabled { cursor: not-allowed; }
+        .merge-track { position: relative; height: 10px; margin-top: 10px; }
+        .merge-range {
+            position: absolute; top: 0; height: 6px; border-radius: 3px;
+            opacity: 0; transition: opacity 0.25s ease, left 0.2s ease, width 0.2s ease;
+        }
+        .merge-range.left { background: linear-gradient(90deg, var(--magenta), rgba(255,107,176,0.35)); }
+        .merge-range.right { background: linear-gradient(90deg, var(--cyan), rgba(92,225,230,0.35)); }
+        .merge-caption {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim);
+            margin: 0.5rem 0 0; min-height: 1.2em;
+        }
         .control-bar {
             display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem;
             margin-top: 1.4rem; padding-top: 1.2rem;
@@ -345,6 +356,12 @@
                 <div class="bars-frame" id="bars-merge">
                     <div class="scanner" id="scanner-merge"></div>
                 </div>
+
+                <div class="merge-track" id="merge-track-merge">
+                    <div class="merge-range left" id="merge-left-merge"></div>
+                    <div class="merge-range right" id="merge-right-merge"></div>
+                </div>
+                <p class="merge-caption" id="merge-caption-merge">&nbsp;</p>
 
                 <div class="control-bar">
                     <div class="control-group">
@@ -499,8 +516,19 @@
         });
     }
 
+    function positionRange(el, barsFrameEl, startIdx, endIdx) {
+        const bars = barsFrameEl.querySelectorAll(':scope > .bar');
+        if (!bars.length || startIdx > endIdx) { gsap.to(el, { opacity: 0, duration: 0.15 }); return; }
+        const frameRect = barsFrameEl.getBoundingClientRect();
+        const startRect = bars[startIdx].getBoundingClientRect();
+        const endRect = bars[endIdx].getBoundingClientRect();
+        const left = startRect.left - frameRect.left;
+        const width = (endRect.right - startRect.left);
+        gsap.to(el, { opacity: 1, left: left, width: width, duration: 0.2, ease: 'power1.out' });
+    }
+
     function positionScanner(scannerEl, barsFrameEl, index, glideDuration) {
-        const bars = barsFrameEl.children;
+        const bars = barsFrameEl.querySelectorAll(':scope > .bar');
         if (!bars.length || index == null || index < 0 || index >= bars.length) {
             gsap.to(scannerEl, { opacity: 0, duration: 0.15 });
             return;
@@ -589,6 +617,7 @@
             merge(l, m, r);
         }
         function merge(l, m, r) {
+            steps.push({ type: 'merge-range', l: l, m: m, r: r });
             const left = a.slice(l, m + 1);
             const right = a.slice(m + 1, r + 1);
             let i = 0, j = 0, k = l;
@@ -662,7 +691,23 @@
 
             for (const step of steps) {
                 if (myRunId !== runId) return; // cancelled via Reset — abandon this run entirely
-                if (step.type === 'pivot') {
+                if (step.type === 'merge-range') {
+                    const leftEl = document.getElementById('merge-left-' + key);
+                    const rightEl = document.getElementById('merge-right-' + key);
+                    const captionEl = document.getElementById('merge-caption-' + key);
+                    if (leftEl && rightEl) {
+                        positionRange(leftEl, barsFrame, step.l, step.m);
+                        positionRange(rightEl, barsFrame, step.m + 1, step.r);
+                    }
+                    if (captionEl) {
+                        const leftSize = step.m - step.l + 1;
+                        const rightSize = step.r - step.m;
+                        captionEl.textContent = leftSize === 1 && rightSize === 1
+                            ? 'Merging two single elements'
+                            : `Merging a group of ${leftSize} with a group of ${rightSize}`;
+                    }
+                    await wait((stepMs * 0.9) / NEEDLE_SPEED); // let the boundary register before writes begin
+                } else if (step.type === 'pivot') {
                     const bar = bars[step.i];
                     bar.classList.add('pivot');
                     positionScanner(scanner, barsFrame, step.i, (stepMs * 0.4) / 1000 / PIVOT_SPEED / NEEDLE_SPEED);
@@ -713,6 +758,12 @@
                     bars[step.i].classList.add('sorted');
                 } else if (step.type === 'sorted-all') {
                     bars.forEach((b) => b.classList.add('sorted'));
+                    const leftEl = document.getElementById('merge-left-' + key);
+                    const rightEl = document.getElementById('merge-right-' + key);
+                    const captionEl = document.getElementById('merge-caption-' + key);
+                    if (leftEl) gsap.to(leftEl, { opacity: 0, duration: 0.3 });
+                    if (rightEl) gsap.to(rightEl, { opacity: 0, duration: 0.3 });
+                    if (captionEl) captionEl.textContent = '';
                 }
             }
 
@@ -743,6 +794,12 @@
             runBtn.disabled = false;
             badges.forEach((b) => b.disabled = false);
             speedRadios.forEach((r) => r.disabled = false);
+            const leftEl = document.getElementById('merge-left-' + key);
+            const rightEl = document.getElementById('merge-right-' + key);
+            const captionEl = document.getElementById('merge-caption-' + key);
+            if (leftEl) gsap.set(leftEl, { opacity: 0 });
+            if (rightEl) gsap.set(rightEl, { opacity: 0 });
+            if (captionEl) captionEl.textContent = '';
         }
 
         runBtn.addEventListener('click', run);
