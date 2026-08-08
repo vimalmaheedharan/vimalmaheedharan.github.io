@@ -20,6 +20,13 @@
   </url>
 
   <url>
+    <loc>https://e-diversify.com/blog/click-to-sort.html</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
     <loc>https://e-diversify.com/blog/pgvector-hnsw-ivfflat.html</loc>
     <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
