@@ -318,9 +318,11 @@
   function positionTooltip(node, cap, href) {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     tooltipEl.innerHTML =
+      '<a class="cap-tooltip-link" href="' + href + '">' +
       '<span class="cap-tooltip-title">' + cap.title + "</span>" +
       '<span class="cap-tooltip-desc">' + cap.desc + "</span>" +
-      '<a class="cap-tooltip-cta" href="' + href + '">See the blueprint &rarr;</a>';
+      '<span class="cap-tooltip-cta">See the blueprint &rarr;</span>' +
+      "</a>";
     tooltipEl.classList.add("show");
 
     var rect = node.getBoundingClientRect();
