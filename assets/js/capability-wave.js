@@ -321,7 +321,6 @@
       '<a class="cap-tooltip-link" href="' + href + '">' +
       '<span class="cap-tooltip-title">' + cap.title + "</span>" +
       '<span class="cap-tooltip-desc">' + cap.desc + "</span>" +
-      '<span class="cap-tooltip-cta">See the blueprint &rarr;</span>' +
       "</a>";
     tooltipEl.classList.add("show");
 
