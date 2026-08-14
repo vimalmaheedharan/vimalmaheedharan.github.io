@@ -154,32 +154,81 @@
     st.setAttribute("stop-color", s.c);
     grad.appendChild(st);
   });
+  var glowFilter = document.createElementNS(NS, "filter");
+  glowFilter.setAttribute("id", "wave-glow");
+  glowFilter.setAttribute("x", "-20%");
+  glowFilter.setAttribute("y", "-200%");
+  glowFilter.setAttribute("width", "140%");
+  glowFilter.setAttribute("height", "500%");
+  var blur = document.createElementNS(NS, "feGaussianBlur");
+  blur.setAttribute("stdDeviation", "4");
+  blur.setAttribute("result", "blur");
+  glowFilter.appendChild(blur);
+  defs.appendChild(glowFilter);
   defs.appendChild(grad);
   svgEl.appendChild(defs);
 
+  // Soft blurred glow riding underneath the line — gives it depth/luminosity
+  // instead of a flat, faceted stroke.
+  var glowPath = document.createElementNS(NS, "path");
+  glowPath.setAttribute("fill", "none");
+  glowPath.setAttribute("stroke", "url(#wave-grad)");
+  glowPath.setAttribute("stroke-width", "7");
+  glowPath.setAttribute("stroke-linecap", "round");
+  glowPath.setAttribute("opacity", "0.35");
+  glowPath.setAttribute("filter", "url(#wave-glow)");
+  svgEl.appendChild(glowPath);
+
+  // The main smooth line.
   var basePath = document.createElementNS(NS, "path");
   basePath.setAttribute("fill", "none");
   basePath.setAttribute("stroke", "url(#wave-grad)");
-  basePath.setAttribute("stroke-width", "2");
+  basePath.setAttribute("stroke-width", "2.2");
   basePath.setAttribute("stroke-linecap", "round");
-  basePath.setAttribute("opacity", "0.55");
+  basePath.setAttribute("stroke-linejoin", "round");
+  basePath.setAttribute("opacity", "0.85");
   svgEl.appendChild(basePath);
 
+  // A single bright streak of light that slides slowly along the line —
+  // reads as a glint of water, not a string of beads.
   var flowPath = document.createElementNS(NS, "path");
   flowPath.setAttribute("fill", "none");
-  flowPath.setAttribute("stroke", "url(#wave-grad)");
-  flowPath.setAttribute("stroke-width", "2.5");
+  flowPath.setAttribute("stroke", "#ecfeff");
+  flowPath.setAttribute("stroke-width", "2.4");
   flowPath.setAttribute("stroke-linecap", "round");
-  flowPath.setAttribute("stroke-dasharray", "1 13");
-  flowPath.setAttribute("opacity", "0.95");
+  flowPath.setAttribute("stroke-linejoin", "round");
+  var STREAK_LEN = 90;
+  flowPath.setAttribute("stroke-dasharray", STREAK_LEN + " " + (trackWidth * 2));
+  flowPath.setAttribute("opacity", "0.55");
   svgEl.appendChild(flowPath);
 
+  // Smooth curve: sample a handful of points per node gap and connect them
+  // with a Catmull-Rom-to-Bezier spline, instead of a faceted polyline —
+  // that's what turns the "beaded rope" look into a real, fluid wave.
+  var SAMPLES_PER_GAP = 5;
+
   function buildD(phase) {
-    var step = 8;
-    var d = "";
-    for (var x = 0; x <= trackWidth; x += step) {
-      var y = waveY(x, phase);
-      d += (x === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1) + " ";
+    var pts = [];
+    var totalSamples = (n - 1) * SAMPLES_PER_GAP;
+    for (var s = 0; s <= totalSamples; s++) {
+      var x = START_X + (s / totalSamples) * (trackWidth - 2 * START_X);
+      pts.push([x, waveY(x, phase)]);
+    }
+    // pad both ends flat so the line doesn't look clipped at the track edges
+    pts.unshift([0, pts[0][1]]);
+    pts.push([trackWidth, pts[pts.length - 1][1]]);
+
+    var d = "M" + pts[0][0].toFixed(1) + "," + pts[0][1].toFixed(1) + " ";
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i === 0 ? i : i - 1];
+      var p1 = pts[i];
+      var p2 = pts[i + 1];
+      var p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      var c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      var c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += "C" + c1x.toFixed(1) + "," + c1y.toFixed(1) + " " + c2x.toFixed(1) + "," + c2y.toFixed(1) + " " + p2[0].toFixed(1) + "," + p2[1].toFixed(1) + " ";
     }
     return d;
   }
@@ -291,27 +340,33 @@
   var phase = 0;
   var running = true;
   var frame = 0;
+  var streakOffset = 0;
 
   function tick() {
     if (!running) return;
     frame++;
     if (frame % 2 === 0) {
-      phase += reduceMotion ? 0 : 0.018;
+      phase += reduceMotion ? 0 : 0.014;
       var d = buildD(phase);
+      glowPath.setAttribute("d", d);
       basePath.setAttribute("d", d);
       flowPath.setAttribute("d", d);
-      flowPath.style.strokeDashoffset = String(-(phase * 260));
 
       nodeEls.forEach(function (n) {
         var y = waveY(n.x, phase);
         n.el.style.transform = "translate(-50%, " + (y - ICON_R) + "px)";
       });
     }
+    // Streak slides independently of the phase-driven curve redraw so its
+    // motion stays perfectly smooth even at the throttled 30fps redraw rate.
+    streakOffset -= reduceMotion ? 0 : 1.4;
+    flowPath.style.strokeDashoffset = String(streakOffset);
     requestAnimationFrame(tick);
   }
 
   // Draw the initial static frame immediately so there's no flash of an unpositioned wave.
   var initialD = buildD(0);
+  glowPath.setAttribute("d", initialD);
   basePath.setAttribute("d", initialD);
   flowPath.setAttribute("d", initialD);
   nodeEls.forEach(function (n) {
