@@ -93,14 +93,22 @@
                 </p>
             </div>
 
-            <div id="wave-scroll" class="wave-scroll relative mt-14 overflow-x-auto overflow-y-hidden pb-6" tabindex="0" aria-label="Scroll to see all capabilities">
-                <div id="wave-track" class="wave-track relative">
-                    <svg id="wave-svg" class="wave-svg absolute left-0 top-0 pointer-events-none" preserveAspectRatio="none" aria-hidden="true"></svg>
-                    <div id="wave-icons" class="wave-icons absolute left-0 top-0"></div>
-                    <div id="wave-labels" class="wave-labels absolute left-0 top-0"></div>
+            <div class="wave-wrap relative mt-14">
+                <button id="wave-prev" type="button" class="wave-arrow wave-arrow-left" aria-label="Scroll capabilities left">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div id="wave-scroll" class="wave-scroll relative overflow-x-auto overflow-y-hidden pb-6" tabindex="0" aria-label="Scroll to see all capabilities">
+                    <div id="wave-track" class="wave-track relative">
+                        <svg id="wave-svg" class="wave-svg absolute left-0 top-0 pointer-events-none" preserveAspectRatio="none" aria-hidden="true"></svg>
+                        <div id="wave-icons" class="wave-icons absolute left-0 top-0"></div>
+                        <div id="wave-labels" class="wave-labels absolute left-0 top-0"></div>
+                    </div>
                 </div>
+                <button id="wave-next" type="button" class="wave-arrow wave-arrow-right" aria-label="Scroll capabilities right">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
             </div>
-            <p class="text-center text-[10px] tracking-[0.2em] uppercase text-gray-600 mt-1 select-none sm:hidden">&larr; swipe to explore &rarr;</p>
+            <p class="text-center text-[10px] tracking-[0.2em] uppercase text-gray-600 mt-1 select-none">&larr; scroll, swipe, or use the arrows &rarr;</p>
 
             <!-- Outcome pill bar -->
             <div class="mt-10 flex justify-center px-2">

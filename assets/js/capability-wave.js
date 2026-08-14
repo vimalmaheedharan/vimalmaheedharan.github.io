@@ -291,6 +291,36 @@
 
   document.addEventListener("click", hideTooltip);
 
+  // --- prev / next navigation ----------------------------------------------
+  var prevBtn = document.getElementById("wave-prev");
+  var nextBtn = document.getElementById("wave-next");
+  var SCROLL_STEP = NODE_SPACING * 2.5;
+
+  function updateArrowState() {
+    if (!prevBtn || !nextBtn) return;
+    var max = scrollEl.scrollWidth - scrollEl.clientWidth;
+    prevBtn.disabled = scrollEl.scrollLeft <= 2;
+    nextBtn.disabled = scrollEl.scrollLeft >= max - 2;
+  }
+
+  if (prevBtn && nextBtn) {
+    prevBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      scrollEl.scrollBy({ left: -SCROLL_STEP, behavior: "smooth" });
+    });
+    nextBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      scrollEl.scrollBy({ left: SCROLL_STEP, behavior: "smooth" });
+    });
+    scrollEl.addEventListener("scroll", updateArrowState, { passive: true });
+    scrollEl.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { scrollEl.scrollBy({ left: SCROLL_STEP, behavior: "smooth" }); }
+      if (e.key === "ArrowLeft") { scrollEl.scrollBy({ left: -SCROLL_STEP, behavior: "smooth" }); }
+    });
+    window.addEventListener("resize", updateArrowState);
+    updateArrowState();
+  }
+
   function colorAt(i, total) {
     var stopsRGB = [
       [34, 211, 238],
