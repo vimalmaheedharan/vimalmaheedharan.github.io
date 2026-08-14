@@ -35,6 +35,10 @@
     <!-- Dynamic Inline SVG Favicon (Renders "ED") -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
 
+    <!-- Signature typeface for the VM mark -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS Engine -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Extracted External Production Stylesheet -->
@@ -149,6 +153,68 @@
             </div>
         </section>
 
+        <!-- Capability Wave — Designing Architectures. Delivering Impact. -->
+        <section id="capabilities" class="mt-28 relative">
+            <div class="text-center max-w-3xl mx-auto">
+                <p class="text-[11px] sm:text-xs font-semibold tracking-[0.3em] uppercase bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Principal Architect &bull; Strategist &bull; Builder &bull; Enabler
+                </p>
+                <h2 class="mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.15]">
+                    Designing Architectures.<br>
+                    <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">Delivering Impact.</span>
+                </h2>
+                <p class="mt-5 text-gray-400 text-sm sm:text-base leading-relaxed">
+                    Eighteen capabilities, one continuous thread &mdash; strategic leadership and technical depth that build secure, scalable, resilient systems. Hover or tap any node for the full picture.
+                </p>
+            </div>
+
+            <div id="wave-scroll" class="wave-scroll relative mt-14 overflow-x-auto overflow-y-hidden pb-6" tabindex="0" aria-label="Scroll to see all capabilities">
+                <div id="wave-track" class="wave-track relative">
+                    <svg id="wave-svg" class="wave-svg absolute left-0 top-0 pointer-events-none" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div id="wave-icons" class="wave-icons absolute left-0 top-0"></div>
+                    <div id="wave-labels" class="wave-labels absolute left-0 top-0"></div>
+                </div>
+            </div>
+            <p class="text-center text-[10px] tracking-[0.2em] uppercase text-gray-600 mt-1 select-none sm:hidden">&larr; swipe to explore &rarr;</p>
+
+            <!-- Outcome pill bar -->
+            <div class="mt-10 flex justify-center px-2">
+                <div class="glass rounded-full px-3 py-2.5 flex flex-wrap justify-center items-center gap-x-1 gap-y-2">
+                    <div class="outcome-pill flex items-center gap-2 px-3 py-1 text-cyan-300">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+                        <span class="text-[11px] font-semibold leading-none">Reliable<br><span class="font-normal text-gray-400 text-[10px]">By Design</span></span>
+                    </div>
+                    <span class="outcome-divider"></span>
+                    <div class="outcome-pill flex items-center gap-2 px-3 py-1 text-blue-300">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 01-1-7.9A5 5 0 0115.9 8 4.5 4.5 0 0117 17H7z"/></svg>
+                        <span class="text-[11px] font-semibold leading-none">Scalable<br><span class="font-normal text-gray-400 text-[10px]">By Architecture</span></span>
+                    </div>
+                    <span class="outcome-divider"></span>
+                    <div class="outcome-pill flex items-center gap-2 px-3 py-1 text-indigo-300">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7"/><path d="M12 13l3-3M9 3h6"/></svg>
+                        <span class="text-[11px] font-semibold leading-none">Efficient<br><span class="font-normal text-gray-400 text-[10px]">By Optimization</span></span>
+                    </div>
+                    <span class="outcome-divider"></span>
+                    <div class="outcome-pill flex items-center gap-2 px-3 py-1 text-purple-300">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l6-9 4 5 6-9"/><circle cx="4" cy="18" r="1.4"/><circle cx="20" cy="5" r="1.4"/></svg>
+                        <span class="text-[11px] font-semibold leading-none">Automated<br><span class="font-normal text-gray-400 text-[10px]">By Default</span></span>
+                    </div>
+                    <span class="outcome-divider"></span>
+                    <div class="outcome-pill flex items-center gap-2 px-3 py-1 text-fuchsia-300">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/></svg>
+                        <span class="text-[11px] font-semibold leading-none">Impactful<br><span class="font-normal text-gray-400 text-[10px]">By Outcomes</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-right pr-1">
+                <span class="signature">VM</span>
+            </div>
+        </section>
+
+        <!-- Shared tooltip for capability nodes -->
+        <div id="cap-tooltip" class="cap-tooltip" role="tooltip"></div>
+
         <!-- Technology Focus Matrix -->
         <section class="mt-28">
             <div class="text-center mb-16">
@@ -246,5 +312,6 @@
         <p class="text-gray-600 mt-2 font-mono">Owning production infrastructure. Debugging what breaks. Benchmarking what matters.</p>
     </footer>
 
+    <script src="./assets/js/capability-wave.js" defer></script>
 </body>
 </html>
