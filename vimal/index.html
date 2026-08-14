@@ -45,8 +45,35 @@
                     class="text-2xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">ED</span><span
                     class="text-xs font-semibold tracking-widest text-gray-400 uppercase border-l border-gray-700 pl-3">Fluidity
                     In Motion ©</span></a>
-            <div class="flex space-x-8 text-sm"><a href="../" class="hover:text-cyan-400">Home</a><a href="../blog/"
-                    class="hover:text-cyan-400">The Runbook</a><a href="#"
+            <div class="flex space-x-8 text-sm items-center"><a href="../" class="hover:text-cyan-400">Home</a><a href="../blog/"
+                    class="hover:text-cyan-400">The Runbook</a>
+                <div class="relative" id="blueprint-menu">
+                    <button id="blueprint-toggle" type="button" class="flex items-center gap-1 hover:text-cyan-400 transition-colors" aria-haspopup="true" aria-expanded="false">
+                        The Blueprint
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 mt-px transition-transform" id="blueprint-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div id="blueprint-dropdown" class="blueprint-dropdown">
+                        <a href="../capabilities/architecture-strategy.html">Architecture Strategy</a>
+                        <a href="../capabilities/solution-architecture.html">Solution Architecture</a>
+                        <a href="../capabilities/security-by-design.html">Security by Design</a>
+                        <a href="../capabilities/cloud-infrastructure.html">Cloud &amp; Infrastructure</a>
+                        <a href="../capabilities/data-ai-enablement.html">Data &amp; AI Enablement</a>
+                        <a href="../capabilities/integration-excellence.html">Integration Excellence</a>
+                        <a href="../capabilities/engineering-leadership.html">Engineering Leadership</a>
+                        <a href="../capabilities/continuous-impact.html">Continuous Impact</a>
+                        <a href="../capabilities/cyber-security.html">Cyber Security</a>
+                        <a href="../capabilities/site-reliability.html">Site Reliability</a>
+                        <a href="../capabilities/devops-cicd.html">DevOps &amp; CI/CD</a>
+                        <a href="../capabilities/containers-kubernetes.html">Containers &amp; Kubernetes</a>
+                        <a href="../capabilities/observability.html">Observability</a>
+                        <a href="../capabilities/identity-access.html">Identity &amp; Access</a>
+                        <a href="../capabilities/incident-response.html">Incident Response</a>
+                        <a href="../capabilities/cost-finops.html">Cost &amp; FinOps</a>
+                        <a href="../capabilities/api-platform-design.html">API &amp; Platform Design</a>
+                        <a href="../capabilities/mentorship-team-building.html">Mentorship &amp; Team Building</a>
+                    </div>
+                </div>
+                <a href="./"
                     class="text-cyan-400">Who's On-Call</a></div>
         </nav>
     </header>
@@ -103,6 +130,8 @@
     <footer class="py-8 text-center text-xs text-gray-600 border-t border-gray-900/40">
         <p> &copy; 2026 E-Diversify.</p>
     </footer>
+
+    <script src="../assets/js/nav-dropdown.js" defer></script>
 </body>
 
 </html>

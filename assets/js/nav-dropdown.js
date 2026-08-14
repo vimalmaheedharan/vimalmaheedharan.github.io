@@ -12,18 +12,38 @@
 
   if (!menu || !toggle || !dropdown) return;
 
+  function openMenu() {
+    dropdown.classList.add("open");
+    if (chevron) chevron.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+
   function closeMenu() {
     dropdown.classList.remove("open");
     if (chevron) chevron.classList.remove("open");
     toggle.setAttribute("aria-expanded", "false");
   }
 
+  // On mouse-driven devices, open on hover like any other nav dropdown;
+  // touch devices fall back to the click handler above, since hover
+  // doesn't map cleanly to a tap.
+  var hoverCapable = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
   function toggleMenu(e) {
     e.stopPropagation();
-    var willOpen = !dropdown.classList.contains("open");
-    dropdown.classList.toggle("open", willOpen);
-    if (chevron) chevron.classList.toggle("open", willOpen);
-    toggle.setAttribute("aria-expanded", String(willOpen));
+    if (hoverCapable) {
+      // Hover already opens it before a click can land — if a click
+      // toggled state here too, a deliberate click on an already
+      // hover-opened menu would instantly close it again. Make click
+      // idempotent-open instead; hovering away is what closes it.
+      openMenu();
+      return;
+    }
+    if (dropdown.classList.contains("open")) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
   }
 
   toggle.addEventListener("click", toggleMenu);
@@ -33,4 +53,15 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeMenu();
   });
+
+  if (hoverCapable) {
+    var closeTimer = null;
+    menu.addEventListener("mouseenter", function () {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+      openMenu();
+    });
+    menu.addEventListener("mouseleave", function () {
+      closeTimer = setTimeout(closeMenu, 200);
+    });
+  }
 })();

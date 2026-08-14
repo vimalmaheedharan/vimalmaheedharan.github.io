@@ -287,6 +287,28 @@
       wrap.addEventListener("mouseleave", scheduleHide);
       wrap.addEventListener("focus", show);
       wrap.addEventListener("blur", scheduleHide);
+
+      // The wave keeps redrawing every frame, and on some browsers a
+      // moving target under the cursor gets treated as a drag rather
+      // than a click, silently swallowing the native anchor navigation.
+      // Pointerdown/up with a small distance+time budget sidesteps that
+      // entirely, while still leaving modified clicks (new tab, etc.)
+      // to the browser's normal anchor behavior.
+      var pointerStart = null;
+      wrap.addEventListener("pointerdown", function (e) {
+        paused = true;
+        pointerStart = { x: e.clientX, y: e.clientY, t: Date.now() };
+      });
+      wrap.addEventListener("pointerup", function (e) {
+        if (!pointerStart) return;
+        var dx = Math.abs(e.clientX - pointerStart.x);
+        var dy = Math.abs(e.clientY - pointerStart.y);
+        var dt = Date.now() - pointerStart.t;
+        pointerStart = null;
+        if (dx < 10 && dy < 10 && dt < 800 && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+          window.location.href = href;
+        }
+      });
     });
   }
 
@@ -300,7 +322,7 @@
     tooltipEl.innerHTML =
       '<span class="cap-tooltip-title">' + cap.title + "</span>" +
       '<span class="cap-tooltip-desc">' + cap.desc + "</span>" +
-      '<span class="cap-tooltip-cta">Click to explore &rarr;</span>';
+      '<span class="cap-tooltip-cta">See the blueprint &rarr;</span>';
     tooltipEl.classList.add("show");
 
     var rect = node.getBoundingClientRect();
