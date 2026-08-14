@@ -281,20 +281,22 @@
       labelsEl.appendChild(label);
 
       function show() {
-        positionTooltip(wrap, cap);
-      }
-      function hide() {
-        hideTooltip();
+        positionTooltip(wrap, cap, href);
       }
       wrap.addEventListener("mouseenter", show);
-      wrap.addEventListener("mouseleave", hide);
+      wrap.addEventListener("mouseleave", scheduleHide);
       wrap.addEventListener("focus", show);
-      wrap.addEventListener("blur", hide);
+      wrap.addEventListener("blur", scheduleHide);
     });
   }
 
   // --- tooltip --------------------------------------------------------------
-  function positionTooltip(node, cap) {
+  var hideTimer = null;
+  var currentHref = "";
+
+  function positionTooltip(node, cap, href) {
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    currentHref = href;
     tooltipEl.innerHTML =
       '<span class="cap-tooltip-title">' + cap.title + "</span>" +
       '<span class="cap-tooltip-desc">' + cap.desc + "</span>" +
@@ -314,9 +316,25 @@
     tooltipEl.style.top = top + "px";
   }
 
+  // A short delay before hiding lets the cursor travel from the icon up
+  // into the tooltip without it vanishing mid-move; entering the tooltip
+  // itself cancels the hide outright.
+  function scheduleHide() {
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideTooltip, 220);
+  }
+
   function hideTooltip() {
     tooltipEl.classList.remove("show");
   }
+
+  tooltipEl.addEventListener("mouseenter", function () {
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+  });
+  tooltipEl.addEventListener("mouseleave", scheduleHide);
+  tooltipEl.addEventListener("click", function () {
+    if (currentHref) window.location.href = currentHref;
+  });
 
   // --- pause on hover -------------------------------------------------------
   var paused = false;
