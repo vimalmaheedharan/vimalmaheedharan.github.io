@@ -70,6 +70,32 @@
                 <a href="./blog/" class="hover:text-cyan-400 transition-colors">
     The Runbook
 </a>
+                <div class="relative" id="blueprint-menu">
+                    <button id="blueprint-toggle" type="button" class="flex items-center gap-1 hover:text-cyan-400 transition-colors" aria-haspopup="true" aria-expanded="false">
+                        The Blueprint
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 mt-px transition-transform" id="blueprint-chevron" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div id="blueprint-dropdown" class="blueprint-dropdown">
+                        <a href="./capabilities/architecture-strategy.html">Architecture Strategy</a>
+                        <a href="./capabilities/solution-architecture.html">Solution Architecture</a>
+                        <a href="./capabilities/security-by-design.html">Security by Design</a>
+                        <a href="./capabilities/cloud-infrastructure.html">Cloud &amp; Infrastructure</a>
+                        <a href="./capabilities/data-ai-enablement.html">Data &amp; AI Enablement</a>
+                        <a href="./capabilities/integration-excellence.html">Integration Excellence</a>
+                        <a href="./capabilities/engineering-leadership.html">Engineering Leadership</a>
+                        <a href="./capabilities/continuous-impact.html">Continuous Impact</a>
+                        <a href="./capabilities/cyber-security.html">Cyber Security</a>
+                        <a href="./capabilities/site-reliability.html">Site Reliability</a>
+                        <a href="./capabilities/devops-cicd.html">DevOps &amp; CI/CD</a>
+                        <a href="./capabilities/containers-kubernetes.html">Containers &amp; Kubernetes</a>
+                        <a href="./capabilities/observability.html">Observability</a>
+                        <a href="./capabilities/identity-access.html">Identity &amp; Access</a>
+                        <a href="./capabilities/incident-response.html">Incident Response</a>
+                        <a href="./capabilities/cost-finops.html">Cost &amp; FinOps</a>
+                        <a href="./capabilities/api-platform-design.html">API &amp; Platform Design</a>
+                        <a href="./capabilities/mentorship-team-building.html">Mentorship &amp; Team Building</a>
+                    </div>
+                </div>
                 <a href="./vimal/index.html" class="hover:text-cyan-400 transition-colors">
     Who's On-Call
 </a>
@@ -93,22 +119,14 @@
                 </p>
             </div>
 
-            <div class="wave-wrap relative mt-14">
-                <button id="wave-prev" type="button" class="wave-arrow wave-arrow-left" aria-label="Scroll capabilities left">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <div id="wave-scroll" class="wave-scroll relative overflow-x-auto overflow-y-hidden pb-6" tabindex="0" aria-label="Scroll to see all capabilities">
-                    <div id="wave-track" class="wave-track relative">
-                        <svg id="wave-svg" class="wave-svg absolute left-0 top-0 pointer-events-none" preserveAspectRatio="none" aria-hidden="true"></svg>
-                        <div id="wave-icons" class="wave-icons absolute left-0 top-0"></div>
-                        <div id="wave-labels" class="wave-labels absolute left-0 top-0"></div>
-                    </div>
+            <div id="wave-viewport" class="wave-viewport relative mt-14">
+                <div id="wave-track" class="wave-track absolute left-0 top-0">
+                    <svg id="wave-svg" class="wave-svg absolute left-0 top-0 pointer-events-none" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div id="wave-icons" class="wave-icons absolute left-0 top-0"></div>
+                    <div id="wave-labels" class="wave-labels absolute left-0 top-0"></div>
                 </div>
-                <button id="wave-next" type="button" class="wave-arrow wave-arrow-right" aria-label="Scroll capabilities right">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
             </div>
-            <p class="text-center text-[10px] tracking-[0.2em] uppercase text-gray-600 mt-1 select-none">&larr; scroll, swipe, or use the arrows &rarr;</p>
+            <p class="text-center text-[10px] tracking-[0.2em] uppercase text-gray-600 mt-1 select-none">hover to pause &middot; click any capability to explore it</p>
 
             <!-- Outcome pill bar -->
             <div class="mt-10 flex justify-center px-2">
@@ -320,6 +338,7 @@
         <p class="text-gray-600 mt-2 font-mono">Owning production infrastructure. Debugging what breaks. Benchmarking what matters.</p>
     </footer>
 
+    <script src="./assets/js/nav-dropdown.js" defer></script>
     <script src="./assets/js/capability-wave.js" defer></script>
 </body>
 </html>
