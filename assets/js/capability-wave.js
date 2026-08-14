@@ -321,7 +321,7 @@
   // itself cancels the hide outright.
   function scheduleHide() {
     if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(hideTooltip, 220);
+    hideTimer = setTimeout(hideTooltip, 3000);
   }
 
   function hideTooltip() {

@@ -82,10 +82,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.03);
+    background: #0a0e1a;
     border: 1.5px solid var(--node-color, #22d3ee);
     color: var(--node-color, #22d3ee);
-    box-shadow: 0 0 0 rgba(0,0,0,0);
+    box-shadow: 0 0 0 rgba(0,0,0,0), 0 4px 14px -4px rgba(0,0,0,0.6);
+    position: relative;
+    z-index: 5;
     transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease, background 0.25s ease, border-color 0.3s linear, color 0.3s linear;
 }
 
@@ -98,7 +100,7 @@ body {
 .wave-node:focus .wave-node-circle,
 .wave-node:focus-visible .wave-node-circle {
     transform: scale(1.16);
-    background: rgba(255,255,255,0.08);
+    background: #131c33;
     box-shadow: 0 0 22px -2px var(--node-color, #22d3ee);
 }
 
