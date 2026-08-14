@@ -314,15 +314,13 @@
 
   // --- tooltip --------------------------------------------------------------
   var hideTimer = null;
-  var currentHref = "";
 
   function positionTooltip(node, cap, href) {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-    currentHref = href;
     tooltipEl.innerHTML =
       '<span class="cap-tooltip-title">' + cap.title + "</span>" +
       '<span class="cap-tooltip-desc">' + cap.desc + "</span>" +
-      '<span class="cap-tooltip-cta">See the blueprint &rarr;</span>';
+      '<a class="cap-tooltip-cta" href="' + href + '">See the blueprint &rarr;</a>';
     tooltipEl.classList.add("show");
 
     var rect = node.getBoundingClientRect();
@@ -338,12 +336,12 @@
     tooltipEl.style.top = top + "px";
   }
 
-  // A short delay before hiding lets the cursor travel from the icon up
-  // into the tooltip without it vanishing mid-move; entering the tooltip
+  // A delay before hiding lets the cursor travel from the icon up into
+  // the tooltip without it vanishing mid-move; entering the tooltip
   // itself cancels the hide outright.
   function scheduleHide() {
     if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(hideTooltip, 3000);
+    hideTimer = setTimeout(hideTooltip, 5000);
   }
 
   function hideTooltip() {
@@ -354,9 +352,6 @@
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
   });
   tooltipEl.addEventListener("mouseleave", scheduleHide);
-  tooltipEl.addEventListener("click", function () {
-    if (currentHref) window.location.href = currentHref;
-  });
 
   // --- pause on hover -------------------------------------------------------
   var paused = false;

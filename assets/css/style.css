@@ -172,6 +172,7 @@ body {
 .cap-tooltip.show {
     opacity: 1;
     transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
 .cap-tooltip-title {
     font-size: 0.75rem;
@@ -184,12 +185,21 @@ body {
     color: #94a3b8;
 }
 .cap-tooltip-cta {
-    margin-top: 0.3rem;
-    font-size: 0.66rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.4rem;
+    font-size: 0.68rem;
+    font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #22d3ee;
+    text-decoration: none;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.cap-tooltip-cta:hover,
+.cap-tooltip-cta:focus-visible {
+    text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {
