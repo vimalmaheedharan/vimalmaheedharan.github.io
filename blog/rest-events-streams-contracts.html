@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>REST, Events &amp; Streams: Three Contracts for One Weather Service | Vimal Maheedharan</title>
+<meta name="description" content="One browser coordinate, three consumers, three integration contracts. A worked TypeScript/Node example showing how a single weather domain service is exposed through a REST endpoint, a published event, and a live WebSocket stream — without letting any one shape leak into the others.">
+<meta name="keywords" content="REST API, Event-Driven Architecture, Streaming, TypeScript, Node.js, API Contracts, WebSocket, Pub Sub, Hexagonal Architecture, Ports and Adapters, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/rest-events-streams-contracts.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="REST, Events & Streams: Three Contracts for One Weather Service">
+<meta property="og:description" content="One browser coordinate, three consumers, three integration contracts — a worked TypeScript/Node example in REST, pub/sub events, and a live WebSocket stream.">
+<meta property="og:url" content="https://e-diversify.com/blog/rest-events-streams-contracts.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="REST, Events & Streams — three contracts for one weather service">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="REST, Events & Streams: Three Contracts for One Weather Service">
+<meta name="twitter:description" content="One browser coordinate, three consumers, three integration contracts — worked in TypeScript and Node.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e13;
+    --panel:#10161d;
+    --panel-line:#1f2a35;
+    --ink:#e7edf3;
+    --dim:#7c8b99;
+    --rest:#f0a154;
+    --event:#e0629b;
+    --stream:#3fc6d6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Sora', sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:'Fira Code', monospace;}
+  a{color:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.9rem 6vw;
+    background:rgba(10,14,19,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--panel-line);
+    font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+  }
+  .top-nav a{ text-decoration:none; color:var(--dim); display:flex; align-items:center; gap:0.5rem; transition:color 0.2s ease;}
+  .top-nav a:hover{ color:var(--stream); }
+  .top-nav .brand{ font-family:'Sora', sans-serif; font-weight:800; font-size:1.05rem; color:var(--ink); text-transform:none; letter-spacing:0.02em;}
+
+  .wrap{ max-width:900px; margin:0 auto; padding:0 6vw; position:relative; z-index:2;}
+
+  header.hero{ padding-top:112px; padding-bottom:2.2rem; }
+  .signal-tag{
+    display:inline-flex; gap:0; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+    margin-bottom:1.6rem; border-radius:999px; overflow:hidden; border:1px solid var(--panel-line);
+  }
+  .signal-tag span{ padding:0.4rem 0.8rem; }
+  .signal-tag .t1{ background:rgba(240,161,84,0.13); color:var(--rest); }
+  .signal-tag .t2{ background:rgba(224,98,155,0.13); color:var(--event); }
+  .signal-tag .t3{ background:rgba(63,198,214,0.13); color:var(--stream); }
+
+  header.hero h1{
+    font-size:clamp(1.9rem, 4.4vw, 3rem);
+    font-weight:800; line-height:1.14; color:#fff; margin-bottom:1.1rem;
+  }
+  header.hero .lede{ font-size:0.95rem; line-height:1.8; color:var(--dim); max-width:64ch; }
+  .byline{
+    margin-top:1.6rem; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--dim);
+    border-top:1px solid var(--panel-line); padding-top:1rem;
+  }
+  .byline strong{ color:var(--ink); }
+
+  .prose{ font-size:0.97rem; line-height:1.85; padding:0.5rem 0; }
+  .prose p{ margin-bottom:1.2rem; color:var(--ink); }
+  .prose p:last-child{ margin-bottom:0; }
+  .prose strong{ color:#fff; }
+  .prose code{ font-family:'Fira Code', monospace; font-size:0.86em; background:rgba(255,255,255,0.06); padding:0.1em 0.35em; border-radius:4px; color:#fff; }
+
+  h2.section-title{
+    font-size:clamp(1.3rem, 2.4vw, 1.6rem); font-weight:700; color:#fff; margin:3.2rem 0 0.6rem;
+  }
+  .section-sub{ font-size:0.85rem; color:var(--dim); line-height:1.75; max-width:66ch; margin-bottom:1.6rem; }
+
+  /* ---------- SIGNAL DIAGRAM ---------- */
+  .signal-diagram{
+    margin:1.8rem 0; padding:1.6rem; border:1px solid var(--panel-line); border-radius:14px; background:var(--panel);
+  }
+  .signal-row{ display:flex; align-items:center; gap:1rem; padding:0.7rem 0; border-bottom:1px dashed var(--panel-line); }
+  .signal-row:last-child{ border-bottom:none; }
+  .signal-label{ width:110px; flex-shrink:0; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; }
+  .signal-row.rest .signal-label{ color:var(--rest); }
+  .signal-row.event .signal-label{ color:var(--event); }
+  .signal-row.stream .signal-label{ color:var(--stream); }
+  .signal-line{ flex:1; height:28px; position:relative; overflow:hidden; }
+  .signal-line svg{ width:100%; height:100%; display:block; }
+  .signal-consumer{ width:150px; flex-shrink:0; font-size:0.78rem; color:var(--ink); text-align:right; }
+  .signal-consumer small{ display:block; font-size:0.68rem; color:var(--dim); font-weight:400; }
+
+  /* ---------- CONTRACT SECTIONS ---------- */
+  .contract-block{
+    margin-top:1.6rem; border:1px solid var(--panel-line); border-radius:14px; overflow:hidden; background:var(--panel);
+  }
+  .contract-head{
+    display:flex; align-items:center; gap:0.7rem; padding:1rem 1.3rem; border-bottom:1px solid var(--panel-line);
+  }
+  .contract-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .contract-block.rest .contract-dot{ background:var(--rest); box-shadow:0 0 10px var(--rest); }
+  .contract-block.event .contract-dot{ background:var(--event); box-shadow:0 0 10px var(--event); }
+  .contract-block.stream .contract-dot{ background:var(--stream); box-shadow:0 0 10px var(--stream); }
+  .contract-head h3{ font-size:1rem; font-weight:700; color:#fff; }
+  .contract-head span.kind{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin-left:auto; }
+  .contract-body{ padding:1.2rem 1.3rem 1.4rem; }
+  .contract-body p{ font-size:0.87rem; line-height:1.75; color:var(--dim); margin-bottom:1rem; }
+  .contract-body p:last-child{ margin-bottom:0; }
+  .contract-body strong{ color:var(--ink); }
+
+  pre.code{
+    font-family:'Fira Code', monospace;
+    font-size:0.78rem;
+    line-height:1.65;
+    background:#0d1117;
+    border-radius:10px;
+    padding:1rem 1.1rem;
+    overflow-x:auto;
+    margin:0.9rem 0;
+    color:#c9d1d9;
+  }
+  .contract-block.rest pre.code{ border-left:3px solid var(--rest); }
+  .contract-block.event pre.code{ border-left:3px solid var(--event); }
+  .contract-block.stream pre.code{ border-left:3px solid var(--stream); }
+  pre.code .kw{ color:#ff7b9c; }
+  pre.code .type{ color:#7ee787; }
+  pre.code .str{ color:#a5d6ff; }
+  pre.code .cmt{ color:#6b7785; font-style:italic; }
+  pre.code .fn{ color:#d2a8ff; }
+
+  .code-label{
+    font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim);
+    margin:0.9rem 0 -0.3rem;
+  }
+
+  /* ---------- PRACTICE / TAKEAWAY ---------- */
+  .field-note{
+    margin-top:3rem; padding:1.6rem 1.7rem; background:var(--panel); border:1px solid var(--panel-line);
+    border-left:3px solid var(--stream); border-radius:8px;
+  }
+  .field-note .label{ font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--stream); margin-bottom:0.7rem; }
+  .field-note p{ font-size:0.9rem; line-height:1.8; color:var(--ink); }
+
+  .next-up{
+    margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--panel-line);
+    font-size:0.82rem; line-height:1.7; color:var(--dim);
+  }
+  .next-up .label{ display:block; font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--event); margin-bottom:0.5rem; }
+
+  footer{
+    max-width:900px; margin:0 auto; padding:3rem 6vw 5rem;
+    font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);
+  }
+
+  @media (max-width:680px){
+    .signal-row{ flex-wrap:wrap; }
+    .signal-consumer{ width:100%; text-align:left; margin-top:0.3rem; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/"><span aria-hidden="true">&larr;</span> All posts</a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="signal-tag">
+        <span class="t1">REST</span><span class="t2">Events</span><span class="t3">Streams</span>
+      </div>
+      <h1>REST, Events &amp; Streams: Three Contracts for One Weather Service</h1>
+      <p class="lede">Same coordinate, same domain logic, three completely different promises to three different consumers. A worked TypeScript/Node example — and the discipline that keeps three contracts from quietly becoming one leaky one.</p>
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · August 2026</p>
+    </header>
+
+    <section class="prose">
+      <p>A browser calls <code>navigator.geolocation</code>, gets a latitude and longitude, and sends it to a Weather Service. Simple enough — until three other services need that reading, and each one needs it on different terms. A dashboard wants an answer <em>right now</em>, synchronously, in the middle of a page render. A notification service doesn't want to ask at all — it wants to be told, whenever a reading crosses a threshold worth acting on. A live map wants a steady drip of readings as the user moves, for as long as the connection stays open.</p>
+      <p>That's not one integration problem. It's three, and they call for three different contract shapes: a <strong>REST</strong> request/response, a published <strong>event</strong>, and a <strong>stream</strong> of frames. The trap is building all three off the same DTO because it's sitting right there. The fix is one domain function underneath, and three contracts on top that are allowed to evolve completely independently of each other.</p>
+    </section>
+
+    <h2 class="section-title">Same signal, three shapes</h2>
+    <p class="section-sub">Sketched as waveforms, the difference is visual as much as architectural: REST is a single deliberate pulse and a wait. An event is a sparse, unpredictable spike — most of the time, nothing. A stream is continuous, whether or not anyone's currently looking at it.</p>
+
+    <div class="signal-diagram">
+      <div class="signal-row rest">
+        <div class="signal-label">REST</div>
+        <div class="signal-line">
+          <svg viewBox="0 0 400 28" preserveAspectRatio="none"><polyline points="0,14 170,14 170,4 190,4 190,24 210,24 210,14 400,14" fill="none" stroke="#f0a154" stroke-width="2"/></svg>
+        </div>
+        <div class="signal-consumer">Dashboard<small>request &rarr; wait &rarr; response</small></div>
+      </div>
+      <div class="signal-row event">
+        <div class="signal-label">Event</div>
+        <div class="signal-line">
+          <svg viewBox="0 0 400 28" preserveAspectRatio="none"><polyline points="0,14 90,14 90,2 95,2 95,26 100,26 100,14 240,14 240,6 246,6 246,22 252,22 252,14 400,14" fill="none" stroke="#e0629b" stroke-width="2"/></svg>
+        </div>
+        <div class="signal-consumer">Notification service<small>silent, then a spike worth acting on</small></div>
+      </div>
+      <div class="signal-row stream">
+        <div class="signal-label">Stream</div>
+        <div class="signal-line">
+          <svg viewBox="0 0 400 28" preserveAspectRatio="none"><path d="M0,14 Q20,2 40,14 T80,14 T120,14 T160,14 T200,14 T240,14 T280,14 T320,14 T360,14 T400,14" fill="none" stroke="#3fc6d6" stroke-width="2"/></svg>
+        </div>
+        <div class="signal-consumer">Live map<small>continuous frames while connected</small></div>
+      </div>
+    </div>
+
+    <h2 class="section-title">One domain core, underneath all three</h2>
+    <p class="section-sub">Every adapter calls the same function. None of them import each other's types. This is the part that has to hold, or "three contracts" quietly becomes "one DTO with three names."</p>
+
+    <div class="code-label">domain/weather.service.ts &mdash; the only place that knows how weather actually gets fetched</div>
+    <pre class="code">export interface WeatherSnapshot {
+  temperatureC: number;
+  condition: <span class="str">"clear"</span> | <span class="str">"cloudy"</span> | <span class="str">"rain"</span> | <span class="str">"storm"</span>;
+}
+
+<span class="kw">export async function</span> <span class="fn">getWeatherForCoordinates</span>(
+  lat: <span class="type">number</span>,
+  lon: <span class="type">number</span>
+): <span class="type">Promise</span>&lt;WeatherSnapshot&gt; {
+  <span class="kw">const</span> res = <span class="kw">await</span> fetch(
+    <span class="str">`https://api.weatherprovider.com/v1/point?lat=${lat}&amp;lon=${lon}`</span>
+  );
+  <span class="kw">const</span> data = <span class="kw">await</span> res.json();
+  <span class="kw">return</span> { temperatureC: data.temp_c, condition: data.condition };
+}</pre>
+
+    <div class="contract-block rest">
+      <div class="contract-head">
+        <span class="contract-dot"></span>
+        <h3>REST &mdash; ask once, get an answer</h3>
+        <span class="kind">Request / Response</span>
+      </div>
+      <div class="contract-body">
+        <p>For the dashboard that just rendered and needs a number to show <strong>now</strong>. The contract is a query shape in, a response shape out — validated at the edge with <code>zod</code> so a malformed <code>lat</code>/<code>lon</code> never reaches the domain function at all.</p>
+
+        <div class="code-label">contracts/rest.contract.ts</div>
+        <pre class="code"><span class="kw">export interface</span> WeatherResponse {
+  location: { lat: <span class="type">number</span>; lon: <span class="type">number</span> };
+  temperatureC: <span class="type">number</span>;
+  condition: <span class="type">string</span>;
+  observedAt: <span class="type">string</span>; <span class="cmt">// ISO timestamp</span>
+}</pre>
+
+        <div class="code-label">rest/weather.controller.ts</div>
+        <pre class="code"><span class="kw">import</span> { Router } <span class="kw">from</span> <span class="str">"express"</span>;
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">"zod"</span>;
+<span class="kw">import</span> { getWeatherForCoordinates } <span class="kw">from</span> <span class="str">"../domain/weather.service"</span>;
+
+<span class="kw">const</span> querySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lon: z.coerce.number().min(-180).max(180),
+});
+
+<span class="kw">export const</span> weatherRouter = Router();
+
+weatherRouter.get(<span class="str">"/weather"</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> parsed = querySchema.safeParse(req.query);
+  <span class="kw">if</span> (!parsed.success) {
+    <span class="kw">return</span> res.status(400).json({ error: <span class="str">"invalid coordinates"</span> });
+  }
+  <span class="kw">const</span> snapshot = <span class="kw">await</span> <span class="fn">getWeatherForCoordinates</span>(parsed.data.lat, parsed.data.lon);
+  res.json({
+    location: { lat: parsed.data.lat, lon: parsed.data.lon },
+    temperatureC: snapshot.temperatureC,
+    condition: snapshot.condition,
+    observedAt: <span class="kw">new</span> Date().toISOString(),
+  } <span class="kw">satisfies</span> WeatherResponse);
+});</pre>
+      </div>
+    </div>
+
+    <div class="contract-block event">
+      <div class="contract-head">
+        <span class="contract-dot"></span>
+        <h3>Events &mdash; tell whoever's listening</h3>
+        <span class="kind">Publish / Subscribe</span>
+      </div>
+      <div class="contract-body">
+        <p>The notification service never asks for weather. It subscribes to a fact: <strong>a reading was observed</strong>. The version tag in the event's <code>type</code> field is the whole compatibility strategy — a <code>v2</code> payload ships as a new event type, not a breaking change to <code>v1</code> subscribers who never opted in.</p>
+
+        <div class="code-label">contracts/event.contract.ts</div>
+        <pre class="code"><span class="kw">export interface</span> WeatherObservedEvent {
+  type: <span class="str">"weather.observed.v1"</span>;
+  payload: {
+    userId: <span class="type">string</span>;
+    location: { lat: <span class="type">number</span>; lon: <span class="type">number</span> };
+    temperatureC: <span class="type">number</span>;
+    condition: <span class="type">string</span>;
+  };
+  observedAt: <span class="type">string</span>;
+}</pre>
+
+        <div class="code-label">events/weather.publisher.ts</div>
+        <pre class="code"><span class="kw">import</span> { eventBus } <span class="kw">from</span> <span class="str">"../infra/event-bus"</span>;
+<span class="kw">import</span> { getWeatherForCoordinates } <span class="kw">from</span> <span class="str">"../domain/weather.service"</span>;
+<span class="kw">import type</span> { WeatherObservedEvent } <span class="kw">from</span> <span class="str">"../contracts/event.contract"</span>;
+
+<span class="kw">export async function</span> <span class="fn">publishWeatherObserved</span>(userId: <span class="type">string</span>, lat: <span class="type">number</span>, lon: <span class="type">number</span>) {
+  <span class="kw">const</span> snapshot = <span class="kw">await</span> <span class="fn">getWeatherForCoordinates</span>(lat, lon);
+  <span class="kw">const</span> event: WeatherObservedEvent = {
+    type: <span class="str">"weather.observed.v1"</span>,
+    payload: { userId, location: { lat, lon }, temperatureC: snapshot.temperatureC, condition: snapshot.condition },
+    observedAt: <span class="kw">new</span> Date().toISOString(),
+  };
+  <span class="kw">await</span> eventBus.publish(event);
+}</pre>
+
+        <div class="code-label">notifications/weather.subscriber.ts</div>
+        <pre class="code">eventBus.subscribe(<span class="str">"weather.observed.v1"</span>, <span class="kw">async</span> (event: WeatherObservedEvent) => {
+  <span class="kw">if</span> (event.payload.condition === <span class="str">"storm"</span>) {
+    <span class="kw">await</span> <span class="fn">notifyUser</span>(event.payload.userId, <span class="str">"Storm warning near your location"</span>);
+  }
+});</pre>
+      </div>
+    </div>
+
+    <div class="contract-block stream">
+      <div class="contract-head">
+        <span class="contract-dot"></span>
+        <h3>Stream &mdash; keep frames coming while I'm connected</h3>
+        <span class="kind">Continuous / WebSocket</span>
+      </div>
+      <div class="contract-body">
+        <p>The live map isn't asking a question or waiting for a fact — it wants a heartbeat of frames for as long as the socket stays open, as the browser's coordinates change underneath it. The <code>seq</code> field matters more here than it looks: it's what lets the client detect a dropped frame instead of silently rendering a stale position.</p>
+
+        <div class="code-label">contracts/stream.contract.ts</div>
+        <pre class="code"><span class="kw">export interface</span> WeatherStreamFrame {
+  seq: <span class="type">number</span>;
+  location: { lat: <span class="type">number</span>; lon: <span class="type">number</span> };
+  temperatureC: <span class="type">number</span>;
+  condition: <span class="type">string</span>;
+  emittedAt: <span class="type">string</span>;
+}</pre>
+
+        <div class="code-label">stream/weather.stream.ts</div>
+        <pre class="code"><span class="kw">import</span> { WebSocketServer } <span class="kw">from</span> <span class="str">"ws"</span>;
+<span class="kw">import</span> { getWeatherForCoordinates } <span class="kw">from</span> <span class="str">"../domain/weather.service"</span>;
+<span class="kw">import type</span> { WeatherStreamFrame } <span class="kw">from</span> <span class="str">"../contracts/stream.contract"</span>;
+
+<span class="kw">export function</span> <span class="fn">attachWeatherStream</span>(wss: WebSocketServer) {
+  wss.on(<span class="str">"connection"</span>, (socket) => {
+    <span class="kw">let</span> seq = 0;
+    socket.on(<span class="str">"message"</span>, <span class="kw">async</span> (raw) => {
+      <span class="kw">const</span> { lat, lon } = JSON.parse(raw.toString());
+      <span class="kw">const</span> snapshot = <span class="kw">await</span> <span class="fn">getWeatherForCoordinates</span>(lat, lon);
+      <span class="kw">const</span> frame: WeatherStreamFrame = {
+        seq: seq++,
+        location: { lat, lon },
+        temperatureC: snapshot.temperatureC,
+        condition: snapshot.condition,
+        emittedAt: <span class="kw">new</span> Date().toISOString(),
+      };
+      socket.send(JSON.stringify(frame));
+    });
+  });
+}</pre>
+
+        <div class="code-label">browser &mdash; feeding coordinates in as the user moves</div>
+        <pre class="code">navigator.geolocation.watchPosition((pos) => {
+  socket.send(JSON.stringify({
+    lat: pos.coords.latitude,
+    lon: pos.coords.longitude,
+  }));
+});</pre>
+      </div>
+    </div>
+
+    <h2 class="section-title">Keeping three contracts honest</h2>
+    <p class="section-sub">The pattern only pays off if the three stay genuinely independent. A few rules that keep it that way:</p>
+
+    <section class="prose">
+      <p><strong>No contract imports another contract's types.</strong> <code>WeatherResponse</code>, <code>WeatherObservedEvent</code>, and <code>WeatherStreamFrame</code> happen to share fields today because they share a source. That's a coincidence, not a dependency — each is free to add, rename, or drop a field without a cross-team conversation about the other two.</p>
+      <p><strong>Version what changes independently.</strong> REST gets versioned in the URL or a header. Events get versioned in the type string, right where <code>weather.observed.v1</code> lives — so a new shape ships as a new subscribable fact, and existing subscribers are simply never routed to it. Streams get versioned in the frame itself, since a socket is a long-lived connection that can't renegotiate its contract mid-flight.</p>
+      <p><strong>Only one thing is allowed to know how weather actually gets fetched.</strong> All three adapters call the same <code>getWeatherForCoordinates</code>. If the upstream provider changes tomorrow, that's a one-file change — not a REST fix, an event fix, and a stream fix, done three times with three chances to drift out of sync.</p>
+    </section>
+
+    <div class="field-note">
+      <div class="label">The pattern underneath</div>
+      <p>REST, events, and streams aren't three implementations of the same interface — they're three different promises about time. REST promises an answer now. An event promises you'll be told when something's true. A stream promises a heartbeat for as long as you're listening. Picking the wrong one doesn't just cost performance — it makes a consumer wait for something that was never going to arrive on that timeline.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Schema registries and contract testing &mdash; catching a breaking change to any of these three before it ships, instead of after a subscriber falls silent in production.
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 e-diversify
+  </footer>
+
+</body>
+</html>
