@@ -20,6 +20,13 @@
   </url>
 
   <url>
+    <loc>https://e-diversify.com/blog/postgresql-hit-its-limit.html</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
     <loc>https://e-diversify.com/blog/rest-events-streams-contracts.html</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>monthly</changefreq>

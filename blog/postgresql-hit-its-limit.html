@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>PostgreSQL Didn't Fail. It Hit Its Limit. | Vimal Maheedharan</title>
+<meta name="description" content="Connection exhaustion, autovacuum falling behind, WAL filling the disk, replicas lagging under write load — four PostgreSQL limits worked through as an incident log. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="PostgreSQL, Postgres, Database Reliability, SRE, Site Reliability Engineering, Connection Pooling, Autovacuum, Bloat, WAL, Replication Lag, Incident Response, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/postgresql-hit-its-limit.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="PostgreSQL Didn't Fail. It Hit Its Limit. | Vimal Maheedharan">
+<meta property="og:description" content="Four PostgreSQL limits worked through as an incident log — connection exhaustion, autovacuum falling behind, WAL filling the disk, and replicas lagging under write load.">
+<meta property="og:url" content="https://e-diversify.com/blog/postgresql-hit-its-limit.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PostgreSQL Didn't Fail. It Hit Its Limit. — an incident-log walkthrough of four Postgres limits">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PostgreSQL Didn't Fail. It Hit Its Limit.">
+<meta name="twitter:description" content="Four PostgreSQL limits worked through as SRE reasoning patterns.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#05070a;
+    --panel:#0b0f14;
+    --panel-line:#1a2129;
+    --green:#39ff9a;
+    --green-dim:#1f7a4d;
+    --amber:#ffb454;
+    --red:#ff5c5c;
+    --ink:#dce6e2;
+    --ink-dim:#6c7c78;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    min-height:100vh;
+    position:relative;
+  }
+  /* scanline texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(57,255,154,0.025) 0px,
+      rgba(57,255,154,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events:none;
+    z-index:1;
+  }
+  .display{font-family:'Space Grotesk', sans-serif;}
+
+  a{color:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0.9rem 6vw;
+    background:rgba(5,7,10,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--panel-line);
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .top-nav a{ text-decoration:none; display:flex; align-items:center; gap:0.5rem; color:var(--ink-dim); transition:color 0.2s ease;}
+  .top-nav a:hover{ color:var(--green); }
+  .top-nav .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.02em;
+    color:var(--green);
+    text-transform:none;
+  }
+  .top-nav .brand::before{
+    content:"● ";
+    color:var(--green);
+  }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:0 6vw; position:relative; z-index:2;}
+
+  /* ---------- HERO / STATUS BANNER ---------- */
+  header.hero{
+    padding-top:110px;
+    padding-bottom:2.5rem;
+  }
+  .status-line{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--green);
+    margin-bottom:1.6rem;
+  }
+  .status-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:0.35;}
+  }
+  header.hero h1{
+    font-size:clamp(1.9rem, 4.4vw, 3rem);
+    font-weight:700;
+    line-height:1.15;
+    color:#f4fbf8;
+    margin-bottom:1rem;
+  }
+  header.hero h1 span{ color:var(--green); }
+  header.hero .lede{
+    font-size:0.94rem;
+    line-height:1.75;
+    color:var(--ink-dim);
+    max-width:64ch;
+  }
+  .byline{
+    margin-top:1.6rem;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-top:1px solid var(--panel-line);
+    padding-top:1rem;
+  }
+  .byline strong{ color:var(--ink); }
+
+  /* ---------- INTRO PROSE ---------- */
+  .prose{
+    font-size:0.98rem;
+    line-height:1.85;
+    color:var(--ink);
+    padding:1.5rem 0 0.5rem;
+  }
+  .prose p{ margin-bottom:1.3rem; }
+  .prose p:last-child{ margin-bottom:0; }
+
+  /* ---------- INCIDENT LOG ---------- */
+  .log-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:3.2rem 0 1.4rem;
+    padding-bottom:0.8rem;
+    border-bottom:1px dashed var(--panel-line);
+  }
+  .log-header .tag{
+    font-size:0.7rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .log-header .count{
+    font-size:0.7rem;
+    color:var(--green-dim);
+  }
+
+  .incident{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-left:3px solid var(--sev-color, var(--green));
+    border-radius:6px;
+    padding:1.6rem 1.7rem;
+    margin-bottom:1.6rem;
+    position:relative;
+  }
+  .incident-meta{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:0.7rem;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:0.9rem;
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    padding:0.22rem 0.55rem;
+    border-radius:3px;
+    font-weight:700;
+    letter-spacing:0.06em;
+  }
+  .badge.sev1{ background:rgba(255,92,92,0.14); color:var(--red); border:1px solid rgba(255,92,92,0.35);}
+  .badge.sev2{ background:rgba(255,180,84,0.14); color:var(--amber); border:1px solid rgba(255,180,84,0.35);}
+  .badge.sev3{ background:rgba(57,255,154,0.12); color:var(--green); border:1px solid rgba(57,255,154,0.35);}
+  .incident-meta .id{ color:var(--ink-dim); }
+  .incident-meta .service{ color:var(--ink-dim); }
+
+  .incident h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:1.18rem;
+    font-weight:600;
+    color:#f4fbf8;
+    margin-bottom:0.9rem;
+    line-height:1.4;
+  }
+  .incident .symptom{
+    font-size:0.86rem;
+    color:var(--ink-dim);
+    line-height:1.7;
+    margin-bottom:1.2rem;
+    padding-bottom:1.1rem;
+    border-bottom:1px dashed var(--panel-line);
+  }
+  .incident .symptom em{ color:var(--ink); font-style:normal; }
+
+  .steps{
+    list-style:none;
+  }
+  .steps li{
+    position:relative;
+    padding-left:1.6rem;
+    margin-bottom:0.85rem;
+    font-size:0.88rem;
+    line-height:1.7;
+    color:var(--ink);
+  }
+  .steps li:last-child{ margin-bottom:0; }
+  .steps li::before{
+    content:"›";
+    position:absolute;
+    left:0;
+    color:var(--green);
+    font-weight:700;
+  }
+  .steps li strong{ color:#f4fbf8; }
+
+  .resolution{
+    margin-top:1.2rem;
+    padding-top:1.1rem;
+    border-top:1px dashed var(--panel-line);
+    font-size:0.86rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+  }
+  .resolution .label{
+    color:var(--green);
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:0.68rem;
+    margin-right:0.5rem;
+  }
+
+  /* ---------- CLOSING ---------- */
+  .postmortem{
+    margin-top:3rem;
+    padding:1.7rem 1.8rem;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+  }
+  .postmortem .label{
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:0.8rem;
+  }
+  .postmortem p{
+    font-size:0.92rem;
+    line-height:1.8;
+    color:var(--ink);
+  }
+
+  .next-up{
+    margin-top:2.4rem;
+    padding-top:1.6rem;
+    border-top:1px solid var(--panel-line);
+    font-size:0.82rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+    font-style:normal;
+  }
+  .next-up .label{
+    display:block;
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--green-dim);
+    margin-bottom:0.5rem;
+  }
+
+  footer{
+    max-width:880px;
+    margin:0 auto;
+    padding:3rem 6vw 5rem;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    position:relative; z-index:2;
+  }
+
+  @media (max-width:600px){
+    .incident{ padding:1.3rem 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/">
+      <span aria-hidden="true">←</span> All posts
+    </a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="status-line">
+        <span class="status-dot"></span>
+        incident log / reliability notebook
+      </div>
+      <h1 class="display">PostgreSQL Didn't Fail. It Hit <span>Its Limit.</span></h1>
+      <p class="lede">Postgres rarely crashes outright. What it does instead is quietly run into a ceiling — a connection count, a vacuum horizon, a disk that fills with WAL, a replica that can't keep pace — and the failure shows up somewhere else entirely, looking like anything but a database problem.</p>
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · August 2026</p>
+    </header>
+
+    <section class="prose">
+      <p>Four limits, logged the way an incident channel actually reads: symptom, investigation, fix. None of these are exotic. They're the same handful of ceilings that show up again and again in production Postgres, and every one of them is survivable if you know where to look before the pager does.</p>
+    </section>
+
+    <div class="log-header">
+      <span class="tag">Database Reliability &amp; Production Incidents</span>
+      <span class="count">04 entries</span>
+    </div>
+
+    <article class="incident" style="--sev-color:var(--red);">
+      <div class="incident-meta">
+        <span class="badge sev1">SEV-1</span>
+        <span class="id">INC-3104</span>
+        <span class="service">orders-db / pgbouncer</span>
+      </div>
+      <h3>New connections start timing out under normal traffic</h3>
+      <p class="symptom">Nothing about the query load looks unusual. CPU is calm, disk is calm, and yet the application layer is throwing connection timeouts. This is almost never a Postgres problem in the query-tuning sense — it's an arithmetic problem. <em>max_connections</em> was set once, for a service that has since grown five deploys and three new background workers past what that number ever assumed.</p>
+      <ul class="steps">
+        <li><strong>Check active vs. idle connections first.</strong> A pool full of connections sitting in <em>idle in transaction</em> is not capacity being used — it's capacity being held hostage by a client that opened a transaction and forgot to close it.</li>
+        <li><strong>Count connections per service, not just in total.</strong> A single misbehaving worker fleet can quietly consume the majority of the pool while every other service starves for what's left.</li>
+        <li><strong>Look for a missing pooler</strong> before reaching for a bigger <em>max_connections</em>. Each Postgres connection carries real backend memory; raising the ceiling without pooling just moves the wall further away, it doesn't remove it.</li>
+        <li><strong>Check for connection storms on deploy.</strong> A rolling restart that opens hundreds of fresh connections at once can exhaust the pool in the same second every replica comes back healthy.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>PgBouncer in transaction-pooling mode in front of the primary, a statement timeout so a stuck transaction can't hold a slot indefinitely, and an alert on pool saturation — not just on connection errors, which only fire after it's already too late.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--amber);">
+      <div class="incident-meta">
+        <span class="badge sev2">SEV-2</span>
+        <span class="id">INC-3117</span>
+        <span class="service">events-db</span>
+      </div>
+      <h3>Queries that were fast for months get steadily slower</h3>
+      <p class="symptom">No schema change, no traffic spike, no obvious culprit — just a slow, creeping decline in query latency over weeks. The table on disk has grown far larger than the number of live rows in it would explain. This is bloat, and it's usually autovacuum losing a race it was never tuned to win.</p>
+      <ul class="steps">
+        <li><strong>Compare table size to estimated live rows.</strong> A table that's 4x larger on disk than its row count and average row width would suggest is carrying dead tuples that were never reclaimed.</li>
+        <li><strong>Check autovacuum's actual run history</strong>, not just whether it's enabled. A high-churn table with default vacuum thresholds can fall permanently behind the rate at which it's generating dead tuples.</li>
+        <li><strong>Look for long-running transactions holding back the vacuum horizon.</strong> A single forgotten transaction open for hours can prevent autovacuum from reclaiming anything on tables it isn't even touching.</li>
+        <li><strong>Check index bloat separately from table bloat.</strong> Indexes can bloat even when the underlying table is well-vacuumed, and a bloated index quietly degrades every query that relies on it.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Per-table autovacuum tuning for the highest-churn tables, an alert on transaction age so nothing can pin the vacuum horizon unnoticed, and a scheduled <em>pg_repack</em> pass on the worst offenders instead of waiting for a full table rewrite to become unavoidable.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--red);">
+      <div class="incident-meta">
+        <span class="badge sev1">SEV-1</span>
+        <span class="id">INC-3129</span>
+        <span class="service">primary-db / disk</span>
+      </div>
+      <h3>Disk usage climbs steadily until the primary refuses writes</h3>
+      <p class="symptom">Disk utilization on the primary rises for hours with no corresponding growth in table data. Eventually writes fail outright because there's no room left to accept them. The tables aren't the problem — the write-ahead log is, and it's building up because something downstream stopped consuming it.</p>
+      <ul class="steps">
+        <li><strong>Check replication slots first.</strong> A logical or physical replication slot tied to a consumer that's disconnected — a downed replica, a stalled CDC pipeline — will hold WAL on disk indefinitely, because Postgres assumes that consumer is coming back for it.</li>
+        <li><strong>Check archive_command health.</strong> If WAL archiving to object storage is failing silently, segments accumulate locally with no external signal until disk pressure makes it impossible to ignore.</li>
+        <li><strong>Distinguish WAL growth from table growth</strong> early — they call for completely different responses, and treating a WAL problem as a table-bloat problem wastes the exact time you don't have.</li>
+        <li><strong>Have a drop-the-slot runbook ready</strong> for the case where the disconnected consumer truly isn't coming back, understanding that this discards data that consumer will never receive.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Alerting on replication slot lag measured in bytes, not just replica health checks, plus a hard cap via <em>max_slot_wal_keep_size</em> so an abandoned slot can degrade a downstream consumer instead of taking down the primary.</p>
+    </article>
+
+    <article class="incident" style="--sev-color:var(--amber);">
+      <div class="incident-meta">
+        <span class="badge sev2">SEV-2</span>
+        <span class="id">INC-3142</span>
+        <span class="service">read-replicas</span>
+      </div>
+      <h3>Replicas fall minutes behind during a write-heavy batch job</h3>
+      <p class="symptom">A nightly batch job hammers the primary with writes, and read replicas that are normally near real-time start serving data that's several minutes stale. Nothing has crashed — which is exactly why it takes longer than it should to notice.</p>
+      <ul class="steps">
+        <li><strong>Confirm it's apply lag, not network lag.</strong> WAL can arrive at the replica quickly and still sit unapplied if the replica's own I/O or a long-running query on it is holding up recovery.</li>
+        <li><strong>Check for a query on the replica blocking WAL apply.</strong> A long analytical query holding a lock that conflicts with an incoming WAL record will pause replay until that query finishes or is cancelled.</li>
+        <li><strong>Look at replica hardware, not just the primary's.</strong> Replicas are often provisioned smaller than the primary on the assumption that they only serve reads — a write-heavy period asks them to keep up with primary-level I/O regardless.</li>
+        <li><strong>Check whether anything downstream trusts replica freshness implicitly.</strong> A read-after-write flow routed to a lagging replica doesn't error — it just quietly returns the wrong answer.</li>
+      </ul>
+      <p class="resolution"><span class="label">Fix</span>Replica-lag-aware routing that falls back to the primary past a defined threshold, batch jobs scheduled against replica lag rather than a fixed clock time, and matching the replica's I/O provisioning to what write-heavy windows actually demand.</p>
+    </article>
+
+    <div class="postmortem">
+      <div class="label">Pattern across all four</div>
+      <p>Postgres almost never fails loudly at the moment the underlying limit is reached. Connections don't run out — they quietly queue. Vacuum doesn't stop — it just falls further behind. WAL doesn't overflow — it accumulates for hours before disk pressure becomes undeniable. Replication doesn't break — it lags until something downstream trusts data that isn't there yet. The job isn't memorizing these four ceilings specifically. It's building the instinct to ask, for any resource a database quietly consumes, what happens when nobody is watching the rate at which it's being consumed.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Schema migrations at scale — running them without locking the table your traffic depends on.
+    </div>
+  </div>
+
+  <footer>
+    © 2026 e-diversify
+  </footer>
+
+</body>
+</html>
