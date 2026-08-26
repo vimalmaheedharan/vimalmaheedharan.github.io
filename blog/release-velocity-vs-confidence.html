@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>Release Velocity vs. Release Confidence: The Trade You Can Actually Measure | Vimal Maheedharan</title>
+<meta name="description" content="Deploy frequency, lead time, change failure rate, and MTTR aren't a vibe — they're a two-axis instrument panel. A worked canary/rollback scenario shows exactly where an AI risk-gatekeeper moves the needle, and where it just borrows confidence it hasn't earned.">
+<meta name="keywords" content="Release Management, Release Velocity, Release Confidence, DORA Metrics, Canary Deployment, Rollback Automation, AI in DevOps, Progressive Delivery, Change Failure Rate, MTTR, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, DevOps Consultant, Site Reliability Engineering">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/release-velocity-vs-confidence.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Release Velocity vs. Release Confidence: The Trade You Can Actually Measure">
+<meta property="og:description" content="Deploy frequency, lead time, change failure rate, and MTTR aren't a vibe — they're a two-axis instrument panel. Where an AI risk-gatekeeper actually moves the needle, and where it just borrows confidence.">
+<meta property="og:url" content="https://e-diversify.com/blog/release-velocity-vs-confidence.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Release Velocity vs. Release Confidence — a command-deck view of the trade-off">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Release Velocity vs. Release Confidence: The Trade You Can Actually Measure">
+<meta name="twitter:description" content="Four gauges, one panel, and a worked canary/rollback scenario — where AI as release-risk gatekeeper actually earns its keep.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05070a;
+    --panel:#0c131c;
+    --panel-raised:#101a26;
+    --panel-line:#1e2c3a;
+    --ink:#e9f1f7;
+    --dim:#7c8fa1;
+    --velocity:#38bdf8;
+    --confidence:#34d399;
+    --risk:#fb7185;
+    --amber:#fbbf24;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(56,189,248,0.07), transparent 55%),
+      radial-gradient(ellipse at 85% 0%, rgba(52,211,153,0.06), transparent 50%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'DM Mono', monospace;
+    min-height:100vh;
+  }
+  .display{ font-family:'Bricolage Grotesque', sans-serif; }
+  a{ color:inherit; }
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.9rem 6vw;
+    background:rgba(5,7,10,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--panel-line);
+    font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+  }
+  .top-nav a{ text-decoration:none; color:var(--dim); display:flex; align-items:center; gap:0.5rem; transition:color 0.2s ease; }
+  .top-nav a:hover{ color:var(--velocity); }
+  .top-nav .brand{ font-family:'Bricolage Grotesque', sans-serif; font-weight:800; font-size:1.05rem; color:var(--ink); text-transform:none; letter-spacing:0.02em; }
+
+  .wrap{ max-width:900px; margin:0 auto; padding:0 6vw; position:relative; z-index:2; }
+
+  header.hero{ padding-top:112px; padding-bottom:2.2rem; }
+  .status-strip{
+    display:inline-flex; gap:0; font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+    margin-bottom:1.6rem; border-radius:999px; overflow:hidden; border:1px solid var(--panel-line);
+  }
+  .status-strip span{ padding:0.4rem 0.85rem; display:flex; align-items:center; gap:0.4rem; }
+  .status-strip span::before{ content:""; width:6px; height:6px; border-radius:50%; display:inline-block; }
+  .status-strip .s-velocity{ background:rgba(56,189,248,0.12); color:var(--velocity); }
+  .status-strip .s-velocity::before{ background:var(--velocity); box-shadow:0 0 6px var(--velocity); }
+  .status-strip .s-confidence{ background:rgba(52,211,153,0.12); color:var(--confidence); }
+  .status-strip .s-confidence::before{ background:var(--confidence); box-shadow:0 0 6px var(--confidence); }
+  .status-strip .s-risk{ background:rgba(251,113,133,0.12); color:var(--risk); }
+  .status-strip .s-risk::before{ background:var(--risk); box-shadow:0 0 6px var(--risk); }
+
+  header.hero h1{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-size:clamp(1.9rem, 4.4vw, 3rem);
+    font-weight:800; line-height:1.14; color:#fff; margin-bottom:1.1rem;
+  }
+  header.hero .lede{ font-size:0.95rem; line-height:1.8; color:var(--dim); max-width:64ch; }
+  .byline{
+    margin-top:1.6rem; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; color:var(--dim);
+    border-top:1px solid var(--panel-line); padding-top:1rem;
+  }
+  .byline strong{ color:var(--ink); }
+
+  .prose{ font-size:0.97rem; line-height:1.85; padding:0.5rem 0; font-family:'DM Mono', monospace; }
+  .prose p{ margin-bottom:1.2rem; color:var(--ink); }
+  .prose p:last-child{ margin-bottom:0; }
+  .prose strong{ color:#fff; }
+  .prose code{ font-size:0.86em; background:rgba(255,255,255,0.06); padding:0.1em 0.4em; border-radius:4px; color:#fff; }
+
+  h2.section-title{
+    font-family:'Bricolage Grotesque', sans-serif;
+    font-size:clamp(1.3rem, 2.4vw, 1.6rem); font-weight:700; color:#fff; margin:3.2rem 0 0.6rem;
+  }
+  .section-sub{ font-size:0.85rem; color:var(--dim); line-height:1.75; max-width:66ch; margin-bottom:1.6rem; }
+
+  /* ---------- GAUGE PANEL ---------- */
+  .panel-frame{
+    margin:1.8rem 0; padding:1.6rem; border:1px solid var(--panel-line); border-radius:14px; background:var(--panel);
+  }
+  .panel-frame .panel-caption{
+    font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--dim); margin-bottom:1.3rem;
+    display:flex; align-items:center; gap:0.6rem;
+  }
+  .panel-frame .panel-caption::before{ content:""; width:5px; height:5px; border-radius:50%; background:var(--dim); }
+
+  .gauge-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:1.2rem; }
+  .gauge-card{
+    background:var(--panel-raised); border:1px solid var(--panel-line); border-radius:12px;
+    padding:1rem 0.8rem 1.2rem; text-align:center;
+  }
+  .gauge-card svg{ width:100%; height:auto; display:block; margin-bottom:0.4rem; }
+  .gauge-card .gauge-value{ font-family:'Bricolage Grotesque', sans-serif; font-size:1.5rem; font-weight:800; color:#fff; }
+  .gauge-card .gauge-value span{ font-size:0.62rem; font-family:'DM Mono', monospace; font-weight:400; color:var(--dim); margin-left:0.15rem; }
+  .gauge-card .gauge-label{ font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-top:0.35rem; }
+  .gauge-card.velocity .gauge-value{ color:var(--velocity); }
+  .gauge-card.confidence .gauge-value{ color:var(--confidence); }
+  .axis-key{ display:flex; gap:1.6rem; margin-top:1.4rem; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); }
+  .axis-key span{ display:flex; align-items:center; gap:0.4rem; }
+  .axis-key span::before{ content:""; width:8px; height:8px; border-radius:2px; }
+  .axis-key .k-velocity::before{ background:var(--velocity); }
+  .axis-key .k-confidence::before{ background:var(--confidence); }
+
+  @media (max-width:680px){ .gauge-grid{ grid-template-columns:repeat(2, 1fr); } }
+
+  /* ---------- MISSION LOG (flight recorder) ---------- */
+  .mission-log{
+    margin:1.8rem 0; border:1px solid var(--panel-line); border-radius:14px; background:#080c11; overflow:hidden;
+  }
+  .mission-log .log-head{
+    display:flex; align-items:center; gap:0.6rem; padding:0.9rem 1.2rem; border-bottom:1px solid var(--panel-line);
+    font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim); background:var(--panel);
+  }
+  .mission-log .log-head .rec-dot{ width:8px; height:8px; border-radius:50%; background:var(--risk); box-shadow:0 0 8px var(--risk); animation:pulse 1.6s infinite ease-in-out; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  .log-row{
+    display:flex; gap:0.9rem; padding:0.65rem 1.2rem; font-size:0.78rem; line-height:1.6;
+    border-bottom:1px dashed var(--panel-line);
+  }
+  .log-row:last-child{ border-bottom:none; }
+  .log-row .t{ color:var(--dim); flex-shrink:0; width:64px; }
+  .log-row .tag{ flex-shrink:0; width:88px; font-weight:500; }
+  .log-row .msg{ color:var(--ink); }
+  .log-row.tag-canary .tag{ color:var(--velocity); }
+  .log-row.tag-signal .tag{ color:var(--amber); }
+  .log-row.tag-decision .tag{ color:var(--risk); }
+  .log-row.tag-decision .msg{ color:#fff; font-weight:500; }
+  .log-row.tag-rollback .tag{ color:var(--risk); }
+
+  /* ---------- VERDICT BLOCKS ---------- */
+  .verdict-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin:1.8rem 0; }
+  .verdict-block{ border:1px solid var(--panel-line); border-radius:14px; overflow:hidden; background:var(--panel); }
+  .verdict-head{ display:flex; align-items:center; gap:0.7rem; padding:0.9rem 1.2rem; border-bottom:1px solid var(--panel-line); }
+  .verdict-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .verdict-block.promote .verdict-dot{ background:var(--confidence); box-shadow:0 0 10px var(--confidence); }
+  .verdict-block.rollback .verdict-dot{ background:var(--risk); box-shadow:0 0 10px var(--risk); }
+  .verdict-head h3{ font-family:'Bricolage Grotesque', sans-serif; font-size:0.95rem; font-weight:700; color:#fff; }
+  .verdict-body{ padding:1rem 1.2rem 1.2rem; }
+  .verdict-body ul{ list-style:none; }
+  .verdict-body li{ font-size:0.82rem; line-height:1.7; color:var(--dim); padding-left:1rem; position:relative; margin-bottom:0.4rem; }
+  .verdict-body li::before{ content:"—"; position:absolute; left:0; color:var(--panel-line); }
+  .verdict-body li strong{ color:var(--ink); }
+  @media (max-width:680px){ .verdict-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- CODE ---------- */
+  pre.code{
+    font-family:'DM Mono', monospace;
+    font-size:0.78rem;
+    line-height:1.65;
+    background:#0d1117;
+    border-radius:10px;
+    padding:1rem 1.1rem;
+    overflow-x:auto;
+    margin:0.9rem 0;
+    color:#c9d1d9;
+    border-left:3px solid var(--velocity);
+  }
+  pre.code .kw{ color:#ff7b9c; }
+  pre.code .type{ color:#7ee787; }
+  pre.code .str{ color:#a5d6ff; }
+  pre.code .cmt{ color:#6b7785; font-style:italic; }
+  pre.code .fn{ color:#d2a8ff; }
+  .code-label{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--dim); margin:0.9rem 0 -0.3rem; }
+
+  /* ---------- FIELD NOTE ---------- */
+  .field-note{
+    margin-top:3rem; padding:1.6rem 1.7rem; background:var(--panel); border:1px solid var(--panel-line);
+    border-left:3px solid var(--confidence); border-radius:8px;
+  }
+  .field-note .label{ font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--confidence); margin-bottom:0.7rem; }
+  .field-note p{ font-size:0.9rem; line-height:1.8; color:var(--ink); }
+
+  .next-up{
+    margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--panel-line);
+    font-size:0.82rem; line-height:1.7; color:var(--dim);
+  }
+  .next-up .label{ display:block; font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--risk); margin-bottom:0.5rem; }
+
+  footer{
+    max-width:900px; margin:0 auto; padding:3rem 6vw 5rem;
+    font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/"><span aria-hidden="true">&larr;</span> All posts</a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="status-strip">
+        <span class="s-velocity">Velocity</span><span class="s-confidence">Confidence</span><span class="s-risk">Risk</span>
+      </div>
+      <h1 class="display">Release Velocity vs. Release Confidence: The Trade You Can Actually Measure</h1>
+      <p class="lede">Every platform team describes this as a tension. Almost none of them plot it. Deploy frequency, lead time, change failure rate, and MTTR turn it into a two-axis instrument panel — and a worked canary/rollback scenario shows exactly where an AI risk-gatekeeper earns its keep, and where it just borrows confidence it hasn't paid for.</p>
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · August 2026</p>
+    </header>
+
+    <section class="prose">
+      <p>"Move fast" and "don't break things" get talked about like a philosophy. They're not — they're four numbers. <strong>Deploy frequency</strong> and <strong>lead time for changes</strong> measure velocity. <strong>Change failure rate</strong> and <strong>MTTR</strong> measure confidence. These are the four DORA metrics, and the reason they matter here is that they turn a vague tradeoff into a panel you can actually read: two gauges climbing on one axis, two gauges climbing on the other, and a real question about whether they're climbing together or trading places.</p>
+      <p>The pitch for AI as a release-risk gatekeeper is that it lets both climb at once — ship faster <em>because</em> a canary judge is watching closer than a human ever could, and roll back faster <em>because</em> the decision doesn't wait for someone to notice a dashboard. That pitch is sometimes true. It's also the exact spot teams talk themselves into a false reading, so it's worth building the panel properly before trusting what it says.</p>
+    </section>
+
+    <h2 class="section-title display">Four gauges, two axes</h2>
+    <p class="section-sub">Sample readings for a mid-size service, mid-migration to AI-assisted canary analysis. Two gauges belong to velocity, two to confidence — and the honest version of this post only exists if both pairs are shown side by side, not just the ones that flatter the migration.</p>
+
+    <div class="panel-frame">
+      <div class="panel-caption">Instrument panel &mdash; rolling 30-day window</div>
+      <div class="gauge-grid">
+        <div class="gauge-card velocity">
+          <svg viewBox="0 0 140 80"><path d="M10,72 A60,60 0 0 1 130,72" fill="none" stroke="#1e2c3a" stroke-width="10" stroke-linecap="round"/><path d="M10,72 A60,60 0 0 1 108,26" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round"/><line x1="70" y1="72" x2="103" y2="30" stroke="#e9f1f7" stroke-width="2.5" stroke-linecap="round"/><circle cx="70" cy="72" r="5" fill="#38bdf8"/></svg>
+          <div class="gauge-value">14<span>/day</span></div>
+          <div class="gauge-label">Deploy Frequency</div>
+        </div>
+        <div class="gauge-card velocity">
+          <svg viewBox="0 0 140 80"><path d="M10,72 A60,60 0 0 1 130,72" fill="none" stroke="#1e2c3a" stroke-width="10" stroke-linecap="round"/><path d="M10,72 A60,60 0 0 1 95,20" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round"/><line x1="70" y1="72" x2="90" y2="22" stroke="#e9f1f7" stroke-width="2.5" stroke-linecap="round"/><circle cx="70" cy="72" r="5" fill="#38bdf8"/></svg>
+          <div class="gauge-value">38<span>min</span></div>
+          <div class="gauge-label">Lead Time for Changes</div>
+        </div>
+        <div class="gauge-card confidence">
+          <svg viewBox="0 0 140 80"><path d="M10,72 A60,60 0 0 1 130,72" fill="none" stroke="#1e2c3a" stroke-width="10" stroke-linecap="round"/><path d="M10,72 A60,60 0 0 1 42,17" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round"/><line x1="70" y1="72" x2="38" y2="26" stroke="#e9f1f7" stroke-width="2.5" stroke-linecap="round"/><circle cx="70" cy="72" r="5" fill="#34d399"/></svg>
+          <div class="gauge-value">6.2<span>%</span></div>
+          <div class="gauge-label">Change Failure Rate</div>
+        </div>
+        <div class="gauge-card confidence">
+          <svg viewBox="0 0 140 80"><path d="M10,72 A60,60 0 0 1 130,72" fill="none" stroke="#1e2c3a" stroke-width="10" stroke-linecap="round"/><path d="M10,72 A60,60 0 0 1 55,15" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round"/><line x1="70" y1="72" x2="50" y2="20" stroke="#e9f1f7" stroke-width="2.5" stroke-linecap="round"/><circle cx="70" cy="72" r="5" fill="#34d399"/></svg>
+          <div class="gauge-value">11<span>min</span></div>
+          <div class="gauge-label">MTTR</div>
+        </div>
+      </div>
+      <div class="axis-key">
+        <span class="k-velocity">Velocity axis</span>
+        <span class="k-confidence">Confidence axis</span>
+      </div>
+    </div>
+
+    <p class="section-sub" style="margin-top:1.4rem;">Lower is better for change failure rate and MTTR — the needles read "good" toward the low end, which is why the dial fills small rather than large for those two. That's a deliberate inversion, and it's exactly the kind of detail that gets lost when a dashboard just shows four numbers with no shared frame.</p>
+
+    <h2 class="section-title display">Reading the panel: a live decision</h2>
+    <p class="section-sub">The pitch earns its keep or loses it in exactly this window. A canary at 5%, a promotion to 25%, and a signal that crosses threshold four minutes later — recorded like a flight log, because that's the level of scrutiny a rollback decision deserves.</p>
+
+    <div class="mission-log">
+      <div class="log-head"><span class="rec-dot"></span> flight-recorder &mdash; deploy v2.14.0 &mdash; checkout-service</div>
+      <div class="log-row tag-canary"><span class="t">14:02:03</span><span class="tag">[CANARY]</span><span class="msg">5% of traffic shifted to v2.14.0 — baseline capture started</span></div>
+      <div class="log-row tag-signal"><span class="t">14:04:11</span><span class="tag">[SIGNAL]</span><span class="msg">error rate &Delta; +0.4% — within threshold</span></div>
+      <div class="log-row tag-signal"><span class="t">14:06:45</span><span class="tag">[SIGNAL]</span><span class="msg">p95 latency &Delta; +18ms — within threshold</span></div>
+      <div class="log-row tag-canary"><span class="t">14:09:20</span><span class="tag">[CANARY]</span><span class="msg">confidence score 0.31 for 3 consecutive windows — promoted to 25%</span></div>
+      <div class="log-row tag-signal"><span class="t">14:11:02</span><span class="tag">[SIGNAL]</span><span class="msg">error rate &Delta; +3.1% — confidence score 0.71 (threshold 0.65)</span></div>
+      <div class="log-row tag-decision"><span class="t">14:11:03</span><span class="tag">[DECISION]</span><span class="msg">rollback triggered — reverting to v2.13.4, no human in the loop</span></div>
+      <div class="log-row tag-rollback"><span class="t">14:11:47</span><span class="tag">[ROLLBACK]</span><span class="msg">traffic fully reverted — 44s from signal to full revert</span></div>
+    </div>
+
+    <p class="section-sub" style="margin-top:1.4rem;">That 44-second number is the entire pitch in one line. A human on-call, paged and context-switching from something else, is not reverting a bad canary in 44 seconds — and every minute that gap stays open is a minute of the 25% cohort taking the hit. The gatekeeper didn't make the release safer by judging better than a person would. It made it safer by <strong>not needing to be paged</strong>.</p>
+
+    <h2 class="section-title display">The formula underneath "AI decides"</h2>
+    <p class="section-sub">Strip the phrase "AI as gatekeeper" down and there's a scoring function, two weighted deltas, and two thresholds. It's worth looking at directly, because the thresholds are where all the actual judgment lives — and they're set by a person, not discovered by a model.</p>
+
+    <div class="code-label">canary/confidence-score.ts</div>
+    <pre class="code"><span class="kw">interface</span> CanarySignals {
+  canaryErrorRate: <span class="type">number</span>;
+  baselineErrorRate: <span class="type">number</span>;
+  canaryP95: <span class="type">number</span>;
+  baselineP95: <span class="type">number</span>;
+  canaryCpu: <span class="type">number</span>;
+  baselineCpu: <span class="type">number</span>;
+}
+
+<span class="kw">function</span> <span class="fn">confidenceScore</span>(signals: CanarySignals): <span class="type">number</span> {
+  <span class="kw">const</span> errorDelta = signals.canaryErrorRate - signals.baselineErrorRate;
+  <span class="kw">const</span> latencyDelta = signals.canaryP95 - signals.baselineP95;
+  <span class="kw">const</span> saturationDelta = signals.canaryCpu - signals.baselineCpu;
+
+  <span class="kw">return</span> (
+    weightedRisk(errorDelta, ERROR_WEIGHT) +
+    weightedRisk(latencyDelta, LATENCY_WEIGHT) +
+    weightedRisk(saturationDelta, SATURATION_WEIGHT)
+  );
+}
+
+<span class="cmt">// promote only after N consecutive windows below PROMOTE_THRESHOLD
+// roll back immediately on a single window above ROLLBACK_THRESHOLD —
+// asymmetric on purpose: promotion earns trust slowly, rollback spends it fast</span></pre>
+
+    <div class="verdict-grid">
+      <div class="verdict-block promote">
+        <div class="verdict-head"><span class="verdict-dot"></span><h3>Promote</h3></div>
+        <div class="verdict-body">
+          <ul>
+            <li>Score stays <strong>below 0.65</strong> for 3+ consecutive windows</li>
+            <li>No single signal spikes in isolation — deltas move together, not one metric alone</li>
+            <li>Saturation delta stays flat as traffic share increases</li>
+          </ul>
+        </div>
+      </div>
+      <div class="verdict-block rollback">
+        <div class="verdict-head"><span class="verdict-dot"></span><h3>Rollback</h3></div>
+        <div class="verdict-body">
+          <ul>
+            <li>Score crosses <strong>0.85</strong> in any single window — no confirmation window required</li>
+            <li>Error rate delta alone exceeds a hard ceiling, regardless of composite score</li>
+            <li>Any 5xx spike concurrent with a deploy inside the last 10 minutes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title display">The trap: buying velocity with borrowed confidence</h2>
+    <section class="prose">
+      <p>The failure mode isn't the gatekeeper making a bad call. It's a team that raises deploy frequency because the gatekeeper exists, without ever tightening the two numbers that actually back that decision up: <strong>rollback latency</strong> and <strong>MTTR</strong>. Velocity climbed because someone trusted the panel. Confidence didn't climb with it — it just went unmeasured for a few sprints, until a canary window's blast radius turned out to be bigger than 25% of traffic for 44 seconds.</p>
+      <p>The tell is in the thresholds, not the dashboard. If <code>ROLLBACK_THRESHOLD</code> hasn't been revisited since the gatekeeper shipped, and deploy frequency has doubled since then, the panel is showing two velocity gauges climbing on the strength of confidence gauges that were calibrated for a slower, smaller blast radius. That's not a hypothetical — it's the default trajectory of any team that treats "we have an AI gatekeeper" as a one-time upgrade instead of a dial that needs re-tuning every time volume changes underneath it.</p>
+    </section>
+
+    <div class="field-note">
+      <div class="label">The instrument reading</div>
+      <p>Release velocity and release confidence aren't opposing forces — they're two axes on the same panel, and an AI risk-gatekeeper is a way of paying for velocity with faster decisions instead of slower ones. But it only works if MTTR and rollback latency are tracked as closely as deploy frequency is celebrated. A team that only watches the velocity gauges climb is reading half the panel, and the other half is exactly where the incident is waiting.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Tuning the thresholds themselves — how <code>PROMOTE_THRESHOLD</code> and <code>ROLLBACK_THRESHOLD</code> should move as traffic volume, blast radius, and team on-call maturity change, instead of staying frozen at whatever felt safe on day one.
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 e-diversify
+  </footer>
+
+</body>
+</html>
