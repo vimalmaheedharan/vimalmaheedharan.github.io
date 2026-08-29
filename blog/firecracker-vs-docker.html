@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>Docker Never Promised You Isolation. Firecracker Does. | Vimal Maheedharan</title>
+<meta name="description" content="Docker and Firecracker both get called 'lightweight virtualization,' but they answer completely different questions. A schematic breakdown of namespaces/cgroups vs. a 5-device microVM, real boot-time and density numbers, and why every AWS Lambda invocation quietly runs a Docker-style container inside a Firecracker microVM. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="Firecracker vs Docker, Firecracker MicroVM, Docker Containers, AWS Lambda, AWS Fargate, KVM, containerd, Kata Containers, Linux Namespaces, cgroups, Serverless Isolation, Multi-Tenant Security, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Site Reliability Engineering, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/firecracker-vs-docker.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker Never Promised You Isolation. Firecracker Does.">
+<meta property="og:description" content="A schematic breakdown of namespaces/cgroups vs. a 5-device microVM, real boot-time and density numbers, and why every AWS Lambda invocation runs a container inside a Firecracker microVM.">
+<meta property="og:url" content="https://e-diversify.com/blog/firecracker-vs-docker.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Docker Never Promised You Isolation. Firecracker Does. — a schematic look at Firecracker vs. Docker">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Docker Never Promised You Isolation. Firecracker Does.">
+<meta name="twitter:description" content="A schematic breakdown of namespaces/cgroups vs. a 5-device microVM, real boot-time and density numbers, and where the two actually meet in production.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0a1826;
+    --panel: #0f2338;
+    --panel-2: #0d2036;
+    --line: rgba(94,234,212,0.22);
+    --line-dim: rgba(94,234,212,0.10);
+    --ink: #dfeaf2;
+    --ink-dim: #8fa9bd;
+    --ink-faint: #5d7d92;
+    --cyan: #5eead4;
+    --cyan-soft: #7fd8e8;
+    --amber: #fb923c;
+    --amber-soft: #ffb570;
+    --red-tag: #f47174;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    padding-top:64px;
+    font-family:'Inter', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(94,234,212,0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(94,234,212,0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -5%, rgba(94,234,212,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 30%, rgba(251,146,60,0.07), transparent 60%);
+  }
+
+  .display{font-family:'Space Grotesk', sans-serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  a{ color: var(--cyan); }
+  a:hover{ color: var(--amber); }
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(10,24,38,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:0.6rem; text-decoration:none; }
+  .brand-mark{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--bg);
+    background:var(--cyan);
+    padding:0.15rem 0.45rem;
+    border-radius:3px;
+    letter-spacing:0.02em;
+  }
+  .brand-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-left:1px solid var(--line);
+    padding-left:0.7rem;
+  }
+  nav.links a{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink-dim);
+    margin-left:1.6rem;
+    transition:color 0.2s ease;
+  }
+  nav.links a.current{ color:var(--cyan); }
+  nav.links a:hover{ color:var(--amber); }
+
+  main{
+    position:relative;
+    z-index:1;
+    max-width:760px;
+    margin:0 auto;
+    padding:5rem 1.5rem 6rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .doc-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:0.5rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    border:1px solid var(--line);
+    padding:0.35rem 0.75rem;
+    border-radius:3px;
+    margin-bottom:1.5rem;
+  }
+  .doc-tag .sq{ width:6px; height:6px; background:var(--amber); }
+
+  h1.title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(2.1rem, 5.4vw, 3.15rem);
+    line-height:1.14;
+    letter-spacing:-0.01em;
+    color:#fff;
+    margin:0 0 1.3rem;
+  }
+  h1.title .accent{ color:var(--cyan); }
+
+  .subtitle{
+    font-size:1.12rem;
+    line-height:1.65;
+    color:var(--ink-dim);
+    max-width:56ch;
+    margin:0 0 2rem;
+  }
+
+  .byline{
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding-top:1.4rem;
+    border-top:1px dashed var(--line);
+  }
+  .byline .dot{ width:4px; height:4px; border-radius:50%; background:var(--amber); }
+
+  /* ---------- SECTION FRAME ---------- */
+  .fig{
+    margin:3.6rem 0 1.4rem;
+    display:flex;
+    align-items:baseline;
+    gap:0.9rem;
+  }
+  .fig .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    letter-spacing:0.1em;
+    color:var(--amber);
+    white-space:nowrap;
+  }
+  .fig .rule{ flex:1; height:1px; background:var(--line); }
+  h2.fig-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    color:#fff;
+    margin:0.9rem 0 1.1rem;
+    letter-spacing:-0.005em;
+  }
+
+  .prose p{
+    font-size:1.04rem;
+    line-height:1.8;
+    color:var(--ink);
+    margin:0 0 1.3rem;
+  }
+  .prose strong{ color:#fff; font-weight:600; }
+  .prose code{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.88em;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:0.1rem 0.4rem;
+    border-radius:3px;
+    color:var(--cyan-soft);
+  }
+
+  .callout{
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber);
+    background:var(--panel);
+    padding:1.1rem 1.3rem;
+    border-radius:4px;
+    margin:1.8rem 0;
+    font-size:0.98rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+  }
+  .callout strong{ color:var(--amber-soft); }
+
+  /* ---------- STACK DIAGRAM ---------- */
+  .schematic{
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--panel-2);
+    padding:1.6rem 1.4rem 1.8rem;
+    margin:1.6rem 0 2.2rem;
+    position:relative;
+  }
+  .schematic-label{
+    position:absolute;
+    top:-0.65rem;
+    left:1.1rem;
+    background:var(--bg);
+    padding:0 0.5rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .stacks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.3rem;
+  }
+  .stack-col h3{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:center;
+    color:var(--ink-dim);
+    margin:0 0 0.8rem;
+  }
+  .stack-col.vm h3{ color:var(--amber-soft); }
+  .stack-col.ctr h3{ color:var(--cyan); }
+  .layer{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    text-align:center;
+    padding:0.6rem 0.4rem;
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-bottom:0.45rem;
+    color:var(--ink);
+    background:rgba(255,255,255,0.015);
+  }
+  .layer.base{ color:var(--ink-faint); border-style:dashed; }
+  .layer.hv{ border-color:var(--amber-soft); color:var(--amber-soft); }
+  .layer.rt{ border-color:var(--cyan); color:var(--cyan); }
+  .layer.app{ background:rgba(94,234,212,0.08); }
+  .stack-col.vm .layer.app{ background:rgba(251,146,60,0.08); }
+
+  @media (max-width:600px){
+    .stacks{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- SPEC SHEET TABLE ---------- */
+  .spec-sheet{
+    width:100%;
+    border-collapse:collapse;
+    margin:1.6rem 0 2.2rem;
+    font-size:0.88rem;
+  }
+  .spec-sheet caption{
+    text-align:left;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:0.6rem;
+  }
+  .spec-sheet th{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:left;
+    color:var(--ink-dim);
+    padding:0.7rem 0.8rem;
+    border-bottom:1px solid var(--line);
+  }
+  .spec-sheet td{
+    padding:0.85rem 0.8rem;
+    border-bottom:1px solid var(--line-dim);
+    vertical-align:top;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .spec-sheet td.metric{
+    font-weight:600;
+    color:#fff;
+    white-space:nowrap;
+  }
+  .spec-sheet td.vm-val{ font-family:'JetBrains Mono', monospace; color:var(--amber-soft); }
+  .spec-sheet td.ctr-val{ font-family:'JetBrains Mono', monospace; color:var(--cyan); }
+  .spec-sheet th.vm-h{ color:var(--amber-soft); }
+  .spec-sheet th.ctr-h{ color:var(--cyan); }
+
+  .spec-wrap{ overflow-x:auto; }
+
+  /* ---------- DEVICE GRID ---------- */
+  .ns-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:0.7rem;
+    margin:1.6rem 0 2.2rem;
+  }
+  .ns-card{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:0.85rem 0.9rem;
+    background:var(--panel);
+  }
+  .ns-card .ns-name{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    color:var(--cyan);
+    font-weight:600;
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .ns-card .ns-desc{ font-size:0.82rem; color:var(--ink-dim); line-height:1.5; }
+
+  /* ---------- DECISION LIST ---------- */
+  .decision{
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    margin:1.6rem 0 2.2rem;
+  }
+  .decision-row{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:1rem;
+    padding:1.1rem 1.3rem;
+    border-bottom:1px solid var(--line-dim);
+    align-items:start;
+  }
+  .decision-row:last-child{ border-bottom:none; }
+  .decision-row .marker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:0.25rem 0.55rem;
+    border-radius:3px;
+    white-space:nowrap;
+    height:fit-content;
+    margin-top:0.15rem;
+  }
+  .marker.use-ctr{ background:rgba(94,234,212,0.14); color:var(--cyan); border:1px solid rgba(94,234,212,0.35); }
+  .marker.use-vm{ background:rgba(251,146,60,0.14); color:var(--amber-soft); border:1px solid rgba(251,146,60,0.35); }
+  .marker.use-mv{ background:rgba(244,113,116,0.14); color:var(--red-tag); border:1px solid rgba(244,113,116,0.35); }
+  .decision-row p{ margin:0; font-size:0.94rem; line-height:1.6; color:var(--ink-dim); }
+  .decision-row p strong{ color:var(--ink); }
+
+  /* ---------- CLOSING ---------- */
+  .closing{
+    margin-top:3.5rem;
+    padding-top:2rem;
+    border-top:1px solid var(--line);
+  }
+  .closing p{ font-size:1.05rem; line-height:1.8; color:var(--ink); }
+
+  .sign{
+    margin-top:2rem;
+    display:flex;
+    align-items:center;
+    gap:0.9rem;
+  }
+  .sign .stamp{
+    width:46px; height:46px;
+    border:1.5px solid var(--cyan);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    color:var(--cyan);
+    font-size:0.85rem;
+    flex-shrink:0;
+  }
+  .sign-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; color:#fff; }
+  .sign-role{ font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:var(--ink-faint); letter-spacing:0.04em; }
+
+  .post-nav{
+    margin-top:3.5rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+  }
+  .post-nav a{ text-decoration:none; }
+  .post-nav a:hover{ text-decoration:underline; }
+
+  footer.site-footer{
+    position:relative; z-index:1;
+    border-top:1px solid var(--line);
+    padding:2rem 1.5rem;
+    text-align:center;
+  }
+  footer.site-footer p{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--ink-faint);
+    letter-spacing:0.05em;
+    margin:0;
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">
+      <span class="brand-mark">ED</span>
+      <span class="brand-tag">Fluidity In Motion</span>
+    </a>
+    <nav class="links">
+      <a href="/">Home</a>
+      <a href="/vimal/index.html">About</a>
+      <a href="/blog/index.html" class="current">Blog</a>
+    </nav>
+  </nav>
+
+  <main>
+    <div class="doc-tag"><span class="sq"></span> SCHEMATIC · SERVERLESS &amp; RUNTIME ISOLATION</div>
+
+    <h1 class="title">Docker Never Promised<br>You Isolation. <span class="accent">Firecracker Does.</span></h1>
+
+    <p class="subtitle">Both get filed under "lightweight virtualization." Both are fast. Only one of them was built to survive running a stranger's code next to yours. Here's the actual boundary, drawn with the numbers AWS itself publishes.</p>
+
+    <div class="byline">
+      <span>Vimal Maheedharan</span><span class="dot"></span><span>8 min read</span><span class="dot"></span><span>Serverless / SRE</span>
+    </div>
+
+    <div class="prose">
+
+      <div class="fig"><span class="tag mono">FIG. 01</span><span class="rule"></span></div>
+      <h2 class="fig-title">Two tools, solving two different problems</h2>
+      <p><strong>Docker</strong> showed up in 2013 to answer one question: how do you package an application and its dependencies so it runs identically on a laptop, a CI runner, and a production node? It succeeded so completely that "container" quietly became a synonym for "how software ships."</p>
+      <p><strong>Firecracker</strong> showed up five years later, out of AWS, to answer a question Docker was never built for: how do you run <em>someone else's</em> code — a Lambda function, a Fargate task — thousands of times a second, on shared hardware, without one tenant ever getting a byte of another tenant's memory?</p>
+      <p>Both get called "lightweight virtualization." Both are fast enough to feel instant. That's exactly why they get compared — and why the comparison usually misses that they're not actually competing for the same job.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 02</span><span class="rule"></span></div>
+      <h2 class="fig-title">Two stacks, side by side</h2>
+      <p>Follow each one from the hardware up and the difference in kind, not just degree, becomes obvious.</p>
+
+      <div class="schematic">
+        <span class="schematic-label mono">STACK COMPARISON — BARE METAL TO APP</span>
+        <div class="stacks">
+          <div class="stack-col vm">
+            <h3>Firecracker</h3>
+            <div class="layer app">App (often an OCI container)</div>
+            <div class="layer">Guest kernel — own, minimal</div>
+            <div class="layer hv">Firecracker VMM (Rust, 5 devices)</div>
+            <div class="layer base">KVM</div>
+            <div class="layer base">Host Kernel + Hardware</div>
+          </div>
+          <div class="stack-col ctr">
+            <h3>Docker</h3>
+            <div class="layer app">App + Libraries</div>
+            <div class="layer rt">containerd / runc</div>
+            <div class="layer">Namespaces + cgroups</div>
+            <div class="layer base">Host Kernel — <em>shared</em></div>
+            <div class="layer base">Hardware</div>
+          </div>
+        </div>
+      </div>
+
+      <p>Docker's process never leaves the host kernel. <code>docker run</code> asks the kernel to hide most of itself from a process group — that's the whole trick, and it's why a container starts as fast as any other process on the box.</p>
+      <p>Firecracker's guest genuinely boots — a real, independent Linux kernel, talking to real (if minimal) virtual hardware through KVM. It's a virtual machine in the fullest sense. The engineering feat isn't skipping virtualization, like Docker does. It's making virtualization itself disappear into the noise floor.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 03</span><span class="rule"></span></div>
+      <h2 class="fig-title">The trick is the device model</h2>
+      <p>A general-purpose hypervisor like QEMU emulates a PC: BIOS, legacy serial ports, optional GPU passthrough, dozens of device types — because it has to boot arbitrary, unmodified operating systems. All of that is attack surface, and all of it takes time to initialize.</p>
+      <p>Firecracker, written in Rust and forked from Google's <code>crosvm</code>, throws almost all of it away. It emulates exactly five devices — enough to boot Linux and nothing more:</p>
+
+      <div class="ns-grid">
+        <div class="ns-card"><span class="ns-name mono">virtio-net</span><span class="ns-desc">Network interface — the guest's only way in or out.</span></div>
+        <div class="ns-card"><span class="ns-name mono">virtio-block</span><span class="ns-desc">Block storage — the guest's root filesystem.</span></div>
+        <div class="ns-card"><span class="ns-name mono">virtio-vsock</span><span class="ns-desc">Host↔guest communication without a network stack.</span></div>
+        <div class="ns-card"><span class="ns-name mono">Serial console</span><span class="ns-desc">Boot logs and early diagnostics — nothing else.</span></div>
+        <div class="ns-card"><span class="ns-name mono">Minimal keyboard ctrl.</span><span class="ns-desc">Exists for exactly one reason: signaling shutdown.</span></div>
+      </div>
+
+      <p>No BIOS. No legacy device emulation. No GPU. That's why a Firecracker microVM boots in <strong>under 125ms</strong> instead of a general VM's several seconds — it simply has almost nothing to initialize. AWS wraps each microVM process in a <strong>Jailer</strong> on top of that — seccomp filters, cgroups, chroot, and its own namespace — so even a hypothetical Firecracker bug still has to get through a second, independent sandboxing layer before it reaches the host.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 04</span><span class="rule"></span></div>
+      <h2 class="fig-title">The spec sheet</h2>
+      <p>Put side by side, the two aren't even optimizing for the same thing.</p>
+
+      <div class="spec-wrap">
+      <table class="spec-sheet">
+        <caption>MEASURED CHARACTERISTICS — PUBLISHED FIGURES</caption>
+        <thead>
+          <tr><th>Metric</th><th class="vm-h">Firecracker</th><th class="ctr-h">Docker</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="metric">Isolation boundary</td><td class="vm-val">Hardware, via KVM + own kernel</td><td class="ctr-val">Kernel, via namespaces/cgroups</td></tr>
+          <tr><td class="metric">Boot / start time</td><td class="vm-val">&lt; 125ms (full kernel boot)</td><td class="ctr-val">~150 – 200ms (process start)</td></tr>
+          <tr><td class="metric">Memory overhead</td><td class="vm-val">&lt; 5 MiB per microVM</td><td class="ctr-val">No separate kernel — overhead is per-image</td></tr>
+          <tr><td class="metric">Density / creation rate</td><td class="vm-val">Thousands per host; 150/sec creation</td><td class="ctr-val">Hundreds per host, near-instant start</td></tr>
+          <tr><td class="metric">Own kernel?</td><td class="vm-val">Yes — independent guest kernel</td><td class="ctr-val">No — inherits the host's</td></tr>
+          <tr><td class="metric">Built by / language</td><td class="vm-val">AWS, Rust (from crosvm)</td><td class="ctr-val">Docker Inc., primarily Go</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>Firecracker's numbers read like a container's. Its isolation model reads like a VM's. That combination — not raw speed alone — is the actual invention. Docker was never trying to solve the same equation; density and packaging speed were the whole point, and a shared kernel was an acceptable, even desirable, price for first-party workloads.</p>
+
+      <div class="callout"><strong>Where this actually bites:</strong> the mistake isn't choosing Docker. It's choosing Docker for a workload that needed Firecracker's guarantee — running arbitrary user-submitted code, a CI job on someone else's pull request, a plugin sandbox — and assuming namespaces plus cgroups amount to the same wall a hypervisor gives you. They don't share a threat model, only a marketing category.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 05</span><span class="rule"></span></div>
+      <h2 class="fig-title">The twist: they're usually nested, not rivals</h2>
+      <p>Here's the detail that resolves "Firecracker vs. Docker" as a bit of a trick question: AWS built <strong>firecracker-containerd</strong>, a shim that lets <code>containerd</code> — the same runtime Docker itself is built on — manage containers <em>as</em> Firecracker microVMs instead of as shared-kernel processes.</p>
+      <p>Which means every one of Lambda's <strong>15 trillion-plus monthly invocations</strong>, and every Fargate task, follows the same pattern: boot a Firecracker microVM with its own tiny kernel, then run the customer's ordinary OCI container — the exact same image format Docker produces — inside it, through the exact same containerd tooling. Kata Containers does the equivalent for Kubernetes pods that need the same treatment.</p>
+      <p>Docker's packaging format didn't lose to Firecracker. It got a harder floor put underneath it, one tenant at a time.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 06</span><span class="rule"></span></div>
+      <h2 class="fig-title">Choosing the boundary you actually need</h2>
+
+      <div class="decision">
+        <div class="decision-row">
+          <span class="marker use-ctr">Plain Docker</span>
+          <p>Your own services, a single trust domain, a kernel version you control. The default for internal microservices, CI steps, and most of what sits behind a Kubernetes Service — no hostile neighbor to defend against.</p>
+        </div>
+        <div class="decision-row">
+          <span class="marker use-vm">Firecracker-backed platform</span>
+          <p>You're running code you don't fully trust, per-invocation, at high density — serverless functions, third-party plugins, CI on external pull requests. Use Lambda, Fargate, or another Firecracker-based platform (Fly.io, Koyeb) rather than reaching for the VMM directly.</p>
+        </div>
+        <div class="decision-row">
+          <span class="marker use-mv">Kata Containers / gVisor</span>
+          <p>You want the same VM-grade wall as Firecracker but need it to look and behave like an ordinary pod to Kubernetes — the middle path when you're not on a Firecracker-native platform already.</p>
+        </div>
+      </div>
+
+      <div class="closing">
+        <p>Docker was never dishonest about what it offered — it just never claimed to guard against a hostile neighbor, because that was never the job. Firecracker exists because someone eventually had to actually do that job, at a scale where a real hypervisor's overhead would have been unaffordable. The two didn't end up rivals. One became the floor the other now quietly runs on, fifteen trillion times a month, without either of them getting the credit in the same sentence.</p>
+      </div>
+
+      <div class="sign">
+        <div class="stamp">ED</div>
+        <div>
+          <div class="sign-name">Vimal Maheedharan</div>
+          <div class="sign-role">TECHNICAL ARCHITECT &amp; SRE CONSULTANT</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/blog/index.html">&larr; All posts</a>
+      <a href="https://www.linkedin.com/in/vimalmaheedharan/" target="_blank" rel="noopener noreferrer">LinkedIn &#8599;</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 e-diversify.</p>
+  </footer>
+
+</body>
+</html>
