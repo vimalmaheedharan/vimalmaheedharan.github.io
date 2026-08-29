@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>Containers Didn't Kill the VM. They Just Moved In Next Door. | Vimal Maheedharan</title>
+<meta name="description" content="Containers aren't lightweight VMs — they're a different isolation boundary entirely. A schematic breakdown of hypervisors vs. namespaces/cgroups, real boot-time and density numbers, where microVMs like Firecracker fit, and why almost every container on Earth is already running inside a VM. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="Containers vs VMs, Virtual Machines, Docker, Hypervisor, Linux Namespaces, cgroups, Firecracker MicroVM, Kata Containers, gVisor, Kubernetes, Cloud Infrastructure, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Site Reliability Engineering, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer, Distributed Systems Consultant">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/containers-vs-vms.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Containers Didn't Kill the VM. They Just Moved In Next Door.">
+<meta property="og:description" content="Containers aren't lightweight VMs. A schematic breakdown of hypervisors vs. namespaces/cgroups, real boot-time and density numbers, and where microVMs fit in between.">
+<meta property="og:url" content="https://e-diversify.com/blog/containers-vs-vms.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Containers Didn't Kill the VM — a schematic look at containers vs. virtual machines">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Containers Didn't Kill the VM. They Just Moved In Next Door.">
+<meta name="twitter:description" content="A schematic breakdown of hypervisors vs. namespaces/cgroups, real boot-time and density numbers, and where microVMs fit in between.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0a1826;
+    --panel: #0f2338;
+    --panel-2: #0d2036;
+    --line: rgba(94,234,212,0.22);
+    --line-dim: rgba(94,234,212,0.10);
+    --ink: #dfeaf2;
+    --ink-dim: #8fa9bd;
+    --ink-faint: #5d7d92;
+    --cyan: #5eead4;
+    --cyan-soft: #7fd8e8;
+    --amber: #fb923c;
+    --amber-soft: #ffb570;
+    --red-tag: #f47174;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    padding-top:64px;
+    font-family:'Inter', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    position:relative;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(94,234,212,0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(94,234,212,0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -5%, rgba(94,234,212,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 30%, rgba(251,146,60,0.07), transparent 60%);
+  }
+
+  .display{font-family:'Space Grotesk', sans-serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  a{ color: var(--cyan); }
+  a:hover{ color: var(--amber); }
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(10,24,38,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:0.6rem; text-decoration:none; }
+  .brand-mark{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--bg);
+    background:var(--cyan);
+    padding:0.15rem 0.45rem;
+    border-radius:3px;
+    letter-spacing:0.02em;
+  }
+  .brand-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-left:1px solid var(--line);
+    padding-left:0.7rem;
+  }
+  nav.links a{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink-dim);
+    margin-left:1.6rem;
+    transition:color 0.2s ease;
+  }
+  nav.links a.current{ color:var(--cyan); }
+  nav.links a:hover{ color:var(--amber); }
+
+  main{
+    position:relative;
+    z-index:1;
+    max-width:760px;
+    margin:0 auto;
+    padding:5rem 1.5rem 6rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .doc-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:0.5rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    border:1px solid var(--line);
+    padding:0.35rem 0.75rem;
+    border-radius:3px;
+    margin-bottom:1.5rem;
+  }
+  .doc-tag .sq{ width:6px; height:6px; background:var(--amber); }
+
+  h1.title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(2.1rem, 5.4vw, 3.15rem);
+    line-height:1.14;
+    letter-spacing:-0.01em;
+    color:#fff;
+    margin:0 0 1.3rem;
+  }
+  h1.title .accent{ color:var(--cyan); }
+
+  .subtitle{
+    font-size:1.12rem;
+    line-height:1.65;
+    color:var(--ink-dim);
+    max-width:56ch;
+    margin:0 0 2rem;
+  }
+
+  .byline{
+    display:flex;
+    align-items:center;
+    gap:0.8rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding-top:1.4rem;
+    border-top:1px dashed var(--line);
+  }
+  .byline .dot{ width:4px; height:4px; border-radius:50%; background:var(--amber); }
+
+  /* ---------- SECTION FRAME ---------- */
+  .fig{
+    margin:3.6rem 0 1.4rem;
+    display:flex;
+    align-items:baseline;
+    gap:0.9rem;
+  }
+  .fig .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    letter-spacing:0.1em;
+    color:var(--amber);
+    white-space:nowrap;
+  }
+  .fig .rule{ flex:1; height:1px; background:var(--line); }
+  h2.fig-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    color:#fff;
+    margin:0.9rem 0 1.1rem;
+    letter-spacing:-0.005em;
+  }
+
+  .prose p{
+    font-size:1.04rem;
+    line-height:1.8;
+    color:var(--ink);
+    margin:0 0 1.3rem;
+  }
+  .prose strong{ color:#fff; font-weight:600; }
+  .prose code{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.88em;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:0.1rem 0.4rem;
+    border-radius:3px;
+    color:var(--cyan-soft);
+  }
+
+  .callout{
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber);
+    background:var(--panel);
+    padding:1.1rem 1.3rem;
+    border-radius:4px;
+    margin:1.8rem 0;
+    font-size:0.98rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+  }
+  .callout strong{ color:var(--amber-soft); }
+
+  /* ---------- STACK DIAGRAM ---------- */
+  .schematic{
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--panel-2);
+    padding:1.6rem 1.4rem 1.8rem;
+    margin:1.6rem 0 2.2rem;
+    position:relative;
+  }
+  .schematic-label{
+    position:absolute;
+    top:-0.65rem;
+    left:1.1rem;
+    background:var(--bg);
+    padding:0 0.5rem;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .stacks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.3rem;
+  }
+  .stack-col h3{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:center;
+    color:var(--ink-dim);
+    margin:0 0 0.8rem;
+  }
+  .stack-col.vm h3{ color:var(--amber-soft); }
+  .stack-col.ctr h3{ color:var(--cyan); }
+  .layer{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    text-align:center;
+    padding:0.6rem 0.4rem;
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-bottom:0.45rem;
+    color:var(--ink);
+    background:rgba(255,255,255,0.015);
+  }
+  .layer.base{ color:var(--ink-faint); border-style:dashed; }
+  .layer.hv{ border-color:var(--amber-soft); color:var(--amber-soft); }
+  .layer.rt{ border-color:var(--cyan); color:var(--cyan); }
+  .layer.app{ background:rgba(94,234,212,0.08); }
+  .stack-col.vm .layer.app{ background:rgba(251,146,60,0.08); }
+
+  @media (max-width:600px){
+    .stacks{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- SPEC SHEET TABLE ---------- */
+  .spec-sheet{
+    width:100%;
+    border-collapse:collapse;
+    margin:1.6rem 0 2.2rem;
+    font-size:0.88rem;
+  }
+  .spec-sheet caption{
+    text-align:left;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:0.6rem;
+  }
+  .spec-sheet th{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-align:left;
+    color:var(--ink-dim);
+    padding:0.7rem 0.8rem;
+    border-bottom:1px solid var(--line);
+  }
+  .spec-sheet td{
+    padding:0.85rem 0.8rem;
+    border-bottom:1px solid var(--line-dim);
+    vertical-align:top;
+    color:var(--ink);
+    line-height:1.5;
+  }
+  .spec-sheet td.metric{
+    font-weight:600;
+    color:#fff;
+    white-space:nowrap;
+  }
+  .spec-sheet td.vm-val{ font-family:'JetBrains Mono', monospace; color:var(--amber-soft); }
+  .spec-sheet td.ctr-val{ font-family:'JetBrains Mono', monospace; color:var(--cyan); }
+  .spec-sheet th.vm-h{ color:var(--amber-soft); }
+  .spec-sheet th.ctr-h{ color:var(--cyan); }
+
+  .spec-wrap{ overflow-x:auto; }
+
+  /* ---------- NAMESPACE GRID ---------- */
+  .ns-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:0.7rem;
+    margin:1.6rem 0 2.2rem;
+  }
+  .ns-card{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:0.85rem 0.9rem;
+    background:var(--panel);
+  }
+  .ns-card .ns-name{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    color:var(--cyan);
+    font-weight:600;
+    margin-bottom:0.35rem;
+    display:block;
+  }
+  .ns-card .ns-desc{ font-size:0.82rem; color:var(--ink-dim); line-height:1.5; }
+
+  /* ---------- DECISION LIST ---------- */
+  .decision{
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    margin:1.6rem 0 2.2rem;
+  }
+  .decision-row{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:1rem;
+    padding:1.1rem 1.3rem;
+    border-bottom:1px solid var(--line-dim);
+    align-items:start;
+  }
+  .decision-row:last-child{ border-bottom:none; }
+  .decision-row .marker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:0.25rem 0.55rem;
+    border-radius:3px;
+    white-space:nowrap;
+    height:fit-content;
+    margin-top:0.15rem;
+  }
+  .marker.use-ctr{ background:rgba(94,234,212,0.14); color:var(--cyan); border:1px solid rgba(94,234,212,0.35); }
+  .marker.use-vm{ background:rgba(251,146,60,0.14); color:var(--amber-soft); border:1px solid rgba(251,146,60,0.35); }
+  .marker.use-mv{ background:rgba(244,113,116,0.14); color:var(--red-tag); border:1px solid rgba(244,113,116,0.35); }
+  .decision-row p{ margin:0; font-size:0.94rem; line-height:1.6; color:var(--ink-dim); }
+  .decision-row p strong{ color:var(--ink); }
+
+  /* ---------- CLOSING ---------- */
+  .closing{
+    margin-top:3.5rem;
+    padding-top:2rem;
+    border-top:1px solid var(--line);
+  }
+  .closing p{ font-size:1.05rem; line-height:1.8; color:var(--ink); }
+
+  .sign{
+    margin-top:2rem;
+    display:flex;
+    align-items:center;
+    gap:0.9rem;
+  }
+  .sign .stamp{
+    width:46px; height:46px;
+    border:1.5px solid var(--cyan);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    color:var(--cyan);
+    font-size:0.85rem;
+    flex-shrink:0;
+  }
+  .sign-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; color:#fff; }
+  .sign-role{ font-family:'JetBrains Mono', monospace; font-size:0.72rem; color:var(--ink-faint); letter-spacing:0.04em; }
+
+  .post-nav{
+    margin-top:3.5rem;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+  }
+  .post-nav a{ text-decoration:none; }
+  .post-nav a:hover{ text-decoration:underline; }
+
+  footer.site-footer{
+    position:relative; z-index:1;
+    border-top:1px solid var(--line);
+    padding:2rem 1.5rem;
+    text-align:center;
+  }
+  footer.site-footer p{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--ink-faint);
+    letter-spacing:0.05em;
+    margin:0;
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/" class="brand">
+      <span class="brand-mark">ED</span>
+      <span class="brand-tag">Fluidity In Motion</span>
+    </a>
+    <nav class="links">
+      <a href="/">Home</a>
+      <a href="/vimal/index.html">About</a>
+      <a href="/blog/index.html" class="current">Blog</a>
+    </nav>
+  </nav>
+
+  <main>
+    <div class="doc-tag"><span class="sq"></span> SCHEMATIC · CLOUD INFRASTRUCTURE</div>
+
+    <h1 class="title">Containers Didn't Kill the VM.<br>They Just Moved In <span class="accent">Next Door.</span></h1>
+
+    <p class="subtitle">Two different isolation boundaries get sold as the same idea with different packaging. They aren't. Here's the actual line between a container and a virtual machine — drawn with real numbers, not vibes.</p>
+
+    <div class="byline">
+      <span>Vimal Maheedharan</span><span class="dot"></span><span>9 min read</span><span class="dot"></span><span>Infrastructure / SRE</span>
+    </div>
+
+    <div class="prose">
+
+      <div class="fig"><span class="tag mono">FIG. 01</span><span class="rule"></span></div>
+      <h2 class="fig-title">The sentence that gets everyone in trouble</h2>
+      <p>Somewhere along the way, "a container is just a lightweight VM" became the default explanation, and it's the kind of simplification that's close enough to sound right and wrong enough to cause an incident. A container isn't a smaller virtual machine. It's not virtualizing hardware at all. It's a regular process on the host, wearing a very convincing disguise — its own filesystem, its own hostname, its own process tree — built entirely out of features the Linux kernel already had.</p>
+      <p>A VM, meanwhile, is doing something categorically different: emulating an entire computer, convincingly enough that a full, independent operating system boots inside it and never has to know it's a guest.</p>
+      <p>Same goal — <strong>run this workload without it stepping on that one</strong> — answered at two completely different layers of the stack. That gap is where the interesting engineering, and the interesting failure modes, live.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 02</span><span class="rule"></span></div>
+      <h2 class="fig-title">Two stacks, side by side</h2>
+      <p>Draw both from the hardware up and the difference stops being philosophical.</p>
+
+      <div class="schematic">
+        <span class="schematic-label mono">STACK COMPARISON — BARE METAL TO APP</span>
+        <div class="stacks">
+          <div class="stack-col vm">
+            <h3>Virtual Machine</h3>
+            <div class="layer app">App + Libraries</div>
+            <div class="layer">Guest OS (own kernel)</div>
+            <div class="layer hv">Hypervisor</div>
+            <div class="layer base">Host OS (optional, Type 2)</div>
+            <div class="layer base">Physical Hardware</div>
+          </div>
+          <div class="stack-col ctr">
+            <h3>Container</h3>
+            <div class="layer app">App + Libraries</div>
+            <div class="layer rt">Container Runtime (namespaces + cgroups)</div>
+            <div class="layer">Host OS Kernel — <em>shared</em></div>
+            <div class="layer base">&nbsp;</div>
+            <div class="layer base">Physical Hardware</div>
+          </div>
+        </div>
+      </div>
+
+      <p>The hypervisor's job is to lie to the guest OS about the hardware so convincingly that the guest never questions it. Each VM gets what looks like its own CPU, RAM, disk, and NIC — and its own kernel to manage them, which is why you can run Windows on a Linux host or an old kernel next to a new one on the same box.</p>
+      <p>The container runtime isn't emulating anything. There's one kernel, shared by the host and every container on it. What makes a container feel like its own machine is that the kernel has been asked, politely but firmly, to hide most of itself from each process group.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 03</span><span class="rule"></span></div>
+      <h2 class="fig-title">The two primitives doing all the work</h2>
+      <p>Everything a container "is" comes down to two kernel features, both older than Docker by a decade. <strong>Namespaces</strong> control what a process can <em>see</em>. <strong>cgroups</strong> control what it can <em>use</em>.</p>
+
+      <div class="ns-grid">
+        <div class="ns-card"><span class="ns-name mono">PID</span><span class="ns-desc">Its own process tree — PID 1 inside is some other number outside.</span></div>
+        <div class="ns-card"><span class="ns-name mono">NET</span><span class="ns-desc">Its own network stack: interfaces, routes, ports.</span></div>
+        <div class="ns-card"><span class="ns-name mono">MNT</span><span class="ns-desc">Its own filesystem mount tree — the illusion of a fresh root.</span></div>
+        <div class="ns-card"><span class="ns-name mono">UTS</span><span class="ns-desc">Its own hostname and domain name.</span></div>
+        <div class="ns-card"><span class="ns-name mono">IPC</span><span class="ns-desc">Its own message queues, semaphores, shared memory.</span></div>
+        <div class="ns-card"><span class="ns-name mono">USER</span><span class="ns-desc">Its own UID/GID mapping — root inside, nobody outside.</span></div>
+      </div>
+
+      <p><strong>cgroups</strong> (v2, in current kernels) sit alongside namespaces and cap what a process group can consume — CPU shares, memory ceilings, I/O bandwidth, PIDs count — and account for it, which is also how <code>docker stats</code> and every Kubernetes resource limit actually gets enforced under the hood.</p>
+      <p>Neither of these is virtualization. They're visibility and accounting controls, applied to processes that are, underneath it all, ordinary residents of the host kernel. That distinction is the whole ballgame for what comes next.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 04</span><span class="rule"></span></div>
+      <h2 class="fig-title">The spec sheet</h2>
+      <p>Put in the same units, the practical gap is not subtle.</p>
+
+      <div class="spec-wrap">
+      <table class="spec-sheet">
+        <caption>MEASURED CHARACTERISTICS — TYPICAL RANGES</caption>
+        <thead>
+          <tr><th>Metric</th><th class="vm-h">Virtual Machine</th><th class="ctr-h">Container</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="metric">Isolation boundary</td><td class="vm-val">Hardware, via hypervisor</td><td class="ctr-val">Kernel, via namespaces/cgroups</td></tr>
+          <tr><td class="metric">Cold boot time</td><td class="vm-val">~10s – several minutes</td><td class="ctr-val">~150 – 200ms</td></tr>
+          <tr><td class="metric">Base memory overhead</td><td class="vm-val">Hundreds of MB – GBs</td><td class="ctr-val">Single-digit to low tens of MB</td></tr>
+          <tr><td class="metric">Density per host</td><td class="vm-val">Dozens</td><td class="ctr-val">Hundreds</td></tr>
+          <tr><td class="metric">Own kernel?</td><td class="vm-val">Yes — any OS, any version</td><td class="ctr-val">No — inherits the host's</td></tr>
+          <tr><td class="metric">Kernel-exploit blast radius</td><td class="vm-val">Contained to that VM</td><td class="ctr-val">Potentially the whole host</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>None of this makes containers "worse." It makes them a different trade: you gave up the hardware-level wall in exchange for startup times and density that let a single node run a fleet where a VM-only design would run a handful. For a homogeneous stack of trusted, first-party services, that trade is usually correct. For a kernel-exploit-shaped worst case, it's the whole reason the isolation conversation exists at all.</p>
+
+      <div class="callout"><strong>Where this actually bites:</strong> the classic incident isn't a container "escaping" through some exotic zero-day. It's a team that assumed container boundaries carry VM-grade guarantees, ran genuinely untrusted or multi-tenant code with default settings, and treated the shared kernel as an implementation detail instead of the actual trust boundary it is.</div>
+
+      <div class="fig"><span class="tag mono">FIG. 05</span><span class="rule"></span></div>
+      <h2 class="fig-title">The gap in between: microVMs</h2>
+      <p>The industry noticed this trade-off too, and spent the last several years building a third category to close it. <strong>Firecracker</strong> — the VMM AWS built for Lambda and Fargate — boots a minimal virtual machine with its own kernel in as little as <strong>~125ms</strong>, using <strong>under 5MiB</strong> of memory overhead per instance, by emulating only about five devices instead of a full PC. That's hypervisor-grade isolation running at container-adjacent speed and density — close enough that AWS puts every single Lambda invocation, across trillions of executions a month, inside its own microVM.</p>
+      <p><strong>Kata Containers</strong> and <strong>gVisor</strong> attack the same gap from the Kubernetes side: they let a pod look and behave like a normal container to the orchestrator, while actually running inside a lightweight VM or an intercepted, sandboxed syscall layer underneath — for exactly the workloads (multi-tenant SaaS, CI runners executing someone else's code, anything untrusted) where "shares a kernel with the rest of the node" is not an acceptable answer.</p>
+      <p>This is also the detail that quietly resolves the "containers vs. VMs" framing as a false choice: on every major cloud, a Kubernetes node <em>is</em> a VM, containers run inside it, and increasingly those containers are individually wrapped in a microVM for anything that touches another tenant. The stack isn't container <em>or</em> VM. It's usually both, nested, with the boundary drawn wherever the workload's trust level actually requires it.</p>
+
+      <div class="fig"><span class="tag mono">FIG. 06</span><span class="rule"></span></div>
+      <h2 class="fig-title">Choosing the boundary you actually need</h2>
+
+      <div class="decision">
+        <div class="decision-row">
+          <span class="marker use-ctr">Container</span>
+          <p>Your own services, a shared trust domain, a single kernel version you control. This is the default for microservices, internal APIs, CI build steps, and most of what runs behind a Kubernetes Service.</p>
+        </div>
+        <div class="decision-row">
+          <span class="marker use-vm">Full VM</span>
+          <p>You need a <strong>different OS or kernel</strong> than the host, hard regulatory or multi-tenant isolation between customers, or you're running something you genuinely don't trust and don't have a microVM layer available.</p>
+        </div>
+        <div class="decision-row">
+          <span class="marker use-mv">MicroVM / sandboxed runtime</span>
+          <p>You want container-shaped density and speed but the workload is <strong>untrusted or multi-tenant</strong> — serverless functions, third-party plugin execution, CI jobs running arbitrary customer code. Firecracker, Kata, or gVisor instead of a bare container.</p>
+        </div>
+      </div>
+
+      <div class="closing">
+        <p>The honest version of the pitch isn't "containers replaced VMs." It's that containers solved a packaging and density problem the VM was never built to solve cheaply, and VMs still solve an isolation problem containers were never built to solve at all. Most production systems today need both, at the same time, at different layers of the same box — which is exactly why the two haven't been competing for a while now. They've been coexisting, quietly, under names most people never bother to look up.</p>
+      </div>
+
+      <div class="sign">
+        <div class="stamp">ED</div>
+        <div>
+          <div class="sign-name">Vimal Maheedharan</div>
+          <div class="sign-role">TECHNICAL ARCHITECT &amp; SRE CONSULTANT</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/blog/index.html">&larr; All posts</a>
+      <a href="https://www.linkedin.com/in/vimalmaheedharan/" target="_blank" rel="noopener noreferrer">LinkedIn &#8599;</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 e-diversify.</p>
+  </footer>
+
+</body>
+</html>
