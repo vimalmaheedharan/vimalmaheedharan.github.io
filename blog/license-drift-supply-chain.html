@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>License Drift: The Compliance Incident That Never Files a Ticket | Vimal Maheedharan</title>
+<meta name="description" content="A transitive dependency's license changes and nothing pages. Treating license drift as a supply-chain observability problem — SBOMs, copyleft creep, dual-licensed packages, and a CI gate that catches it before it ships. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="Software License Compliance, License Drift, Open Source Licensing, SBOM, SPDX, CycloneDX, Software Supply Chain, Copyleft, Dual Licensing, License Scanning, DevOps, CI/CD, Dependency Management, SCA, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/license-drift-supply-chain.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="License Drift: The Compliance Incident That Never Files a Ticket | Vimal Maheedharan">
+<meta property="og:description" content="A transitive dependency's license changes and nothing pages. Treating license drift as a supply-chain observability problem — with a CI gate that catches it before it ships.">
+<meta property="og:url" content="https://e-diversify.com/blog/license-drift-supply-chain.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="License Drift — a dependency-manifest and audit-stamp walkthrough of license risk as a DevOps problem">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="License Drift: The Compliance Incident That Never Files a Ticket">
+<meta name="twitter:description" content="License risk, treated as a monitoring problem instead of a legal lecture.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ece1c8;
+    --paper-raised:#f4ecd9;
+    --ink:#1c2740;
+    --ink-dim:#5c6478;
+    --rule:rgba(28,39,64,0.2);
+    --rule-soft:rgba(28,39,64,0.12);
+    --stamp-red:#9c3230;
+    --stamp-green:#3a6b4a;
+    --stamp-amber:#a8721f;
+    --carbon:#161d2c;
+    --carbon-ink:#d7dcea;
+    --carbon-accent:#f2b544;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    background-image:
+      radial-gradient(rgba(28,39,64,0.05) 1px, transparent 1px);
+    background-size:3px 3px;
+    color:var(--ink);
+    font-family:'Courier Prime', monospace;
+    min-height:100vh;
+  }
+  .display{font-family:'Newsreader', serif;}
+  a{color:inherit;}
+
+  /* ---------- TOP NAV ---------- */
+  .top-nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:1rem 6vw;
+    background:rgba(236,225,200,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--rule);
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .top-nav a{ text-decoration:none; display:flex; align-items:center; gap:0.5rem; color:var(--ink-dim); transition:color 0.2s ease;}
+  .top-nav a:hover{ color:var(--stamp-red); }
+  .top-nav .brand{
+    font-family:'Newsreader', serif;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    text-transform:none;
+  }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:0 6vw; position:relative; }
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding-top:112px;
+    padding-bottom:2.2rem;
+  }
+  .file-stamp{
+    display:inline-flex;
+    align-items:center;
+    gap:0.6rem;
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--stamp-red);
+    border:1.5px solid var(--stamp-red);
+    border-radius:3px;
+    padding:0.3rem 0.7rem;
+    transform:rotate(-2deg);
+    margin-bottom:1.7rem;
+  }
+  .file-stamp::before{ content:"◆"; font-size:0.6rem; }
+  header.hero h1{
+    font-size:clamp(1.9rem, 4.2vw, 2.9rem);
+    font-weight:700;
+    line-height:1.2;
+    color:var(--ink);
+    margin-bottom:1.1rem;
+  }
+  header.hero h1 span{ color:var(--stamp-red); font-style:italic; }
+  header.hero .lede{
+    font-family:'Newsreader', serif;
+    font-size:1.08rem;
+    line-height:1.7;
+    color:#3a4358;
+    max-width:64ch;
+  }
+  .byline{
+    margin-top:1.6rem;
+    font-size:0.7rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    border-top:1px solid var(--rule);
+    padding-top:1rem;
+  }
+  .byline strong{ color:var(--ink); }
+
+  /* ---------- PROSE ---------- */
+  .prose{
+    font-family:'Newsreader', serif;
+    font-size:1.05rem;
+    line-height:1.8;
+    color:var(--ink);
+    padding:1.5rem 0 0.5rem;
+  }
+  .prose p{ margin-bottom:1.2rem; }
+  .prose p:last-child{ margin-bottom:0; }
+
+  /* ---------- SECTION HEADERS ---------- */
+  .section-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:3rem 0 1.3rem;
+    padding-bottom:0.7rem;
+    border-bottom:1px dashed var(--rule);
+  }
+  .section-header .tag{
+    font-size:0.68rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .section-header .ref{
+    font-size:0.68rem;
+    color:var(--stamp-green);
+  }
+
+  /* ---------- MANIFEST TABLE ---------- */
+  .manifest{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    font-size:0.78rem;
+  }
+  .manifest thead th{
+    text-align:left;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:0.64rem;
+    color:var(--ink-dim);
+    padding:0.7rem 0.9rem;
+    border-bottom:1px solid var(--rule);
+    background:rgba(28,39,64,0.04);
+  }
+  .manifest td{
+    padding:0.8rem 0.9rem;
+    border-bottom:1px solid var(--rule-soft);
+    vertical-align:top;
+  }
+  .manifest tr:last-child td{ border-bottom:none; }
+  .manifest .pkg{ font-weight:700; }
+  .manifest .note{ color:var(--ink-dim); font-size:0.72rem; display:block; margin-top:0.2rem; }
+  .stamp-pill{
+    display:inline-flex;
+    align-items:center;
+    padding:0.2rem 0.55rem;
+    border-radius:3px;
+    font-weight:700;
+    font-size:0.64rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .stamp-pill.clear{ background:rgba(58,107,74,0.12); color:var(--stamp-green); border:1px solid rgba(58,107,74,0.35);}
+  .stamp-pill.flag{ background:rgba(156,50,48,0.12); color:var(--stamp-red); border:1px solid rgba(156,50,48,0.35);}
+  .stamp-pill.review{ background:rgba(168,114,31,0.12); color:var(--stamp-amber); border:1px solid rgba(168,114,31,0.35);}
+  .manifest-wrap{ overflow-x:auto; }
+
+  /* ---------- DOCKET ENTRIES ---------- */
+  .docket{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:1.7rem 1.8rem;
+    margin-bottom:1.7rem;
+    position:relative;
+  }
+  .docket-meta{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:0.9rem;
+    font-size:0.66rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:1rem;
+    color:var(--ink-dim);
+  }
+  .docket-meta .no{ color:var(--ink); font-weight:700; }
+  .docket-stamp{
+    display:inline-flex;
+    align-items:center;
+    padding:0.2rem 0.6rem;
+    border-radius:3px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    transform:rotate(-2deg);
+  }
+  .docket-stamp.flag{ border:1.5px solid var(--stamp-red); color:var(--stamp-red); }
+  .docket-stamp.note{ border:1.5px solid var(--ink-dim); color:var(--ink-dim); }
+  .docket-stamp.gate{ border:1.5px solid var(--stamp-green); color:var(--stamp-green); }
+  .docket-stamp.review{ border:1.5px solid var(--stamp-amber); color:var(--stamp-amber); }
+
+  .docket h3{
+    font-family:'Newsreader', serif;
+    font-size:1.28rem;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:0.9rem;
+    line-height:1.4;
+  }
+  .docket .body-text{
+    font-family:'Newsreader', serif;
+    font-size:0.98rem;
+    color:#33394a;
+    line-height:1.75;
+    margin-bottom:1.1rem;
+  }
+  .docket .body-text em{ color:var(--stamp-red); font-style:normal; font-weight:600; }
+
+  .docket ul{
+    list-style:none;
+  }
+  .docket ul li{
+    position:relative;
+    padding-left:1.5rem;
+    margin-bottom:0.75rem;
+    font-size:0.88rem;
+    line-height:1.65;
+    color:var(--ink);
+  }
+  .docket ul li:last-child{ margin-bottom:0; }
+  .docket ul li::before{
+    content:"§";
+    position:absolute;
+    left:0;
+    color:var(--stamp-red);
+    font-weight:700;
+  }
+  .docket ul li strong{ color:var(--ink); }
+
+  .disposition{
+    margin-top:1.1rem;
+    padding-top:1rem;
+    border-top:1px dashed var(--rule);
+    font-size:0.84rem;
+    line-height:1.65;
+    color:var(--ink-dim);
+  }
+  .disposition .label{
+    color:var(--stamp-green);
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-size:0.64rem;
+    margin-right:0.5rem;
+  }
+
+  /* ---------- CARBON-COPY CODE EXHIBIT ---------- */
+  .exhibit{
+    margin-top:0.5rem;
+    background:var(--carbon);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .exhibit-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0.8rem 1.2rem;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--carbon-accent);
+  }
+  .exhibit pre{
+    padding:1.3rem 1.4rem 1.6rem;
+    overflow-x:auto;
+    font-size:0.82rem;
+    line-height:1.65;
+    color:var(--carbon-ink);
+  }
+  .exhibit code{ font-family:'Courier Prime', monospace; }
+  .exhibit .c1{ color:#7f8aa8; }
+  .exhibit .kw{ color:#f2b544; }
+  .exhibit .str{ color:#8fbf8f; }
+  .exhibit .fn{ color:#9cc6f2; }
+
+  /* ---------- AUDIT NOTE ---------- */
+  .audit-note{
+    margin-top:2.6rem;
+    padding:1.7rem 1.8rem;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:4px;
+  }
+  .audit-note .label{
+    font-size:0.66rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--stamp-amber);
+    margin-bottom:0.8rem;
+  }
+  .audit-note p{
+    font-family:'Newsreader', serif;
+    font-size:1rem;
+    line-height:1.8;
+    color:var(--ink);
+  }
+
+  .next-up{
+    margin-top:2.2rem;
+    padding-top:1.5rem;
+    border-top:1px solid var(--rule);
+    font-family:'Newsreader', serif;
+    font-size:0.94rem;
+    line-height:1.7;
+    color:var(--ink-dim);
+  }
+  .next-up .label{
+    display:block;
+    font-family:'Courier Prime', monospace;
+    font-size:0.66rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--stamp-green);
+    margin-bottom:0.5rem;
+  }
+
+  footer{
+    max-width:880px;
+    margin:0 auto;
+    padding:3rem 6vw 5rem;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+
+  @media (max-width:600px){
+    .docket{ padding:1.4rem 1.3rem; }
+    .manifest{ font-size:0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/">
+      <span aria-hidden="true">←</span> All posts
+    </a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="file-stamp">Compliance Intake · Dependency Ledger</div>
+      <h1 class="display">License Drift: The Compliance Incident That Never <span>Files a Ticket</span></h1>
+      <p class="lede">A transitive dependency's license changes on a routine version bump. Nothing throws an error, nothing pages on-call, and the pipeline goes green exactly as it did yesterday. The first person to notice is usually legal or procurement — months later, after the package has already shipped to production a dozen times.</p>
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · September 2026</p>
+    </header>
+
+    <section class="prose">
+      <p>This isn't a legal lecture. It's a monitoring problem that most pipelines don't monitor. A license is metadata attached to a dependency the same way a CVE score is — it changes state, it has a severity, and it can turn a routine <code>npm install</code> into an obligation nobody agreed to. Treated as an observability gap instead of a contracts question, it's a problem platform and DevOps teams are already equipped to close.</p>
+    </section>
+
+    <div class="section-header">
+      <span class="tag">Exhibit A — Dependency Manifest (Sample)</span>
+      <span class="ref">05 entries flagged for review</span>
+    </div>
+
+    <div class="manifest-wrap">
+      <table class="manifest">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Declared License</th>
+            <th>Observed Risk</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pkg">ui-datepicker-lite</td>
+            <td>MIT → BSL 1.1<span class="note">relicensed at v4.2.0, three minor versions back</span></td>
+            <td>Production usage predates the change</td>
+            <td><span class="stamp-pill flag">Flagged</span></td>
+          </tr>
+          <tr>
+            <td class="pkg">pdf-render-core</td>
+            <td>MIT<span class="note">unchanged across last 9 releases</span></td>
+            <td>None observed</td>
+            <td><span class="stamp-pill clear">Cleared</span></td>
+          </tr>
+          <tr>
+            <td class="pkg">queue-worker-utils</td>
+            <td>Apache-2.0<span class="note">pulls in a GPL-2.0 fork two levels down</span></td>
+            <td>Copyleft term inherited transitively</td>
+            <td><span class="stamp-pill review">Review</span></td>
+          </tr>
+          <tr>
+            <td class="pkg">chart-fx</td>
+            <td>Custom / no-compete clause<span class="note">free to use, restricted on redistribution as a competing product</span></td>
+            <td>Permissive-looking, not permissive</td>
+            <td><span class="stamp-pill review">Review</span></td>
+          </tr>
+          <tr>
+            <td class="pkg">log-shipper</td>
+            <td>AGPL-3.0<span class="note">commercial tier available, community tier is AGPL by default</span></td>
+            <td>Network-use copyleft trigger</td>
+            <td><span class="stamp-pill flag">Flagged</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-header">
+      <span class="tag">Docket Entries</span>
+      <span class="ref">04 findings</span>
+    </div>
+
+    <article class="docket">
+      <div class="docket-meta">
+        <span class="no">LR-001</span>
+        <span>Silent Risk / Supply Chain</span>
+        <span class="docket-stamp flag">Unmonitored</span>
+      </div>
+      <h3>The incident that doesn't page anyone</h3>
+      <p class="body-text">A transitive dependency's license changes — or a permissively licensed package gets relicensed to something restrictive — and no build fails, no alert fires, no dashboard turns red. This is exactly what happened at industry scale when Elastic moved Elasticsearch and Kibana from Apache 2.0 to the Server Side Public License, and again with MongoDB's SSPL shift years earlier: <em>the software didn't change, only the terms governing its use did</em>, and every downstream consumer inherited that change the moment they upgraded.</p>
+      <ul>
+        <li><strong>A version bump is a legal event, not just a technical one.</strong> CI treats a patch release as routine by default; a license change hiding inside it gets the same free pass.</li>
+        <li><strong>Protestware made the risk adversarial, not just administrative.</strong> The colors.js and faker.js incident in early 2022 showed a maintainer could alter runtime behavior unilaterally — a reminder that trust in a dependency is a standing decision, not a one-time check.</li>
+        <li><strong>Nobody owns "notice the license changed"</strong> the way someone owns "notice the CVE dropped." Without an explicit owner, it defaults to nobody.</li>
+      </ul>
+      <p class="disposition"><span class="label">Finding</span>License state is mutable and unmonitored in most pipelines — the same blind spot vulnerability scanning had before SCA tooling made it routine.</p>
+    </article>
+
+    <article class="docket">
+      <div class="docket-meta">
+        <span class="no">LR-002</span>
+        <span>Ownership / Process</span>
+        <span class="docket-stamp note">Reframed</span>
+      </div>
+      <h3>Why this is a DevOps problem, not just a legal one</h3>
+      <p class="body-text">Legal can write the policy — which licenses are acceptable, which trigger review, which are outright disallowed — but legal isn't in the dependency graph at 2am when a lockfile updates. That's the same argument that moved vulnerability scanning out of periodic audits and into CI. A Software Bill of Materials, in SPDX or CycloneDX format, is the artifact that makes license state queryable the way a vulnerability database makes CVE state queryable.</p>
+      <ul>
+        <li><strong>An SBOM turns "what licenses are we running" into a query</strong> instead of an annual spreadsheet exercise reconstructed from memory.</li>
+        <li><strong>The discipline is identical to CVE scanning:</strong> continuous detection, a severity model, and a gate — not a point-in-time audit that's stale the moment it's filed.</li>
+        <li><strong>Policy belongs to legal; enforcement belongs to the pipeline.</strong> Splitting those cleanly is what keeps the check from becoming either toothless or a bottleneck.</li>
+      </ul>
+      <p class="disposition"><span class="label">Finding</span>License compliance scales the same way security scanning does — by moving from a periodic review to a continuous, automated check with a clear owner.</p>
+    </article>
+
+    <article class="docket">
+      <div class="docket-meta">
+        <span class="no">LR-003</span>
+        <span>Scan Surface / Classification</span>
+        <span class="docket-stamp review">Under Review</span>
+      </div>
+      <h3>What to actually scan for</h3>
+      <p class="body-text">Permissive vs. copyleft is the binary most teams check for, and it's not enough. Four patterns cause most real incidents:</p>
+      <ul>
+        <li><strong>License type changes on upgrade</strong> — a package that was MIT last release and isn't this release, whether by relicensing or a maintainer swap.</li>
+        <li><strong>Copyleft creep in transitive dependencies</strong> — a top-level Apache-2.0 package pulling in a GPL-licensed dependency three levels down, inheriting obligations nobody at the top level agreed to.</li>
+        <li><strong>Dual-licensed, "open core" packages</strong> — free under a copyleft license, commercially licensed for anything else; using the free tier in a proprietary product can trigger the exact terms it looked like you avoided.</li>
+        <li><strong>"Free but restricted" licenses</strong> — GSAP is a useful real-world example: it's free to use in most projects under its own terms, but historically restricted building a directly competing library on top of it. That's a use-case restriction a simple permissive/copyleft classifier will misread as clear.</li>
+      </ul>
+      <p class="disposition"><span class="label">Finding</span>A binary permissive/copyleft check misses the two categories — dual-licensing and use-case restrictions — that cause the most surprising incidents.</p>
+    </article>
+
+    <article class="docket">
+      <div class="docket-meta">
+        <span class="no">LR-004</span>
+        <span>Enforcement / CI Gate</span>
+        <span class="docket-stamp gate">Gate Installed</span>
+      </div>
+      <h3>Building it into CI</h3>
+      <p class="body-text">Once the policy exists — an allowlist, a review list, a denylist — enforcement is mechanical. Tools like <em>license-checker</em> for npm, FOSSA, and the OSS Review Toolkit (ORT) can walk a full dependency tree, including transitive dependencies, and classify every license found against policy.</p>
+      <ul>
+        <li><strong>Fail the build on a denylisted license</strong>, the same way a critical CVE fails a security gate — not a warning buried in build logs nobody reads.</li>
+        <li><strong>Route review-list hits to a human</strong> instead of silently approving or silently blocking; ambiguous cases like use-case restrictions need judgment, not a rubber stamp.</li>
+        <li><strong>Re-run the scan on every dependency update</strong>, not just on a schedule — the whole point is catching drift at the moment it's introduced, not at next quarter's audit.</li>
+        <li><strong>Version the policy file itself</strong> so a denylist change is reviewable history, not a silent edit to what "compliant" means.</li>
+      </ul>
+      <p class="disposition"><span class="label">Finding</span>License scanning belongs in the same gate as dependency vulnerability scanning — a failed check before merge, not a finding after release.</p>
+    </article>
+
+    <div class="section-header">
+      <span class="tag">Exhibit B — CI Enforcement</span>
+      <span class="ref">license-gate.ts</span>
+    </div>
+
+    <div class="exhibit">
+      <div class="exhibit-head">
+        <span>ci / license-gate.ts</span>
+        <span>exit 1 on violation</span>
+      </div>
+      <pre><code><span class="c1">// Runs after `npm ls --all --json` produces the resolved dependency tree.</span>
+<span class="c1">// Fails the pipeline on any denylisted or unreviewed license.</span>
+
+<span class="kw">import</span> { readFileSync } <span class="kw">from</span> <span class="str">"fs"</span>;
+
+<span class="kw">type</span> Policy = {
+  allow: <span class="kw">string</span>[];
+  review: <span class="kw">string</span>[];
+  deny: <span class="kw">string</span>[];
+};
+
+<span class="kw">type</span> DependencyRecord = {
+  name: <span class="kw">string</span>;
+  version: <span class="kw">string</span>;
+  license: <span class="kw">string</span>;
+};
+
+<span class="kw">function</span> <span class="fn">classify</span>(dep: DependencyRecord, policy: Policy): <span class="kw">string</span> {
+  <span class="kw">if</span> (policy.deny.includes(dep.license)) <span class="kw">return</span> <span class="str">"DENY"</span>;
+  <span class="kw">if</span> (policy.review.includes(dep.license)) <span class="kw">return</span> <span class="str">"REVIEW"</span>;
+  <span class="kw">if</span> (policy.allow.includes(dep.license)) <span class="kw">return</span> <span class="str">"ALLOW"</span>;
+  <span class="kw">return</span> <span class="str">"UNKNOWN"</span>; <span class="c1">// unrecognized license — treat as a gate failure, not a pass</span>
+}
+
+<span class="kw">function</span> <span class="fn">runGate</span>() {
+  <span class="kw">const</span> policy: Policy = JSON.parse(readFileSync(<span class="str">"license-policy.json"</span>, <span class="str">"utf-8"</span>));
+  <span class="kw">const</span> deps: DependencyRecord[] = JSON.parse(readFileSync(<span class="str">"resolved-deps.json"</span>, <span class="str">"utf-8"</span>));
+
+  <span class="kw">const</span> denied = deps.filter(d => <span class="fn">classify</span>(d, policy) === <span class="str">"DENY"</span>);
+  <span class="kw">const</span> unknown = deps.filter(d => <span class="fn">classify</span>(d, policy) === <span class="str">"UNKNOWN"</span>);
+  <span class="kw">const</span> review = deps.filter(d => <span class="fn">classify</span>(d, policy) === <span class="str">"REVIEW"</span>);
+
+  <span class="kw">if</span> (review.length) {
+    console.log(<span class="str">`${review.length} dependencies require manual review — routing to #license-review.`</span>);
+  }
+
+  <span class="kw">if</span> (denied.length || unknown.length) {
+    console.error(<span class="str">"License gate failed:"</span>);
+    [...denied, ...unknown].forEach(d =>
+      console.error(<span class="str">`  ${d.name}@${d.version} — ${d.license}`</span>)
+    );
+    process.exit(<span class="str">1</span>);
+  }
+
+  console.log(<span class="str">"License gate passed."</span>);
+}
+
+<span class="fn">runGate</span>();</code></pre>
+    </div>
+
+    <div class="audit-note">
+      <div class="label">Audit Note</div>
+      <p>None of this replaces legal review — it replaces the assumption that legal review happens before every dependency update ships, which in practice it never does. The gate's job is narrow: catch drift the moment it enters the tree, route the ambiguous cases to a human, and let everything already cleared move at normal CI speed. The instinct to build is the same one that made vulnerability scanning routine — treat a changing piece of metadata as something worth watching continuously, not something worth discovering after the fact.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Schema migrations at scale — running them without locking the table your traffic depends on.
+    </div>
+  </div>
+
+  <footer>
+    © 2026 e-diversify
+  </footer>
+
+</body>
+</html>
