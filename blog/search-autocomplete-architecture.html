@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/assets/js/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Core SEO Meta Directives -->
+<title>Every Keystroke Is a Query: The Architecture of Search Autocomplete | Vimal Maheedharan</title>
+<meta name="description" content="Search autocomplete is a read path that fires on every keystroke. Latency budgets, tries vs FSTs vs edge n-grams, snapshot pipelines, stale-response races, takedown policy, and the SLIs that matter. By Vimal Maheedharan, Technical Architect & SRE Consultant.">
+<meta name="keywords" content="Search Autocomplete, Typeahead Architecture, Search Suggestions, Trie, FST, Elasticsearch Completion Suggester, search_as_you_type, Edge N-gram, Latency Budget, Debounce, Caching, System Design, Distributed Systems, Observability, SLI, SRE, Platform Engineering, DevOps, Vimal Maheedharan, Technical Architect, Solutions Architect, SRE Consultant, Cloud Consultant, Platform Engineering Consultant, DevOps Consultant, Staff Engineer">
+<meta name="author" content="Vimal Maheedharan">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e-diversify.com/blog/search-autocomplete-architecture.html">
+
+<!-- OpenGraph Enterprise Social Shared Cards -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Every Keystroke Is a Query: The Architecture of Search Autocomplete | Vimal Maheedharan">
+<meta property="og:description" content="Autocomplete is a read path that fires on every keystroke. Latency budgets, data structures, snapshot pipelines, stale-response races, takedown policy, and the SLIs that matter — with a live trie lab.">
+<meta property="og:url" content="https://e-diversify.com/blog/search-autocomplete-architecture.html">
+<meta property="og:site_name" content="E-Diversify Platform Architecture">
+<meta property="og:image" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:secure_url" content="https://e-diversify.com/assets/img/og-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Search autocomplete architecture — a search box with ghost-text completions, a latency budget and a live trie lab">
+
+<!-- Twitter/X Card (WhatsApp/iMessage also read these as a fallback) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Every Keystroke Is a Query: The Architecture of Search Autocomplete">
+<meta name="twitter:description" content="The cheapest-looking feature on the page is one of its hardest read paths. A design walkthrough with a live trie lab.">
+<meta name="twitter:image" content="https://e-diversify.com/assets/img/og-preview.png">
+
+<!-- Dynamic Inline SVG Favicon (Renders "ED") -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230f172a%22/><text y=%2268%22 x=%2250%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22 fill=%22%2322d3ee%22 text-anchor=%22middle%22>ED</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f6fb;
+    --card:#ffffff;
+    --ink:#0d1b2e;
+    --ink-2:#34445c;
+    --dim:#5d6e85;
+    --line:#d8e0ec;
+    --line-soft:#e8edf5;
+    --blue:#2a5bff;
+    --blue-soft:rgba(42,91,255,0.09);
+    --hl:#ffe14d;
+    --mint:#0b8f6e;
+    --mint-soft:rgba(11,143,110,0.10);
+    --coral:#e5483b;
+    --coral-soft:rgba(229,72,59,0.10);
+    --amber:#b86e00;
+    --amber-soft:rgba(184,110,0,0.11);
+    --editor:#eef2fa;
+    --serif:'Instrument Serif', Georgia, serif;
+    --sans:'Figtree', system-ui, sans-serif;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:32px 32px;
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:1.04rem;
+    line-height:1.75;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);}
+  code{font-family:var(--mono); font-size:0.86em; background:var(--blue-soft); padding:0.08em 0.38em; border-radius:4px; color:#1f3fb8;}
+
+  /* ---------- PROGRESS + NAV ---------- */
+  #prog{position:fixed; top:0; left:0; height:3px; width:0; background:var(--blue); z-index:200; transition:width .08s linear;}
+  .top-nav{
+    position:fixed; top:3px; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.85rem 6vw;
+    background:rgba(243,246,251,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+  }
+  .top-nav a{text-decoration:none; color:var(--dim); display:flex; align-items:center; gap:0.5rem; transition:color .2s;}
+  .top-nav a:hover{color:var(--blue);}
+  .top-nav .brand{font-family:var(--serif); font-size:1.35rem; letter-spacing:0; text-transform:none; color:var(--ink);}
+
+  .wrap{max-width:860px; margin:0 auto; padding:0 6vw; position:relative;}
+
+  /* ---------- HERO ---------- */
+  header.hero{padding-top:118px; padding-bottom:1.6rem;}
+  .kicker{
+    display:inline-flex; align-items:center; gap:0.55rem;
+    font-family:var(--mono); font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--blue); background:var(--blue-soft); border:1px solid rgba(42,91,255,0.25);
+    padding:0.3rem 0.75rem; border-radius:999px; margin-bottom:1.5rem;
+  }
+  .kicker i{width:7px; height:7px; border-radius:50%; background:var(--blue); display:inline-block;}
+  header.hero h1{
+    font-family:var(--serif); font-weight:400;
+    font-size:clamp(2.5rem, 6.4vw, 4.3rem); line-height:1.04; letter-spacing:-0.01em;
+    margin-bottom:1.3rem;
+  }
+  header.hero h1 em{font-style:italic; color:var(--blue);}
+  header.hero .lede{font-size:1.14rem; line-height:1.7; color:var(--ink-2); max-width:62ch;}
+  .byline{
+    margin-top:1.7rem; padding-top:1rem; border-top:1px solid var(--line);
+    font-family:var(--mono); font-size:0.7rem; letter-spacing:0.07em; text-transform:uppercase; color:var(--dim);
+  }
+  .byline strong{color:var(--ink);}
+
+  /* hero search pill */
+  .hero-search{margin-top:2.2rem; max-width:560px;}
+  .pill{
+    display:flex; align-items:center; gap:0.75rem;
+    background:var(--card); border:1.5px solid var(--ink); border-radius:999px 999px 0 0;
+    padding:0.8rem 1.2rem; font-family:var(--mono); font-size:0.98rem; box-shadow:0 10px 30px rgba(13,27,46,0.08);
+  }
+  .pill svg{flex:none; color:var(--dim);}
+  .pill .caret{display:inline-block; width:2px; height:1.15em; background:var(--blue); vertical-align:text-bottom; margin-left:1px; animation:blink 1.1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  .drop{background:var(--card); border:1.5px solid var(--ink); border-top:1px solid var(--line); border-radius:0 0 18px 18px; box-shadow:0 18px 30px rgba(13,27,46,0.08); overflow:hidden;}
+  .drop div{padding:0.52rem 1.2rem 0.52rem 3.0rem; font-family:var(--mono); font-size:0.9rem; color:var(--dim); line-height:1.5;}
+  .drop div:first-child{background:var(--blue-soft);}
+  .drop b{color:var(--ink); font-weight:600;}
+  .hl{background:linear-gradient(transparent 55%, var(--hl) 55%);}
+
+  /* ---------- SECTION HEADERS (prefix of "autocomplete") ---------- */
+  .sec-head{margin:4rem 0 1.3rem; scroll-margin-top:90px;}
+  .sbox{
+    display:inline-flex; align-items:center; gap:0.55rem;
+    font-family:var(--mono); font-size:0.88rem;
+    background:var(--card); border:1px solid var(--line); border-radius:999px;
+    padding:0.32rem 0.95rem 0.32rem 0.75rem; margin-bottom:0.85rem;
+  }
+  .sbox svg{color:var(--dim);}
+  .sbox .typed{color:var(--ink); font-weight:600;}
+  .sbox .ghost{color:#b3bfd1;}
+  .sbox .ret{margin-left:0.25rem; color:var(--blue); font-size:0.8em;}
+  .sec-head h2{font-family:var(--serif); font-weight:400; font-size:clamp(1.8rem, 4vw, 2.5rem); line-height:1.12; letter-spacing:-0.005em;}
+  .sec-head h2 em{color:var(--blue);}
+
+  p{margin-bottom:1.15rem; color:var(--ink);}
+  p.dim{color:var(--ink-2);}
+  strong{font-weight:600;}
+  ul.plain{list-style:none; margin:0.2rem 0 1.4rem;}
+  ul.plain li{position:relative; padding-left:1.4rem; margin-bottom:0.65rem; color:var(--ink);}
+  ul.plain li::before{content:"›"; position:absolute; left:0.2rem; color:var(--blue); font-weight:700;}
+
+  /* ---------- FIELD NOTE (real incident) ---------- */
+  .note{
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--blue);
+    border-radius:6px; padding:1.25rem 1.4rem 1.1rem; margin:1.6rem 0;
+  }
+  .note .tag{
+    display:inline-block; font-family:var(--mono); font-size:0.64rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--blue); margin-bottom:0.5rem;
+  }
+  .note h3{font-family:var(--serif); font-weight:400; font-size:1.4rem; line-height:1.25; margin-bottom:0.55rem;}
+  .note p{font-size:0.97rem; color:var(--ink-2); margin-bottom:0.7rem; line-height:1.7;}
+  .note p:last-child{margin-bottom:0;}
+  .note.warn{border-left-color:var(--coral);} .note.warn .tag{color:var(--coral);}
+  .note.ok{border-left-color:var(--mint);} .note.ok .tag{color:var(--mint);}
+
+  /* ---------- BUDGET BAR ---------- */
+  .fig{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:1.3rem 1.4rem 1.2rem; margin:1.6rem 0;}
+  .fig-head{display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.4rem; font-family:var(--mono); font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim); margin-bottom:1rem;}
+  .budget{display:flex; height:46px; border-radius:6px; overflow:hidden; border:1px solid var(--ink);}
+  .budget span{display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.72rem; font-weight:600; color:#fff; border-right:1px solid rgba(255,255,255,0.55); min-width:0;}
+  .budget span:last-child{border-right:none;}
+  .b1{background:#7a8aa6;} .b2{background:#4f7bff;} .b3{background:#0b8f6e;} .b4{background:#0d1b2e;} .b5{background:#4f7bff;} .b6{background:#b86e00;}
+  .scale{position:relative; height:26px; margin-top:6px; font-family:var(--mono); font-size:0.64rem; color:var(--dim);}
+  .scale .tick{position:absolute; top:0; transform:translateX(-50%); text-align:center;}
+  .scale .tick::before{content:""; display:block; width:1px; height:6px; background:var(--dim); margin:0 auto 2px;}
+  .scale .limit{color:var(--coral); font-weight:600;}
+  .scale .limit::before{background:var(--coral); height:10px;}
+  .legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:0.5rem 1.4rem; margin-top:0.9rem; font-size:0.9rem; color:var(--ink-2);}
+  .legend div{display:flex; gap:0.6rem; align-items:baseline; line-height:1.5;}
+  .legend i{flex:none; width:10px; height:10px; border-radius:2px; transform:translateY(1px);}
+  .legend b{font-family:var(--mono); font-size:0.78rem; color:var(--ink);}
+  .fig-foot{margin-top:0.9rem; font-family:var(--mono); font-size:0.68rem; color:var(--dim);}
+
+  /* ---------- TABLE ---------- */
+  .tbl-wrap{overflow-x:auto; margin:1.5rem 0; border:1px solid var(--line); border-radius:8px; background:var(--card);}
+  table.cmp{width:100%; border-collapse:collapse; font-size:0.86rem; min-width:640px;}
+  table.cmp th{
+    text-align:left; font-family:var(--mono); font-weight:600; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--dim); padding:0.75rem 0.9rem; background:var(--editor); border-bottom:1px solid var(--line);
+  }
+  table.cmp td{padding:0.85rem 0.9rem; border-bottom:1px solid var(--line-soft); vertical-align:top; line-height:1.55; color:var(--ink-2);}
+  table.cmp tr:last-child td{border-bottom:none;}
+  table.cmp td:first-child{color:var(--ink); font-weight:600; min-width:150px;}
+  table.cmp td:first-child span{display:block; font-weight:400; font-family:var(--mono); font-size:0.7rem; color:var(--dim); margin-top:0.2rem;}
+
+  /* ---------- LAB (live demos) ---------- */
+  .lab{background:var(--card); border:1.5px solid var(--ink); border-radius:10px; margin:1.8rem 0; box-shadow:6px 6px 0 var(--ink); overflow:hidden;}
+  .lab-head{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;
+    background:var(--ink); color:#cfe0ff; padding:0.6rem 1.1rem;
+    font-family:var(--mono); font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase;
+  }
+  .lab-head b{color:var(--hl); font-weight:600;}
+  .lab-body{padding:1.2rem 1.2rem 1.3rem;}
+  .lab-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:1.4rem;}
+  @media (max-width:760px){ .lab-grid{grid-template-columns:1fr;} }
+
+  .searchbox{display:flex; align-items:center; gap:0.6rem; border:1.5px solid var(--ink); border-radius:999px; padding:0.2rem 1rem; background:#fff;}
+  .searchbox svg{color:var(--dim); flex:none;}
+  .searchbox input{border:none; outline:none; background:transparent; flex:1; min-width:0; font-family:var(--mono); font-size:1rem; padding:0.6rem 0; color:var(--ink);}
+  .searchbox:focus-within{box-shadow:0 0 0 3px rgba(42,91,255,0.25); border-color:var(--blue);}
+  ul.sugg{list-style:none; margin:0.55rem 0 0; border:1px solid var(--line); border-radius:10px; overflow:hidden; min-height:48px;}
+  ul.sugg li{display:flex; justify-content:space-between; gap:0.8rem; align-items:baseline; padding:0.5rem 0.9rem; font-family:var(--mono); font-size:0.88rem; cursor:pointer; border-bottom:1px solid var(--line-soft); color:var(--dim); margin:0; line-height:1.45;}
+  ul.sugg li:last-child{border-bottom:none;}
+  ul.sugg li b{color:var(--ink); font-weight:600;}
+  ul.sugg li[aria-selected="true"], ul.sugg li:hover{background:var(--blue-soft);}
+  ul.sugg li::before{display:none;}
+  ul.sugg li .sc{font-size:0.7rem; color:#8a98ad; white-space:nowrap;}
+  ul.sugg li .flag{font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--coral); background:var(--coral-soft); border:1px solid rgba(229,72,59,0.35); border-radius:3px; padding:0.05rem 0.35rem; margin-left:0.45rem;}
+  ul.sugg li.empty{cursor:default; color:var(--dim); font-style:italic; font-family:var(--sans); background:transparent;}
+  .try{margin-top:0.7rem; font-family:var(--mono); font-size:0.7rem; color:var(--dim); display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center;}
+  .try button{font-family:var(--mono); font-size:0.72rem; background:var(--editor); border:1px solid var(--line); color:var(--ink); padding:0.18rem 0.6rem; border-radius:999px; cursor:pointer;}
+  .try button:hover{border-color:var(--blue); color:var(--blue);}
+
+  .ctl{margin-top:1rem; padding-top:0.9rem; border-top:1px dashed var(--line); display:grid; gap:0.6rem; font-size:0.86rem; color:var(--ink-2);}
+  .ctl .seg{display:inline-flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden; width:max-content; max-width:100%;}
+  .ctl .seg button{font-family:var(--mono); font-size:0.72rem; padding:0.4rem 0.8rem; background:#fff; border:none; cursor:pointer; color:var(--ink);}
+  .ctl .seg button + button{border-left:1px solid var(--ink);}
+  .ctl .seg button[aria-pressed="true"]{background:var(--ink); color:#fff;}
+  .ctl label{display:flex; gap:0.5rem; align-items:flex-start; cursor:pointer; line-height:1.5;}
+  .ctl input[type=checkbox]{margin-top:0.3rem; accent-color:var(--blue);}
+
+  .path{display:flex; flex-wrap:wrap; align-items:center; gap:0.3rem; min-height:34px; font-family:var(--mono); font-size:0.74rem;}
+  .path .chip{background:var(--editor); border:1px solid var(--line); border-radius:6px; padding:0.18rem 0.5rem; color:var(--ink);}
+  .path .chip small{color:var(--dim); margin-left:0.35rem; font-size:0.9em;}
+  .path .chip.cur{background:var(--ink); color:#fff; border-color:var(--ink);} .path .chip.cur small{color:#b9c8e6;}
+  .path .chip.dead{background:var(--coral-soft); border-color:rgba(229,72,59,0.4); color:var(--coral);}
+  .path .arr{color:#b3bfd1;}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin:0.9rem 0;}
+  .stats div{background:var(--editor); border-radius:8px; padding:0.65rem 0.7rem; border:1px solid var(--line-soft);}
+  .stats b{display:block; font-family:var(--serif); font-weight:400; font-size:1.9rem; line-height:1; color:var(--ink);}
+  .stats span{display:block; margin-top:0.3rem; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.07em; text-transform:uppercase; color:var(--dim); line-height:1.35;}
+  .stats .hot b{color:var(--coral);} .stats .cool b{color:var(--mint);}
+  .explain{font-size:0.88rem; color:var(--ink-2); line-height:1.6; margin:0;}
+
+  /* race lab */
+  .race-tabs{display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;}
+  .race-tabs .seg{display:inline-flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden;}
+  .race-tabs .seg button{font-family:var(--mono); font-size:0.72rem; padding:0.42rem 0.85rem; background:#fff; border:none; cursor:pointer; color:var(--ink);}
+  .race-tabs .seg button + button{border-left:1px solid var(--ink);}
+  .race-tabs .seg button[aria-pressed="true"]{background:var(--ink); color:#fff;}
+  .lane{display:grid; grid-template-columns:62px 1fr; gap:0.6rem; align-items:center; margin-bottom:0.45rem; font-family:var(--mono); font-size:0.74rem;}
+  .lane .lbl{color:var(--ink); font-weight:600;}
+  .lane .track{position:relative; height:26px; background:var(--editor); border-radius:4px; border:1px solid var(--line-soft);}
+  .lane .bar{position:absolute; top:6px; height:12px; border-radius:3px; background:#a9b8d6;}
+  .lane .dot{position:absolute; top:3px; width:18px; height:18px; border-radius:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:center; font-size:0.62rem; color:#fff; font-weight:700;}
+  .lane .dot.ok{background:var(--mint);} .lane .dot.no{background:var(--coral);}
+  .axis{display:grid; grid-template-columns:62px 1fr; gap:0.6rem; font-family:var(--mono); font-size:0.62rem; color:var(--dim);}
+  .axis div{display:flex; justify-content:space-between; padding-top:2px;}
+  .outcome{margin-top:1rem; padding:0.8rem 1rem; border-radius:8px; font-size:0.92rem; line-height:1.55; border:1px solid;}
+  .outcome.bad{background:var(--coral-soft); border-color:rgba(229,72,59,0.4); color:#8f2219;}
+  .outcome.good{background:var(--mint-soft); border-color:rgba(11,143,110,0.4); color:#07604a;}
+  .outcome code{background:rgba(255,255,255,0.7);}
+  .order{margin-top:0.6rem; font-family:var(--mono); font-size:0.72rem; color:var(--dim);}
+
+  /* ---------- CODE ---------- */
+  .code-card{background:var(--editor); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:1.5rem 0;}
+  .code-head{display:flex; justify-content:space-between; gap:0.6rem; padding:0.6rem 1rem; background:#e1e8f4; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);}
+  .code-head b{color:var(--blue); font-weight:600;}
+  pre.code{padding:1.1rem 1.2rem 1.3rem; overflow-x:auto; font-family:var(--mono); font-size:0.8rem; line-height:1.65; color:#1b2b45; tab-size:2;}
+  pre.code .tk-c{color:#7a8aa3; font-style:italic;} pre.code .tk-s{color:#0b8f6e;} pre.code .tk-k{color:#2a5bff; font-weight:500;} pre.code .tk-f{color:#c2410c;}
+
+  /* ---------- PIPELINE SVG ---------- */
+  .svg-scroll{overflow-x:auto;}
+  .svg-scroll svg{min-width:720px; width:100%; height:auto; display:block;}
+  .svg-scroll text{font-family:'IBM Plex Mono', monospace;}
+
+  /* ---------- SLI GRID ---------- */
+  .sli-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:0.9rem; margin:1.5rem 0;}
+  .sli{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:1rem 1.1rem 1rem; display:flex; flex-direction:column; gap:0.35rem;}
+  .sli .k{font-family:var(--mono); font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--blue);}
+  .sli h4{font-family:var(--serif); font-weight:400; font-size:1.25rem; line-height:1.25;}
+  .sli p{font-size:0.88rem; color:var(--ink-2); line-height:1.55; margin:0;}
+  .sli .tgt{margin-top:auto; padding-top:0.5rem; border-top:1px dashed var(--line); font-family:var(--mono); font-size:0.7rem; color:var(--dim); line-height:1.5;}
+  .sli .tgt b{color:var(--ink);}
+
+  /* ---------- FAILURE LIST ---------- */
+  .fm{background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:0.9rem; overflow:hidden;}
+  .fm-head{display:flex; gap:0.8rem; align-items:baseline; padding:0.8rem 1.1rem; border-bottom:1px solid var(--line-soft); background:var(--editor);}
+  .fm-head .id{font-family:var(--mono); font-size:0.7rem; font-weight:600; color:var(--coral);}
+  .fm-head h4{font-family:var(--serif); font-weight:400; font-size:1.2rem; line-height:1.3;}
+  .fm-body{padding:0.85rem 1.1rem 0.95rem; font-size:0.93rem; color:var(--ink-2); line-height:1.65;}
+  .fm-body p{margin:0 0 0.5rem; font-size:inherit; color:inherit;}
+  .fm-body p:last-child{margin-bottom:0;}
+  .fm-body .fix{color:var(--ink);}
+  .fm-body .fix::before{content:"Fix · "; font-family:var(--mono); font-size:0.7rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--mint);}
+
+  /* ---------- CLOSING ---------- */
+  .closing{margin-top:2.4rem; background:var(--ink); color:#dbe6fb; border-radius:10px; padding:1.7rem 1.8rem;}
+  .closing .lab-tag{font-family:var(--mono); font-size:0.66rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--hl); margin-bottom:0.7rem;}
+  .closing p{color:#dbe6fb; font-size:1.02rem; line-height:1.75; margin:0;}
+  .next-up{margin-top:2.2rem; padding-top:1.5rem; border-top:1px solid var(--line); font-size:0.97rem; color:var(--ink-2); line-height:1.7;}
+  .next-up .label{display:block; font-family:var(--mono); font-size:0.66rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--mint); margin-bottom:0.45rem;}
+  .sources{margin-top:2rem; font-size:0.82rem; color:var(--dim); line-height:1.6;}
+  .sources h5{font-family:var(--mono); font-size:0.66rem; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:0.5rem; color:var(--dim); font-weight:600;}
+  .sources ol{padding-left:1.2rem;}
+  .sources li{margin-bottom:0.3rem; word-break:break-word;}
+
+  footer{max-width:860px; margin:0 auto; padding:3rem 6vw 5rem; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);}
+
+  @media (prefers-reduced-motion:reduce){ .pill .caret{animation:none;} html{scroll-behavior:auto;} #prog{transition:none;} }
+  @media (max-width:600px){
+    .note{padding:1.1rem 1.1rem 1rem;}
+    .lab{box-shadow:4px 4px 0 var(--ink);}
+    .stats b{font-size:1.6rem;}
+  }
+</style>
+</head>
+<body>
+<div id="prog" aria-hidden="true"></div>
+
+  <nav class="top-nav" aria-label="Site">
+    <a href="/blog/" class="brand">ED</a>
+    <a href="/blog/">
+      <span aria-hidden="true">←</span> All posts
+    </a>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <div class="kicker"><i></i>Read Path · Typeahead · Systems</div>
+      <h1>Every Keystroke Is a <em>Query</em></h1>
+      <p class="lede">Search autocomplete looks like the cheapest feature on the page and behaves like one of the hardest read paths in the system: it fires on every character, has a latency budget measured in human perception, and publishes text derived from what other people typed. This is the architecture that keeps it fast, fresh and defensible.</p>
+
+      <div class="hero-search" aria-hidden="true">
+        <div class="pill">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <span><span class="hl">auto</span><span class="caret"></span></span>
+        </div>
+        <div class="drop">
+          <div><span>auto</span><b>complete latency budget</b></div>
+          <div><span>auto</span><b>complete trie vs fst</b></div>
+          <div><span>auto</span><b>complete stale responses</b></div>
+          <div><span>auto</span><b>complete takedown policy</b></div>
+        </div>
+      </div>
+
+      <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · October 2026</p>
+    </header>
+
+    <!-- ============ 1 · a ============ -->
+    <div class="sec-head" id="amplification">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">a</span><span class="ghost">utocomplete</span></div>
+      <h2>Every keystroke is a <em>query</em></h2>
+    </div>
+
+    <p>Typing "autocomplete" into a search box and pressing enter looks like one request. Left alone, the client sends up to twelve: one per character, each racing the next, each needing an answer before the following key lands. Traffic to the suggest endpoint is roughly search traffic multiplied by the number of keystrokes per query, before debouncing and caching claw some of it back.</p>
+
+    <p>The latency target is set by people, not by the service. The long-standing usability rule of thumb is that around 100 ms feels instantaneous. A suggestion that arrives after the user has already typed past it is not slow, it is wrong, because it answers a prefix that no longer exists.</p>
+
+    <p>The payoff justifies the cost. Google's own figure is that autocomplete cuts typing by roughly a quarter on average, which is why nearly every search surface ships one. The engineering question is how to deliver that benefit without turning a text box into the busiest endpoint in the platform.</p>
+
+    <div class="note">
+      <span class="tag">Real incident · Google Instant, 2010 – 2017</span>
+      <h3>The expensive read path was retired. The cheap one stayed.</h3>
+      <p>Google Instant rendered full results as the user typed. It launched in 2010 and was switched off in July 2017, with Google citing the shift to mobile input and screen constraints. What survived was the suggestion dropdown: a small, narrow payload that can be precomputed.</p>
+      <p>Google's stated reason was mobile, but the architectural takeaway holds regardless. When a feature runs on every keystroke, the response has to be small enough to compute, cache and ship inside the budget. Full result pages were not. A list of five strings is.</p>
+    </div>
+
+    <!-- ============ 2 · au ============ -->
+    <div class="sec-head" id="budget">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">au</span><span class="ghost">tocomplete</span></div>
+      <h2>The latency budget is mostly <em>not yours</em></h2>
+    </div>
+
+    <p>Start from the 100 ms perception line and subtract everything the service does not control. Debounce, two network legs, an edge hop and the browser's render pass consume most of it, which leaves the suggest service with a single-digit to low-double-digit millisecond allowance. That number rules out a database query, a fan-out to other services, or anything that touches disk on the hot path.</p>
+
+    <div class="fig" role="img" aria-label="Illustrative keystroke-to-render budget: debounce 30 ms, uplink 20 ms, edge 5 ms, suggest service 10 ms, downlink 20 ms, render 10 ms, totalling 95 ms against a 100 ms line.">
+      <div class="fig-head"><span>Fig. 1 · Keystroke-to-render budget</span><span>illustrative design budget, not a benchmark</span></div>
+      <div class="budget">
+        <span class="b1" style="flex:30">30</span>
+        <span class="b2" style="flex:20">20</span>
+        <span class="b3" style="flex:5">5</span>
+        <span class="b4" style="flex:10">10</span>
+        <span class="b5" style="flex:20">20</span>
+        <span class="b6" style="flex:10">10</span>
+        <span style="flex:5; background:transparent; border:none;"></span>
+      </div>
+      <div class="scale" aria-hidden="true">
+        <span class="tick" style="left:0%; transform:none;">0</span>
+        <span class="tick" style="left:95%">95 ms</span>
+        <span class="tick limit" style="left:100%; transform:translateX(-100%);">100 ms</span>
+      </div>
+      <div class="legend">
+        <div><i class="b1"></i><span><b>30 ms</b> client debounce, the pause before a request is sent</span></div>
+        <div><i class="b2"></i><span><b>20 ms</b> uplink to the nearest edge</span></div>
+        <div><i class="b3"></i><span><b>5 ms</b> edge cache lookup, hit or miss decision</span></div>
+        <div><i class="b4"></i><span><b>10 ms</b> suggest service: memory-only prefix lookup</span></div>
+        <div><i class="b5"></i><span><b>20 ms</b> downlink with a small gzip-friendly JSON body</span></div>
+        <div><i class="b6"></i><span><b>10 ms</b> render the dropdown, update ARIA live region</span></div>
+      </div>
+      <div class="fig-foot">Everything left of the service is paid per keystroke. Cache hits at the edge remove the 10 ms and the origin leg entirely.</div>
+    </div>
+
+    <p>Two consequences follow. First, the service has to be a pure in-memory lookup whose cost depends on the length of the prefix, not the size of the corpus. Second, the cheapest request is the one that never leaves the browser or the edge, so caching is not an optimisation to add later; it is half of the design.</p>
+
+    <!-- ============ 3 · aut ============ -->
+    <div class="sec-head" id="structures">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">aut</span><span class="ghost">ocomplete</span></div>
+      <h2>Picking the <em>data structure</em></h2>
+    </div>
+
+    <p>Four approaches cover most real systems. They differ in what they make cheap: prefix lookups, ranking flexibility, mid-phrase matching, or operational simplicity.</p>
+
+    <div class="tbl-wrap">
+      <table class="cmp">
+        <thead>
+          <tr><th>Approach</th><th>How a lookup works</th><th>Ranking</th><th>Strength</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Trie, top-k per node<span>custom service</span></td>
+            <td>Walk one node per character, then read the list stored on the final node.</td>
+            <td>Anything you can score offline; baked into the snapshot.</td>
+            <td>Cost depends on prefix length only. Total control over ranking and filtering.</td>
+            <td>Memory: every node carries its own top-k. Rebuild to change rankings.</td>
+          </tr>
+          <tr>
+            <td>FST (Lucene / Elasticsearch completion suggester)<span>in-memory graph</span></td>
+            <td>Follow a compact finite state transducer from the left; Elasticsearch builds one per segment.</td>
+            <td>Integer weights supplied at index time.</td>
+            <td>Compact, fast, already inside the search engine; supports fuzzy matching.</td>
+            <td>Prefix-oriented: it cannot find a word in the middle of a phrase unless extra inputs are indexed.</td>
+          </tr>
+          <tr>
+            <td>Edge n-grams / <code>search_as_you_type</code><span>inverted index</span></td>
+            <td>Index every leading fragment of each term, then use ordinary term lookups.</td>
+            <td>Normal relevance scoring, so popularity and field boosts mix freely.</td>
+            <td>Matches any word in a phrase; good for product and catalogue search.</td>
+            <td>Larger index and slower than an FST for pure prefix cases.</td>
+          </tr>
+          <tr>
+            <td>Redis sorted set, lexicographic range<span>prototype scale</span></td>
+            <td>Store members at equal score and range-scan by lexicographic prefix.</td>
+            <td>Results come back in lexical order, not popularity; ranking needs a second structure.</td>
+            <td>Trivial to operate; instant writes.</td>
+            <td>Becomes awkward the moment popularity, freshness or filtering matter.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The trie with a precomputed top-k is the clearest way to see why prefix lookups can be constant with respect to corpus size. Each node already knows its best completions, so a lookup is a short walk and a list read. Nothing is sorted at request time and nothing scans the corpus.</p>
+
+    <div class="note ok">
+      <span class="tag">Real design note · Elasticsearch completion suggester</span>
+      <h3>Build the graph at index time, not at query time</h3>
+      <p>Elastic's engineers described the earlier Lucene suggesters as built in memory by loading completion values from the index, which was slow, resource-hungry and had to be repeated whenever the index changed. The completion suggester moved that work to index time: an FST is written per segment when the segment is written, then loaded quickly when needed. The same principle runs through the whole post: do the expensive work before the keystroke, never during it.</p>
+    </div>
+
+    <p>Edge n-grams and <code>search_as_you_type</code> (available since Elasticsearch 7.2) are the better fit when users type the middle of a phrase, for example a product name where the second word is the distinctive one. The price is a bigger index and a slower lookup than the FST path, which is an acceptable trade only when mid-phrase matching earns it.</p>
+
+    <!-- ============ 4 · auto ============ -->
+    <div class="sec-head" id="lab">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">auto</span><span class="ghost">complete</span></div>
+      <h2>Build one and <em>watch it work</em></h2>
+    </div>
+
+    <p>The lab below constructs a real trie in the browser from a small synthetic query log. The scores are invented for the demo. Type a prefix, then flip the lookup strategy and compare what each approach has to touch. Toggle the policy filter to see why takedowns are a build-time concern.</p>
+
+    <div class="lab" id="trie-lab">
+      <div class="lab-head"><span><b>Lab 1</b> · prefix lookup</span><span id="lab-build">building…</span></div>
+      <div class="lab-body">
+        <noscript><p>This lab needs JavaScript.</p></noscript>
+        <div class="lab-grid">
+          <div>
+            <div class="searchbox">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="q" type="text" role="combobox" aria-expanded="true" aria-controls="sugg" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="type a prefix, e.g. kub" aria-label="Search prefix">
+            </div>
+            <ul class="sugg" id="sugg" role="listbox" aria-live="polite"></ul>
+            <div class="try" id="try"><span>try</span></div>
+          </div>
+          <div>
+            <div class="path" id="path" aria-label="Trie path"></div>
+            <div class="stats">
+              <div class="cool" id="st-nodes"><b>0</b><span>nodes visited</span></div>
+              <div id="st-exam"><b>0</b><span>entries examined</span></div>
+              <div><b id="st-sub">0</b><span>queries under prefix</span></div>
+            </div>
+            <p class="explain" id="explain"></p>
+          </div>
+        </div>
+        <div class="ctl">
+          <div>
+            <span style="font-family:var(--mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim); display:block; margin-bottom:0.35rem;">Lookup strategy</span>
+            <div class="seg" role="group" aria-label="Lookup strategy">
+              <button type="button" id="m-trie" aria-pressed="true">Precomputed top-k trie</button>
+              <button type="button" id="m-scan" aria-pressed="false">Naive scan + sort</button>
+            </div>
+          </div>
+          <label><input type="checkbox" id="policy" checked><span>Policy filter applied at build time <span style="color:var(--dim);">(turn off to see piracy-flagged queries surface; the trie is rebuilt each time, like a snapshot)</span></span></label>
+        </div>
+      </div>
+    </div>
+
+    <p><strong>What to notice.</strong></p>
+    <ul class="plain">
+      <li>With the trie, "nodes visited" tracks the length of the prefix you typed. Add queries to the log and it does not move. The naive scan examines every entry on every keystroke; at ten million logged queries, that column is the outage.</li>
+      <li>The whole trick is the list stored on each node. It costs memory, because every node holds its own top five, and it buys a lookup with no sorting. That is the same trade as the FST's index-time weights.</li>
+      <li>Toggling the policy filter rebuilds the structure, because the cached lists are baked into the snapshot. A takedown that only exists in the next build is too slow, which is why section 8 adds a read-time overlay.</li>
+    </ul>
+
+    <!-- ============ 5 · autoc ============ -->
+    <div class="sec-head" id="pipeline">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autoc</span><span class="ghost">omplete</span></div>
+      <h2>The write path is a <em>batch pipeline</em></h2>
+    </div>
+
+    <p>Reads are fast because writes are slow, deliberate and offline. The system never updates a live structure per search. It aggregates logs into counts, filters them, builds an immutable snapshot, and swaps that snapshot in atomically.</p>
+
+    <div class="fig">
+      <div class="fig-head"><span>Fig. 2 · From search logs to a served snapshot</span><span>solid: main path · dashed: trending fast path</span></div>
+      <div class="svg-scroll">
+        <svg viewBox="0 0 860 300" role="img" aria-label="Pipeline: search logs to event stream to windowed aggregation to policy filter to snapshot builder, then object store, serving fleet, edge cache and client. A dashed fast path runs from aggregation to the serving fleet. The client also feeds keystroke and acceptance events back to the logs.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0d1b2e"/></marker>
+            <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2a5bff"/></marker>
+          </defs>
+          <g fill="#ffffff" stroke="#0d1b2e" stroke-width="1.5">
+            <rect x="20" y="40" width="130" height="58" rx="6"/>
+            <rect x="190" y="40" width="130" height="58" rx="6"/>
+            <rect x="360" y="40" width="130" height="58" rx="6"/>
+            <rect x="530" y="40" width="130" height="58" rx="6"/>
+            <rect x="700" y="40" width="130" height="58" rx="6" fill="#0d1b2e"/>
+            <rect x="700" y="200" width="130" height="58" rx="6"/>
+            <rect x="530" y="200" width="130" height="58" rx="6" fill="#ffe14d"/>
+            <rect x="360" y="200" width="130" height="58" rx="6"/>
+            <rect x="190" y="200" width="130" height="58" rx="6"/>
+          </g>
+          <g font-size="12" text-anchor="middle" fill="#0d1b2e">
+            <text x="85" y="66" font-weight="600">Search logs</text><text x="85" y="83" fill="#5d6e85" font-size="10.5">query · ts · locale</text>
+            <text x="255" y="66" font-weight="600">Event stream</text><text x="255" y="83" fill="#5d6e85" font-size="10.5">durable, replayable</text>
+            <text x="425" y="66" font-weight="600">Windowed counts</text><text x="425" y="83" fill="#5d6e85" font-size="10.5">decay · min users</text>
+            <text x="595" y="66" font-weight="600">Policy filter</text><text x="595" y="83" fill="#5d6e85" font-size="10.5">dedupe · denylist</text>
+            <text x="765" y="66" font-weight="600" fill="#ffffff">Snapshot builder</text><text x="765" y="83" fill="#9fb4de" font-size="10.5">top-k trie / FST</text>
+            <text x="765" y="226" font-weight="600">Object store</text><text x="765" y="243" fill="#5d6e85" font-size="10.5">versioned snapshots</text>
+            <text x="595" y="226" font-weight="600">Serving fleet</text><text x="595" y="243" fill="#34445c" font-size="10.5">load · atomic swap</text>
+            <text x="425" y="226" font-weight="600">Edge cache</text><text x="425" y="243" fill="#5d6e85" font-size="10.5">prefix + version key</text>
+            <text x="255" y="226" font-weight="600">Client</text><text x="255" y="243" fill="#5d6e85" font-size="10.5">debounce · abort · cache</text>
+          </g>
+          <g stroke="#0d1b2e" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+            <path d="M150 69H188"/><path d="M320 69H358"/><path d="M490 69H528"/><path d="M660 69H698"/>
+            <path d="M765 98V198"/>
+            <path d="M700 229H662"/><path d="M530 229H492"/><path d="M360 229H322"/>
+            <path d="M190 229H85V100"/>
+          </g>
+          <path d="M470 98 C 500 150, 540 170, 575 198" stroke="#2a5bff" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#ahb)"/>
+          <g font-size="10.5" fill="#2a5bff"><text x="498" y="140">trending delta</text><text x="498" y="154">every few min</text></g>
+          <g font-size="10.5" fill="#5d6e85"><text x="30" y="150">keystrokes +</text><text x="30" y="164">accepted picks</text></g>
+        </svg>
+      </div>
+      <div class="fig-foot">The serving fleet only ever sees finished snapshots. Nothing on the read path writes.</div>
+    </div>
+
+    <ul class="plain">
+      <li><strong>Windowed counts with decay.</strong> Raw all-time counts freeze the past in place. Weight recent activity more heavily so a query that is rising overtakes one that is merely old.</li>
+      <li><strong>Eligibility thresholds.</strong> Require a minimum number of distinct users before a query can be suggested. That one rule filters most manipulation attempts and keeps rare, possibly personal strings (a name, an email address) out of a public dropdown.</li>
+      <li><strong>Immutable, versioned snapshots.</strong> Each build is a new object. Servers load it beside the live one and flip a pointer, so a rollback is repointing to the previous version.</li>
+      <li><strong>A small trending overlay.</strong> A full rebuild suits stable catalogues; news-like domains need a fast path that merges a short list of rising queries on top. Rebuild cadence is a product decision, not a technical constant: hours for a catalogue, minutes for anything event-driven.</li>
+    </ul>
+
+    <!-- ============ 6 · autoco ============ -->
+    <div class="sec-head" id="serving">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autoco</span><span class="ghost">mplete</span></div>
+      <h2>Serving: cache the <em>short prefixes</em></h2>
+    </div>
+
+    <p>Short prefixes are the hottest keys in the system and the easiest to cache. Millions of users typing "k" are asking an identical question. The request should be a cacheable <code>GET</code> whose URL fully describes the answer, including which snapshot produced it.</p>
+
+    <div class="code-card">
+      <div class="code-head"><span>HTTP contract</span><span><b>cacheable</b> · version in the key</span></div>
+<pre class="code plain">GET /suggest?q=kub&amp;loc=en-IN&amp;v=2026-10-29T06 HTTP/2
+
+200 OK
+Cache-Control: public, max-age=60, stale-while-revalidate=300
+Content-Type: application/json
+
+{"q":"kub","v":"2026-10-29T06","items":["kubernetes","kubectl cheat sheet","kubernetes pod crashloopbackoff"]}</pre>
+    </div>
+
+    <ul class="plain">
+      <li><strong>Put the snapshot version in the cache key.</strong> A new snapshot then invalidates itself, and a half-swapped fleet cannot poison the edge with mixed answers.</li>
+      <li><strong>Split shared from personal.</strong> The base list is identical for everyone in a locale, so it caches at the edge. Personalised or recent-history suggestions cannot be shared; merge those in the client or in a thin layer after the cache.</li>
+      <li><strong>Replicate before you shard.</strong> After pruning, an autocomplete index is often small enough to hold whole on every node. Sharding by leading characters creates hot shards, because letter frequency is wildly uneven. Adding identical replicas scales reads without that skew.</li>
+      <li><strong>Coalesce misses.</strong> After a deploy or a cache flush, thousands of clients ask for the same cold prefix at once. Collapse concurrent identical requests into one origin fetch.</li>
+    </ul>
+
+    <!-- ============ 7 · autocom ============ -->
+    <div class="sec-head" id="client">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autocom</span><span class="ghost">plete</span></div>
+      <h2>The client is half the <em>architecture</em></h2>
+    </div>
+
+    <p>Network responses do not arrive in the order requests were sent. Type "kube" and four requests leave; if the third takes longest, a naive client renders it last and the dropdown shows answers for "kub" under an input that says "kube". Nothing errors and nothing pages. The suggestions are simply wrong. The lab replays that sequence with fixed latencies.</p>
+
+    <div class="lab" id="race-lab">
+      <div class="lab-head"><span><b>Lab 2</b> · out-of-order responses</span><span>4 keystrokes · fixed latencies</span></div>
+      <div class="lab-body">
+        <div class="race-tabs">
+          <div class="seg" role="group" aria-label="Client strategy">
+            <button type="button" id="r-naive" aria-pressed="true">Naive: last arrival wins</button>
+            <button type="button" id="r-guard" aria-pressed="false">Guarded: newest request only</button>
+          </div>
+        </div>
+        <div id="lanes"></div>
+        <div class="axis"><span></span><div><span>0 ms</span><span>260</span><span>520 ms</span></div></div>
+        <div class="order" id="order"></div>
+        <div class="outcome" id="outcome"></div>
+      </div>
+    </div>
+
+    <p>The fix is small and has to exist from day one: tag each request with a sequence number, render only the response that matches the latest keystroke, and abort superseded requests so the network does not carry work nobody will read. The controller below also covers three details that cause most production oddities.</p>
+
+    <div class="code-card">
+      <div class="code-head"><span>client / typeahead.ts</span><span><b>seq guard</b> · abort · IME aware</span></div>
+<pre class="code">type Suggest = { q: string; items: string[]; v: string };
+
+export function createTypeahead(
+  fetchSuggest: (q: string, signal: AbortSignal) =&gt; Promise&lt;Suggest&gt;,
+  render: (items: string[]) =&gt; void,
+  { debounceMs = 60, minChars = 1, timeoutMs = 250 } = {}
+) {
+  const cache = new Map&lt;string, string[]&gt;();  // prefix -&gt; items (clear when the snapshot version changes)
+  let timer: ReturnType&lt;typeof setTimeout&gt; | undefined;
+  let inflight: AbortController | undefined;
+  let seq = 0;
+  let composing = false;                        // IME: never query mid-composition
+
+  async function run(q: string, mySeq: number) {
+    inflight?.abort();                          // supersede the previous request
+    const ctl = (inflight = new AbortController());
+    const deadline = setTimeout(() =&gt; ctl.abort(), timeoutMs);
+    try {
+      const res = await fetchSuggest(q, ctl.signal);
+      if (mySeq !== seq) return;                // stale: a newer keystroke exists
+      cache.set(q, res.items);
+      render(res.items);
+    } catch {
+      // best-effort: fail silent so the search box itself stays usable
+    } finally {
+      clearTimeout(deadline);
+    }
+  }
+
+  return {
+    onInput(raw: string) {
+      if (composing) return;
+      const q = raw.trim().toLowerCase().normalize("NFKC");  // must match build-time normalisation
+      const mySeq = ++seq;
+      clearTimeout(timer);
+      if (q.length &lt; minChars) return render([]);
+      const hit = cache.get(q);
+      if (hit) return render(hit);
+      timer = setTimeout(() =&gt; run(q, mySeq), debounceMs);
+    },
+    compositionStart() { composing = true; },
+    compositionEnd(raw: string) { composing = false; this.onInput(raw); },
+  };
+}</pre>
+    </div>
+
+    <!-- ============ 8 · autocomp ============ -->
+    <div class="sec-head" id="policy-section">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autocomp</span><span class="ghost">lete</span></div>
+      <h2>Suggestions are a <em>publishing decision</em></h2>
+    </div>
+
+    <p>The ranking signal is other people's typing, and the output is shown to everyone. That makes the suggestion list a published statement, whether or not anyone intended it to be. Courts, regulators and platform policy have all treated it that way, which turns takedown from a policy topic into an engineering requirement.</p>
+
+    <div class="note warn">
+      <span class="tag">Real incident · Germany, 14 May 2013</span>
+      <h3>BGH VI ZR 269/12: liability starts at notice</h3>
+      <p>Germany's Federal Court of Justice ruled on a case where typing a businessman's name produced the completions "Scientology" and "fraud". The court held that such suggestions can infringe personality rights, that the operator is not obliged to vet every generated suggestion in advance, and that it can be liable once it has been notified and fails to act.</p>
+      <p>The engineering reading: a notice-and-removal path for individual suggestions is not optional. It needs an intake, an audit trail and a defined time to take effect.</p>
+    </div>
+
+    <div class="note warn">
+      <span class="tag">Real policy · Google autocomplete, ongoing</span>
+      <h3>Remove the prediction and its relatives</h3>
+      <p>Google publishes autocomplete policies and says its automated systems try to prevent violating predictions, with enforcement teams removing those that slip through. Removals can also follow valid legal requests, spam, or close association with piracy. When Google acts on a reported prediction it removes the specific one and closely related variations, and in September 2020 it expanded the election-related rules to cover predictions that could be read as claims for or against a candidate or party.</p>
+      <p>Removing one exact string is therefore not enough. Variants differ by spelling, spacing, word order and language.</p>
+    </div>
+
+    <p>Turning that into a design gives a layered filter, none of which is the ranking model:</p>
+    <ul class="plain">
+      <li><strong>Eligibility rules at build time</strong>: minimum distinct users, spam and duplicate suppression, category policy checks. This is the filter the lab's checkbox demonstrates.</li>
+      <li><strong>A read-time denylist overlay</strong> applied after the snapshot lookup, so an approved takedown takes effect in minutes rather than at the next build. Over-fetch a few extra candidates (k plus a margin) so removal does not leave a short list.</li>
+      <li><strong>Normalised matching</strong> that expands a removal to case, spacing, punctuation and transliteration variants before the denylist is consulted.</li>
+      <li><strong>Edge purge on takedown.</strong> A removed suggestion cached for sixty seconds is still a published suggestion. Tie the purge to the same workflow that updates the overlay.</li>
+      <li><strong>An audit log</strong> recording who requested the removal, who approved it and when it reached the edge.</li>
+    </ul>
+
+    <!-- ============ 9 · autocompl ============ -->
+    <div class="sec-head" id="observability">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autocompl</span><span class="ghost">ete</span></div>
+      <h2>What to <em>measure</em></h2>
+    </div>
+
+    <p>Averages hide this system's failures. A healthy median can coexist with a broken snapshot in one locale or a cache that quietly stopped hitting for two-letter prefixes. These eight indicators cover latency, freshness, quality and the policy path. Targets are illustrative; calibrate them against your own traffic.</p>
+
+    <div class="sli-grid">
+      <div class="sli"><span class="k">Latency</span><h4>Service p99</h4><p>Time inside the suggest service. It should be flat, because the work is a memory lookup.</p><div class="tgt"><b>Example target:</b> single-digit ms. <b>Pages on:</b> sustained p99 burn.</div></div>
+      <div class="sli"><span class="k">Latency · real users</span><h4>Keystroke-to-render</h4><p>Measured in the browser, so debounce, network and paint are all included.</p><div class="tgt"><b>Example target:</b> p95 near the 100 ms line. <b>Pages on:</b> regression after a deploy.</div></div>
+      <div class="sli"><span class="k">Caching</span><h4>Edge hit ratio by prefix length</h4><p>Sliced by length because short prefixes should be near-perfect hits. A drop signals a fragmented cache key.</p><div class="tgt"><b>Example target:</b> very high for 1–3 chars. <b>Pages on:</b> sudden fall after a param change.</div></div>
+      <div class="sli"><span class="k">Correctness</span><h4>Zero-suggestion rate</h4><p>By locale and prefix length. A spike usually means a broken snapshot or a normalisation mismatch between build and query.</p><div class="tgt"><b>Example target:</b> stable baseline per locale. <b>Pages on:</b> step change.</div></div>
+      <div class="sli"><span class="k">Freshness</span><h4>Snapshot age and swap lag</h4><p>How old the served snapshot is and whether every replica runs the same version.</p><div class="tgt"><b>Example target:</b> fleet on one version. <b>Pages on:</b> age beyond twice the build interval.</div></div>
+      <div class="sli"><span class="k">Quality</span><h4>Acceptance rate</h4><p>Selected suggestions as a share of sessions that saw any. Ranking changes show up here before anyone complains.</p><div class="tgt"><b>Example target:</b> trend, not a constant. <b>Pages on:</b> sharp drop after a ranking release.</div></div>
+      <div class="sli"><span class="k">Policy</span><h4>Takedown propagation</h4><p>Time from approved removal to absence at the edge, measured end to end with a probe.</p><div class="tgt"><b>Example target:</b> minutes, never the next build. <b>Pages on:</b> any breach.</div></div>
+      <div class="sli"><span class="k">Client health</span><h4>Stale-drop rate</h4><p>Responses discarded by the sequence guard. A rise means slow tails on the network or origin.</p><div class="tgt"><b>Example target:</b> low and steady. <b>Pages on:</b> climb alongside p99.</div></div>
+    </div>
+
+    <!-- ============ 10 · autocomple ============ -->
+    <div class="sec-head" id="failures">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autocomple</span><span class="ghost">te</span></div>
+      <h2>How it <em>fails</em></h2>
+    </div>
+
+    <div class="fm">
+      <div class="fm-head"><span class="id">AC-01</span><h4>Half-swapped snapshot</h4></div>
+      <div class="fm-body">
+        <p>Replicas load a new snapshot at different moments. A client hitting two of them sees one list for "k" and a different list for "ku", and a shared cache stores both.</p>
+        <p class="fix">Version every snapshot, swap one atomic pointer per replica, and put the version in the cache key so mixed answers can never share an entry.</p>
+      </div>
+    </div>
+    <div class="fm">
+      <div class="fm-head"><span class="id">AC-02</span><h4>Cold-start stampede</h4></div>
+      <div class="fm-body">
+        <p>A deploy or edge flush empties every cache. The first minute of traffic arrives as identical misses for the same short prefixes and lands on origin together.</p>
+        <p class="fix">Pre-warm from the previous snapshot's hottest prefixes, use stale-while-revalidate, and coalesce concurrent identical misses.</p>
+      </div>
+    </div>
+    <div class="fm">
+      <div class="fm-head"><span class="id">AC-03</span><h4>Poisoned or private query log</h4></div>
+      <div class="fm-body">
+        <p>Coordinated repeat searches can manufacture a suggestion, and rare queries can contain names or contact details that should never appear in a public dropdown.</p>
+        <p class="fix">Count distinct users, not raw events; set a minimum eligibility threshold; and run policy filtering before the builder, not after.</p>
+      </div>
+    </div>
+    <div class="fm">
+      <div class="fm-head"><span class="id">AC-04</span><h4>Suggest outage blocks search</h4></div>
+      <div class="fm-body">
+        <p>The dropdown depends on an endpoint that is down, and a client that waits on it freezes the input or disables submit.</p>
+        <p class="fix">Treat suggestions as best-effort: a short timeout, silent failure, and a submit path that shares nothing with the suggest path.</p>
+      </div>
+    </div>
+    <div class="fm">
+      <div class="fm-head"><span class="id">AC-05</span><h4>Normalisation drift</h4></div>
+      <div class="fm-body">
+        <p>The builder folds case and Unicode one way and the client another, so some real prefixes miss entirely. IME composition makes it worse: querying halfway through a composed character produces garbage prefixes.</p>
+        <p class="fix">Share one normalisation spec between build and query, and suppress requests while composition is in progress, as the controller above does.</p>
+      </div>
+    </div>
+
+    <!-- ============ 11 · autocomplete ============ -->
+    <div class="sec-head" id="close">
+      <div class="sbox"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed">autocomplete</span><span class="ret">⏎</span></div>
+      <h2>The shape of <em>the whole design</em></h2>
+    </div>
+
+    <div class="closing">
+      <div class="lab-tag">Summary</div>
+      <p>Autocomplete is a read path fed by a firehose of user text, so the architecture is mostly about moving work to the right side of the keystroke. Precompute ranked lists offline. Ship immutable, versioned snapshots. Cache short prefixes at the edge with the version in the key. Make the client defensive about order, timing and input methods. Treat every suggestion as something the organisation has published, with a filter that works at build time and a removal that works in minutes. Then instrument the places where it fails quietly, because this feature never throws an error when it is wrong.</p>
+    </div>
+
+    <div class="next-up">
+      <span class="label">Next in this series</span>
+      Schema migrations at scale — running them without locking the table your traffic depends on.
+    </div>
+
+    <div class="sources">
+      <h5>Sources &amp; further reading</h5>
+      <ol>
+        <li>Google, "How Google autocomplete works in Search": <a href="https://blog.google/products-and-platforms/products/search/how-google-autocomplete-works-search/" rel="noopener">blog.google</a></li>
+        <li>Google Search Help, "How Google autocomplete predictions work": <a href="https://support.google.com/websearch/answer/7368877" rel="noopener">support.google.com</a></li>
+        <li>Google Instant retirement, July 2017: <a href="https://betanews.com/2017/07/26/google-instant-search-dies" rel="noopener">BetaNews report</a></li>
+        <li>Bundesgerichtshof, 14 May 2013, VI ZR 269/12: <a href="https://merlin.obs.coe.int/article/6547" rel="noopener">IRIS Merlin summary</a>, <a href="https://wilmap.stanford.edu/node/29896" rel="noopener">Stanford WILMap</a></li>
+        <li>Google election-related autocomplete changes, September 2020: <a href="https://techcrunch.com/2020/09/10/google-autocomplete-election/" rel="noopener">TechCrunch</a></li>
+        <li>Elastic, "You Complete Me" (completion suggester design): <a href="https://www.elastic.co/blog/you-complete-me" rel="noopener">elastic.co</a></li>
+        <li>Elasticsearch reference, search-as-you-type field type: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.x/search-as-you-type.html" rel="noopener">elastic.co</a></li>
+      </ol>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 e-diversify
+  </footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- scroll progress ---------- */
+  var prog = document.getElementById('prog');
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- tiny syntax highlighter for pre.code (not .plain) ---------- */
+  document.querySelectorAll('pre.code:not(.plain)').forEach(function(pre){
+    var src = pre.textContent;
+    var re = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(import|from|export|type|function|const|let|return|if|await|async|try|catch|finally|new|this|true|false|string|number|boolean|void)\b|\b([A-Za-z_$][\w$]*)(?=\()/g;
+    var out = '', last = 0, m;
+    function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    while ((m = re.exec(src)) !== null){
+      out += esc(src.slice(last, m.index));
+      var cls = m[1] ? 'tk-c' : m[2] ? 'tk-s' : m[3] ? 'tk-k' : 'tk-f';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += esc(src.slice(last));
+    pre.innerHTML = out;
+  });
+
+  /* @@pure-start */
+  var LOG = [
+    ["kubernetes",9800],["kubernetes pod crashloopbackoff",7400],["kubernetes ingress nginx",6100],
+    ["kubectl cheat sheet",8200],["kubectl port forward",5200],["kubectl rollout restart",4300],
+    ["kafka consumer lag",5600],["kafka vs rabbitmq",5100],["keycloak spi",1800],["keycloak realm export",1500],
+    ["docker compose",9100],["docker vs firecracker",2600],["docker image size",3900],["docker no space left on device",4700],
+    ["datadog log pipeline",2100],["datadog apm",3300],
+    ["terraform state lock",4200],["terraform vs pulumi",3800],["terraform import",4900],
+    ["postgres vacuum",4600],["postgres index types",3700],["postgres connection pool",3500],
+    ["pgvector hnsw",2400],["pgvector ivfflat",1100],
+    ["prometheus alert rules",4400],["prometheus remote write",1900],
+    ["grafana dashboard json",3600],["grafana loki",3000],
+    ["opentelemetry collector",3900],["opentelemetry traces",2800],
+    ["redis sorted set",3200],["redis cluster",3400],["redis vs memcached",2900],
+    ["elasticsearch mapping",3100],["elasticsearch completion suggester",1300],["elasticsearch shard size",2500],
+    ["nginx rate limit",3600],["nginx reverse proxy",5300],
+    ["slo error budget",2700],["sre on call rotation",2200],["service mesh",4000],
+    ["sbom spdx",900],["sbom cyclonedx",700],["license scanner ci",600],
+    ["crack jetbrains license key",6500,true],["cracked docker desktop",2100,true]
+  ];
+  var K = 5;
+
+  function norm(s){ return s.toLowerCase().normalize('NFKC').replace(/\s+/g,' ').replace(/^\s+/,''); }
+
+  function toEntries(policyOn){
+    var all = LOG.map(function(r){ return {q:r[0], score:r[1], flag:!!r[2]}; });
+    return policyOn ? all.filter(function(e){ return !e.flag; }) : all;
+  }
+
+  function buildTrie(entries, k){
+    var root = {kids:new Map(), top:[], count:0}, nodes = 1;
+    function push(n, e){
+      n.count++; n.top.push(e);
+      n.top.sort(function(a,b){ return b.score - a.score; });
+      if (n.top.length > k) n.top.length = k;
+    }
+    entries.forEach(function(e){
+      var n = root; push(n, e);
+      Array.from(e.q).forEach(function(ch){
+        var c = n.kids.get(ch);
+        if (!c){ c = {kids:new Map(), top:[], count:0}; n.kids.set(ch, c); nodes++; }
+        n = c; push(n, e);
+      });
+    });
+    return {root:root, nodes:nodes};
+  }
+
+  function lookupTrie(trie, prefix){
+    var n = trie.root, visited = 1, path = [{p:'', count:n.count}];
+    var chars = Array.from(prefix), built = '';
+    for (var i = 0; i < chars.length; i++){
+      built += chars[i];
+      var c = n.kids.get(chars[i]);
+      if (!c) return {top:[], visited:visited, path:path, dead:built, count:0};
+      n = c; visited++; path.push({p:built, count:n.count});
+    }
+    return {top:n.top, visited:visited, path:path, count:n.count};
+  }
+
+  function lookupScan(entries, prefix, k){
+    var hits = entries.filter(function(e){ return e.q.indexOf(prefix) === 0; });
+    hits.sort(function(a,b){ return b.score - a.score; });
+    return {top:hits.slice(0,k), examined:entries.length, count:hits.length};
+  }
+
+  var REQS = [{q:'k',t:0,lat:300},{q:'ku',t:120,lat:90},{q:'kub',t:240,lat:260},{q:'kube',t:360,lat:80}];
+  function simulate(guarded){
+    var ev = REQS.map(function(r,i){ return {q:r.q, t:r.t, lat:r.lat, i:i, arr:r.t + r.lat}; })
+                 .sort(function(a,b){ return a.arr - b.arr; });
+    var shown = null, rows = [];
+    ev.forEach(function(e){
+      var latest = -1;
+      REQS.forEach(function(r,i){ if (r.t <= e.arr) latest = i; });
+      var ok = guarded ? e.i === latest : true;
+      if (ok) shown = e.q;
+      rows.push({q:e.q, t:e.t, lat:e.lat, i:e.i, arr:e.arr, ok:ok});
+    });
+    return {rows:rows, shown:shown};
+  }
+  /* @@pure-end */
+
+  /* ---------- Lab 1 · trie ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  function el(tag, cls, text){ var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  var state = {mode:'trie', policy:true, active:-1, trie:null, entries:null};
+
+  function rebuild(){
+    state.entries = toEntries(state.policy);
+    state.trie = buildTrie(state.entries, K);
+    $('lab-build').textContent = 'trie built · ' + state.trie.nodes + ' nodes · k=' + K + ' · ' + state.entries.length + ' queries · policy filter ' + (state.policy ? 'on' : 'off');
+  }
+
+  function fmt(n){ return n.toLocaleString('en-US'); }
+
+  function render(){
+    var raw = $('q').value, p = norm(raw);
+    var list = $('sugg'), path = $('path');
+    list.textContent = ''; path.textContent = '';
+    var top = [], visited = 0, examined = 0, sub = 0, dead = null, explain = '';
+    state.top = [];
+
+    if (p === ''){
+      list.appendChild(el('li','empty','Type a prefix to see suggestions.'));
+      $('explain').textContent = 'Start typing. The trie path and cost counters update on every keystroke.';
+      $('st-nodes').firstChild.textContent = '0'; $('st-exam').firstChild.textContent = '0'; $('st-sub').textContent = '0';
+      state.active = -1; return;
+    }
+
+    if (state.mode === 'trie'){
+      var r = lookupTrie(state.trie, p);
+      top = r.top; visited = r.visited; examined = r.top.length; sub = r.count; dead = r.dead || null;
+      r.path.forEach(function(s, i){
+        if (i) path.appendChild(el('span','arr','›'));
+        var chip = el('span','chip' + (i === r.path.length - 1 && !dead ? ' cur' : ''), s.p === '' ? 'root' : s.p.slice(-1));
+        chip.appendChild(el('small', null, fmt(s.count)));
+        path.appendChild(chip);
+      });
+      if (dead){ path.appendChild(el('span','arr','›')); path.appendChild(el('span','chip dead', dead.slice(-1) + ' · no child')); }
+      explain = dead
+        ? 'The walk fell off the trie at "' + dead + '". No logged query starts with that prefix, so the lookup ended early.'
+        : 'Walked ' + visited + ' nodes and read the top-' + K + ' list already stored on the last one. No sorting at request time.';
+      $('st-nodes').className = 'cool'; $('st-exam').className = '';
+    } else {
+      var s = lookupScan(state.entries, p, K);
+      top = s.top; examined = s.examined; sub = s.count; visited = 0;
+      explain = 'Filtered all ' + s.examined + ' entries by prefix, then sorted the ' + s.count + ' matches by score. Every keystroke repeats the full scan.';
+      $('st-nodes').className = ''; $('st-exam').className = 'hot';
+      path.appendChild(el('span','chip','no trie · linear scan'));
+    }
+
+    $('st-nodes').firstChild.textContent = state.mode === 'trie' ? String(visited) : '–';
+    $('st-exam').firstChild.textContent = String(examined);
+    $('st-sub').textContent = String(sub);
+    $('explain').textContent = explain;
+
+    state.top = top;
+    if (!top.length){
+      list.appendChild(el('li','empty', 'No suggestions for "' + p + '".'));
+      state.active = -1; return;
+    }
+    top.forEach(function(e, i){
+      var li = el('li'); li.setAttribute('role','option'); li.setAttribute('aria-selected', i === state.active ? 'true' : 'false');
+      var left = el('span');
+      left.appendChild(document.createTextNode(e.q.slice(0, p.length)));
+      left.appendChild(el('b', null, e.q.slice(p.length)));
+      if (e.flag) left.appendChild(el('span','flag','policy-flagged'));
+      li.appendChild(left);
+      li.appendChild(el('span','sc', fmt(e.score)));
+      li.addEventListener('mousedown', function(ev){ ev.preventDefault(); pick(e.q); });
+      list.appendChild(li);
+    });
+    state.top = top;
+  }
+
+  function pick(q){ $('q').value = q; state.active = -1; render(); }
+
+  var input = $('q');
+  input.addEventListener('input', function(){ state.active = -1; render(); });
+  input.addEventListener('keydown', function(ev){
+    var n = state.top ? state.top.length : 0;
+    if (!n) return;
+    if (ev.key === 'ArrowDown'){ ev.preventDefault(); state.active = (state.active + 1) % n; render(); }
+    else if (ev.key === 'ArrowUp'){ ev.preventDefault(); state.active = (state.active - 1 + n) % n; render(); }
+    else if (ev.key === 'Enter' && state.active >= 0){ ev.preventDefault(); pick(state.top[state.active].q); }
+  });
+
+  ['k','kub','post','crack','sbom','pgvector h'].forEach(function(s){
+    var b = el('button', null, s); b.type = 'button';
+    b.addEventListener('click', function(){ input.value = s; state.active = -1; render(); input.focus(); });
+    $('try').appendChild(b);
+  });
+
+  function setMode(m){
+    state.mode = m;
+    $('m-trie').setAttribute('aria-pressed', m === 'trie');
+    $('m-scan').setAttribute('aria-pressed', m === 'scan');
+    render();
+  }
+  $('m-trie').addEventListener('click', function(){ setMode('trie'); });
+  $('m-scan').addEventListener('click', function(){ setMode('scan'); });
+  $('policy').addEventListener('change', function(){ state.policy = this.checked; rebuild(); render(); });
+
+  rebuild();
+  input.value = 'kub';
+  render();
+
+  /* ---------- Lab 2 · race ---------- */
+  var raceMode = false;
+  var COLORS = ['#a9b8d6','#8fa6d6','#7792d6','#4f7bff'];
+  function renderRace(){
+    var sim = simulate(raceMode), lanes = $('lanes');
+    lanes.textContent = '';
+    var byIdx = {};
+    sim.rows.forEach(function(r){ byIdx[r.i] = r; });
+    REQS.forEach(function(r, i){
+      var row = byIdx[i];
+      var lane = el('div','lane');
+      lane.appendChild(el('span','lbl','"' + r.q + '"'));
+      var track = el('div','track');
+      var bar = el('div','bar'); bar.style.left = (r.t / 520 * 100) + '%'; bar.style.width = (r.lat / 520 * 100) + '%'; bar.style.background = COLORS[i];
+      var dot = el('div','dot ' + (row.ok ? 'ok' : 'no'), row.ok ? '✓' : '×'); dot.style.left = (row.arr / 520 * 100) + '%';
+      dot.title = 'response arrives at ' + row.arr + ' ms · ' + (row.ok ? 'rendered' : 'dropped as stale');
+      track.appendChild(bar); track.appendChild(dot); lane.appendChild(track); lanes.appendChild(lane);
+    });
+    $('order').textContent = 'Arrival order: ' + sim.rows.map(function(r){ return '"' + r.q + '" @' + r.arr + 'ms' + (r.ok ? '' : ' (dropped)'); }).join(' → ');
+    var out = $('outcome'), good = sim.shown === 'kube';
+    out.className = 'outcome ' + (good ? 'good' : 'bad');
+    out.textContent = '';
+    out.appendChild(document.createTextNode(good ? 'Input says ' : 'Input says '));
+    out.appendChild(el('code', null, 'kube'));
+    out.appendChild(document.createTextNode(good ? ' and the dropdown shows suggestions for ' : ' but the dropdown shows suggestions for '));
+    out.appendChild(el('code', null, sim.shown));
+    out.appendChild(document.createTextNode(good ? '. In sync: stale responses were discarded.' : '. A slow earlier response overwrote the newest one.'));
+  }
+  function setRace(g){
+    raceMode = g;
+    $('r-naive').setAttribute('aria-pressed', !g);
+    $('r-guard').setAttribute('aria-pressed', g);
+    renderRace();
+  }
+  $('r-naive').addEventListener('click', function(){ setRace(false); });
+  $('r-guard').addEventListener('click', function(){ setRace(true); });
+  renderRace();
+})();
+</script>
+</body>
+</html>
