@@ -85,7 +85,7 @@
   .top-nav{
     position:fixed; top:3px; left:0; right:0; z-index:100;
     display:flex; align-items:center; justify-content:space-between;
-    padding:0.85rem 6vw;
+    padding:0.85rem max(clamp(20px,5vw,48px), calc((100vw - 1180px) / 2 + clamp(20px,5vw,48px)));
     background:rgba(243,246,251,0.86);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
@@ -95,7 +95,11 @@
   .top-nav a:hover{color:var(--blue);}
   .top-nav .brand{font-family:var(--serif); font-size:1.35rem; letter-spacing:0; text-transform:none; color:var(--ink);}
 
-  .wrap{max-width:860px; margin:0 auto; padding:0 6vw; position:relative;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(20px,5vw,48px); position:relative;}
+  /* readable measure for running text; figures, labs, tables and cards use the full width */
+  .wrap > p, .wrap > ul.plain{max-width:760px;}
+  .note, .fm, .sources, .next-up{max-width:900px;}
+  .closing p{max-width:80ch;}
 
   /* ---------- HERO ---------- */
   header.hero{padding-top:118px; padding-bottom:1.6rem;}
@@ -315,7 +319,7 @@
   .sources ol{padding-left:1.2rem;}
   .sources li{margin-bottom:0.3rem; word-break:break-word;}
 
-  footer{max-width:860px; margin:0 auto; padding:3rem 6vw 5rem; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);}
+  footer{max-width:1180px; margin:0 auto; padding:3rem clamp(20px,5vw,48px) 5rem; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--dim);}
 
   @media (prefers-reduced-motion:reduce){ .pill .caret{animation:none;} html{scroll-behavior:auto;} #prog{transition:none;} }
   @media (max-width:600px){
