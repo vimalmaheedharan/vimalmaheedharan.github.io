@@ -97,9 +97,25 @@
 
   .wrap{max-width:1180px; margin:0 auto; padding:0 clamp(20px,5vw,48px); position:relative;}
   /* readable measure for running text; figures, labs, tables and cards use the full width */
-  .wrap > p, .wrap > ul.plain{max-width:760px;}
-  .note, .fm, .sources, .next-up{max-width:900px;}
+  .content > p, .content > ul.plain{max-width:740px;}
   .closing p{max-width:80ch;}
+
+  /* ---------- BODY LAYOUT: article + sticky "on this page" rail ---------- */
+  .layout{display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:3.2rem; align-items:start;}
+  .content{min-width:0;}
+  .toc{position:sticky; top:96px; margin-top:4.2rem;}
+  .toc-box{background:var(--card); border:1.5px solid var(--ink); border-radius:16px; overflow:hidden; box-shadow:4px 4px 0 var(--ink);}
+  .toc-search{display:flex; align-items:center; gap:0.5rem; padding:0.7rem 0.95rem; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:0.82rem;}
+  .toc-search svg{color:var(--dim); flex:none;}
+  .toc-search .typed{color:var(--ink); font-weight:600;}
+  .toc-search .ghost{color:#b3bfd1;}
+  .toc nav{display:flex; flex-direction:column; padding:0.3rem 0;}
+  .toc a{display:flex; gap:0.6rem; align-items:baseline; padding:0.38rem 0.95rem; text-decoration:none; color:var(--dim); font-size:0.82rem; line-height:1.4; border-left:3px solid transparent;}
+  .toc a i{font-style:normal; font-family:var(--mono); font-size:0.64rem; color:#a3b0c4; flex:none;}
+  .toc a:hover{color:var(--blue);}
+  .toc a[aria-current="true"]{background:var(--blue-soft); color:var(--ink); font-weight:600; border-left-color:var(--blue);}
+  .toc a[aria-current="true"] i{color:var(--blue);}
+  @media (max-width:1000px){ .layout{grid-template-columns:1fr;} .toc{display:none;} }
 
   /* ---------- HERO ---------- */
   header.hero{padding-top:118px; padding-bottom:1.6rem;}
@@ -112,7 +128,7 @@
   .kicker i{width:7px; height:7px; border-radius:50%; background:var(--blue); display:inline-block;}
   header.hero h1{
     font-family:var(--serif); font-weight:400;
-    font-size:clamp(2.5rem, 6.4vw, 4.3rem); line-height:1.04; letter-spacing:-0.01em;
+    font-size:clamp(2.4rem, 5.2vw, 4rem); line-height:1.04; letter-spacing:-0.01em;
     margin-bottom:1.3rem;
   }
   header.hero h1 em{font-style:italic; color:var(--blue);}
@@ -124,7 +140,9 @@
   .byline strong{color:var(--ink);}
 
   /* hero search pill */
-  .hero-search{margin-top:2.2rem; max-width:560px;}
+  .hero-grid{display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr); gap:3rem; align-items:center;}
+  .hero-search{max-width:none; transform:rotate(1.2deg);}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr; gap:2rem;} .hero-search{transform:none; max-width:560px;} }
   .pill{
     display:flex; align-items:center; gap:0.75rem;
     background:var(--card); border:1.5px solid var(--ink); border-radius:999px 999px 0 0;
@@ -215,8 +233,7 @@
   }
   .lab-head b{color:var(--hl); font-weight:600;}
   .lab-body{padding:1.2rem 1.2rem 1.3rem;}
-  .lab-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:1.4rem;}
-  @media (max-width:760px){ .lab-grid{grid-template-columns:1fr;} }
+  .lab-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.4rem;}
 
   .searchbox{display:flex; align-items:center; gap:0.6rem; border:1.5px solid var(--ink); border-radius:999px; padding:0.2rem 1rem; background:#fff;}
   .searchbox svg{color:var(--dim); flex:none;}
@@ -341,10 +358,14 @@
 
   <div class="wrap">
     <header class="hero">
+      <div class="hero-grid">
+      <div class="hero-copy">
       <div class="kicker"><i></i>Read Path · Typeahead · Systems</div>
       <h1>Every Keystroke Is a <em>Query</em></h1>
       <p class="lede">Search autocomplete looks like the cheapest feature on the page and behaves like one of the hardest read paths in the system: it fires on every character, has a latency budget measured in human perception, and publishes text derived from what other people typed. This is the architecture that keeps it fast, fresh and defensible.</p>
+      </div>
 
+      <div class="hero-demo">
       <div class="hero-search" aria-hidden="true">
         <div class="pill">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -357,9 +378,14 @@
           <div><span>auto</span><b>complete takedown policy</b></div>
         </div>
       </div>
+      </div>
+      </div>
 
       <p class="byline">By <strong>Vimal Maheedharan</strong> — Technical Architect &amp; SRE Consultant · October 2026</p>
     </header>
+
+    <div class="layout">
+    <div class="content">
 
     <!-- ============ 1 · a ============ -->
     <div class="sec-head" id="amplification">
@@ -803,6 +829,27 @@ export function createTypeahead(
         <li>Elasticsearch reference, search-as-you-type field type: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.x/search-as-you-type.html" rel="noopener">elastic.co</a></li>
       </ol>
     </div>
+    </div>
+
+    <aside class="toc" aria-label="On this page">
+      <div class="toc-box">
+        <div class="toc-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="typed" id="toc-typed">a</span><span class="ghost" id="toc-ghost">utocomplete</span></div>
+        <nav>
+        <a href="#amplification"><i>01</i>Every keystroke is a query</a>
+        <a href="#budget"><i>02</i>The latency budget</a>
+        <a href="#structures"><i>03</i>Picking the data structure</a>
+        <a href="#lab"><i>04</i>Build one and watch it work</a>
+        <a href="#pipeline"><i>05</i>The write path</a>
+        <a href="#serving"><i>06</i>Serving and caching</a>
+        <a href="#client"><i>07</i>The client</a>
+        <a href="#policy-section"><i>08</i>Suggestions are published</a>
+        <a href="#observability"><i>09</i>What to measure</a>
+        <a href="#failures"><i>10</i>How it fails</a>
+        <a href="#close"><i>11</i>The whole design</a>
+        </nav>
+      </div>
+    </aside>
+    </div>
   </div>
 
   <footer>
@@ -1063,6 +1110,20 @@ export function createTypeahead(
   $('r-naive').addEventListener('click', function(){ setRace(false); });
   $('r-guard').addEventListener('click', function(){ setRace(true); });
   renderRace();
+
+  /* ---------- "on this page" rail follows the reader ---------- */
+  var heads = Array.prototype.slice.call(document.querySelectorAll('.sec-head'));
+  var tlinks = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var typedEl = $('toc-typed'), ghostEl = $('toc-ghost'), WORD = 'autocomplete';
+  function tocUpdate(){
+    var idx = 0;
+    heads.forEach(function(h, i){ if (h.getBoundingClientRect().top <= 150) idx = i; });
+    tlinks.forEach(function(a, i){ a.setAttribute('aria-current', i === idx ? 'true' : 'false'); });
+    var n = Math.min(idx + 1, WORD.length);
+    typedEl.textContent = WORD.slice(0, n); ghostEl.textContent = WORD.slice(n);
+  }
+  window.addEventListener('scroll', tocUpdate, {passive:true});
+  tocUpdate();
 })();
 </script>
 </body>
